@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Hamed Milani</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: Georgia, serif;
+      background-color: #fdfdfd;
+      color: #333;
     }
 
     nav {
       background-color: #333;
       color: white;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
     }
 
@@ -21,45 +23,66 @@
       color: white;
       margin: 0 15px;
       text-decoration: none;
+      font-weight: bold;
     }
 
     .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
+    }
+
+    .text-section {
+      flex: 1 1 400px;
+      padding: 20px;
+    }
+
+    .text-section h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .text-section p {
+      line-height: 1.7;
+    }
+
+    .contact {
+      margin-top: 15px;
+    }
+
+    .contact a {
+      text-decoration: none;
+      color: #0066cc;
+      display: inline-flex;
       align-items: center;
-      height: 90vh;
-      gap: 50px;
     }
 
-    .text-box {
-      width: 300px;
-      text-align: left;
+    .contact img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
     }
 
-    .text-box small {
-      display: block;
-      color: gray;
-      margin-top: 10px;
-    }
-
-    .contact-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .photo-section {
+      flex: 0 0 220px;
       text-align: center;
     }
 
-    .contact-box img {
-      width: 150px;
-      border-radius: 50%;
-      margin-bottom: 15px;
+    .photo-section img {
+      width: 200px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
-    .icons a {
-      margin: 5px;
-      font-size: 24px;
-      color: #333;
-      text-decoration: none;
+    @media (max-width: 700px) {
+      .container {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -73,21 +96,23 @@
   </nav>
 
   <div class="container">
-    <div class="contact-box">
-      <img src="your-photo.jpg" alt="Hamed's photo">
-      <div class="icons">
-        <a href="mailto:hamed.milani@ucalgary.com">📧</a>
-        <a href="https://www.linkedin.com/in/hamedmilani/">🔗</a>
-      </div>
+    <div class="photo-section">
+      <img src="your-photo.jpg" alt="Hamed Milani Photo">
     </div>
-
-    <div class="text-box">
-      <h2>Hi, Welcome to my Page!</h2>
-      <p>I am an incoming Ph.D. student in Operations and Supply Chain Management at the Haskayne School of Business, University of Calgary, advised by Dr. Marco Bijvank and Dr. Hossein Piri. Before this, I pursued Ph.D. studies in Operations Management at Koç University and earned my M.Sc. in Industrial Engineering from Sharif University of Technology. I am interested in designing mathematical models that capture real-world healthcare problems and building algorithms to turn those models into actionable insights. My research combines Operations Research and Statistics to improve decision-making under uncertainty, especially in healthcare and supply chains applications.
+    <div class="text-section">
+      <h1>Hamed Milani</h1>
+      <p>
+        I am an incoming Ph.D. student in Operations and Supply Chain Management at the Haskayne School of Business, University of Calgary, advised by Dr. Marco Bijvank and Dr. Hossein Piri. Before this, I pursued Ph.D. studies in Operations Management at Koç University and earned my M.Sc. in Industrial Engineering from Sharif University of Technology. I am interested in designing mathematical models that capture real-world healthcare problems and building algorithms to turn those models into actionable insights. My research combines Operations Research and Statistics to improve decision-making under uncertainty, especially in healthcare and supply chains applications.
 I am currently working on a project about breast cancer screening with two main parts. The first part focuses on evaluating the trade-offs and cost-effectiveness of public-level screening strategies, using a microsimulation tool. The second part is to develop a personalized framework that jointly optimizes screening and diagnosis based on individual risk factors, using approximate dynamic programming. We collaborate with co-authors from the Cumming School of Medicine and work closely with the Canadian Partnership Against Cancer (CPAC).
 Outside of research, I love cinema, literature, and metal music. I blog in English and Farsi, and I would be happy if you visit and share your thoughts!
-</p>
-      <small>Last updated: April 2025</small>
+
+      </p>
+      <div class="contact">
+        <a href="mailto:hamedmilani@gmail.com">hamedmilani@gmail.com</a><br>
+        <a href="https://www.linkedin.com/in/hamedmilani" target="_blank">
+          <img src="linkedin.png" alt="LinkedIn">LinkedIn
+        </a>
+      </div>
     </div>
   </div>
 </body>
