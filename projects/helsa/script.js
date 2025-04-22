@@ -97,3 +97,80 @@ function countWeekends(start, end) {
   }
   return count;
 }
+
+// Populate shift select dropdown from localStorage
+function loadShiftsIntoSelect(id) {
+  const select = document.getElementById(id);
+  const savedShifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+
+  // Clear and add default
+  select.innerHTML = `<option value="">-- Select a shift --</option>`;
+  savedShifts.forEach((shift, index) => {
+    const opt = document.createElement('option');
+    opt.value = index;
+    opt.textContent = shift.name;
+    select.appendChild(opt);
+  });
+
+  // Add "add new" at end
+  const addNew = document.createElement('option');
+  addNew.value = 'add-new';
+  addNew.textContent = 'Add new shift...';
+  select.appendChild(addNew);
+}
+
+// On page load
+window.onload = () => {
+  loadShiftsIntoSelect('calcShiftSelect');
+  document.getElementById('calcShiftSelect').addEventListener('change', (e) => {
+    if (e.target.value === 'add-new') {
+      openDefineModal();
+    }
+  });
+};
+
+// Modal helpers
+function openDefineModal() {
+  document.getElementById('defineShiftModal').style.display = 'block';
+  document.getElementById('shiftName').value = '';
+  document.getElementById('shiftStartDate').value = '';
+  shiftPattern = [];
+  updatePatternDisplay();
+}
+
+function closeDefineModal() {
+  document.getElementById('defineShiftModal').style.display = 'none';
+}
+
+// Pattern builder
+let shiftPattern = [];
+
+function addShiftToPattern(type) {
+  shiftPattern.push(type);
+  updatePatternDisplay();
+}
+
+function updatePatternDisplay() {
+  const display = document.getElementById('currentPatternDisplay');
+  display.innerHTML = shiftPattern.map(s => `<span>${s}</span>`).join(' → ');
+}
+
+// Save new shift
+function saveNewShift() {
+  const name = document.getElementById('shiftName').value.trim();
+  const startDate = document.getElementById('shiftStartDate').value;
+
+  if (!name || !startDate || shiftPattern.length === 0) {
+    alert('Please fill in all fields and define a pattern.');
+    return;
+  }
+
+  const newShift = { name, startDate, pattern: shiftPattern };
+  const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+  shifts.push(newShift);
+  localStorage.setItem('shifts', JSON.stringify(shifts));
+
+  closeDefineModal();
+  loadShiftsIntoSelect('calcShiftSelect'); // Refresh dropdown
+}
+
