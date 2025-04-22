@@ -324,8 +324,10 @@
                     }
                 }
 
+                const dayOfWeek = date.getDay();
+                const isWeekend = weekendDays.includes(dayOfWeek);
                 const div = document.createElement("div");
-                div.className = `calendar-cell ${entry.type}`;
+                div.className = `calendar-cell ${entry.type} ${isWeekend ? 'Off' : ''}`;
                 div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
                 grid.appendChild(div);
             });
