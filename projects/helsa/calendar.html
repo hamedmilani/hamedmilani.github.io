@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shift on Calendar</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="page-container">
+    <h2>Shift on Calendar</h2>
+    <div class="form-group">
+      <label>Select Shift:</label>
+      <select id="shiftSelect">
+        <option>Add new shift...</option>
+      </select>
+    </div>
+    <a href="calculate.html">→ Go to Calculate Shift Days</a>
+    <div id="calendarContainer"></div>
+  </div>
+
+  <!-- Modal for Define Shift -->
+  <div class="modal" id="defineShiftModal">
+    <div class="modal-content">
+      <h3>Define New Shift</h3>
+      <label>Shift Name:</label>
+      <input type="text" id="shiftName" />
+
+      <label>Starting Date:</label>
+      <input type="date" id="shiftStartDate" />
+
+      <label>Shift Pattern (click to add):</label>
+      <div id="iconPicker">
+        <span class="icon day" data-type="Day">Day</span>
+        <span class="icon evening" data-type="Evening">Evening</span>
+        <span class="icon night" data-type="Night">Night</span>
+        <span class="icon rest" data-type="Rest">Rest</span>
+      </div>
+      <div id="patternPreview"></div>
+
+      <div class="modal-buttons">
+        <button onclick="saveShift()">Save</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
