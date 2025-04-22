@@ -52,7 +52,7 @@
         .Evening { background: #fff3cd; }
         .Night { background: #d4edda; }
         .Rest { background: #e2e3e5; }
-        .Off { background: #f8d7da; color: #721c24; }
+        .Off { /* You can add specific styling for off-days here if needed */ }
         .month-separator {
             grid-column: 1 / -1;
             border-top: 2px solid black;
@@ -236,7 +236,7 @@
                 result[shiftType]++;
                 const dayOfWeek = current.getDay();
                 if (weekendDays.includes(dayOfWeek)) {
-                    offByType[shiftType]++;
+                    offByType[shiftType]++; // Increment the off-day count for the specific shift type
                 }
                 calendarData.push({ date: new Date(current), type: shiftType });
                 current.setDate(current.getDate() + 1);
@@ -292,11 +292,9 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                // Adjust Sunday (0) to be the last day (7) for Monday-start
                 if (firstDayOfMonth === 0) {
                     firstDayOfMonth = 7;
                 }
-                // Add empty cells for the days before the first day of the month
                 for (let i = 1; i < firstDayOfMonth; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
@@ -324,10 +322,8 @@
                     }
                 }
 
-                const dayOfWeek = date.getDay();
-                const isWeekend = weekendDays.includes(dayOfWeek);
                 const div = document.createElement("div");
-                div.className = `calendar-cell ${entry.type} ${isWeekend ? 'Off' : ''}`;
+                div.className = `calendar-cell ${entry.type}`;
                 div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
                 grid.appendChild(div);
             });
