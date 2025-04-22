@@ -134,3 +134,35 @@ window.onload = () => {
   loadSavedShifts();
   updateShiftSelects();
 };
+
+function showCalendar() {
+  const name = document.getElementById('calendarShiftSelect').value;
+  const shift = shifts[name];
+  const start = new Date(document.getElementById('calendarStartDate').value);
+  const end = new Date(document.getElementById('calendarEndDate').value);
+  const container = document.getElementById('calendarResults');
+  container.innerHTML = '';
+
+  if (!shift || isNaN(start) || isNaN(end) || end < start) {
+    alert('Invalid input.');
+    return;
+  }
+
+  let current = new Date(start);
+  let i = 0;
+  const pattern = shift.pattern;
+
+  while (current <= end) {
+    const type = pattern[i % pattern.length];
+    const dayBox = document.createElement('div');
+    dayBox.className = 'day-box';
+    dayBox.innerHTML = `
+      <strong>${current.toDateString()}</strong><br/>
+      ${type}
+    `;
+    container.appendChild(dayBox);
+    i++;
+    current.setDate(current.getDate() + 1);
+  }
+}
+
