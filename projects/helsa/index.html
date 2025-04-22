@@ -1,180 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Shift Scheduler</title>
+  <meta charset="UTF-8">
+  <title>Helsa Project</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
+      text-align: center;
     }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      margin-right: 10px;
-    }
-    select, input[type="date"] {
-      margin-right: 20px;
-    }
-    button {
-      margin-top: 10px;
-    }
-    #summaryBox {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-top: 20px;
-      width: fit-content;
-    }
-    #calendar {
-      margin-top: 30px;
+    .calendar-container {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-    }
-    .calendar-day {
-      border: 1px solid #ccc;
-      padding: 10px;
-      min-height: 80px;
-      position: relative;
-    }
-    .calendar-day .date {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      font-size: 12px;
-      color: #666;
-    }
-    .shift-Day {
-      background-color: #d1e7dd;
-    }
-    .shift-Evening {
-      background-color: #fff3cd;
-    }
-    .shift-Night {
-      background-color: #f8d7da;
-    }
-    .shift-Rest {
-      background-color: #e2e3e5;
-    }
-    .month-separator {
-      grid-column: 1 / -1;
-      border-top: 2px solid #000;
+      gap: 4px;
       margin-top: 20px;
-      padding-top: 5px;
+      max-width: 800px;
+      margin-inline: auto;
+    }
+    .calendar-cell {
+      border: 1px solid #ddd;
+      padding: 8px;
+      min-height: 60px;
+    }
+    .calendar-header {
       font-weight: bold;
+      background: #f0f0f0;
     }
-    #defineShiftModal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
+    .Day { background: #cce5ff; }
+    .Evening { background: #fff3cd; }
+    .Night { background: #d4edda; }
+    .Rest { background: #e2e3e5; }
+    .controls {
+      margin-bottom: 20px;
     }
-    #defineShiftModal .modal-content {
-      background: #fff;
-      padding: 20px;
-      width: 300px;
-      border-radius: 5px;
+    select, input[type="date"] {
+      margin: 0 5px;
+      padding: 5px;
     }
-    #defineShiftModal .modal-content h3 {
-      margin-top: 0;
+    button {
+      padding: 5px 10px;
+      margin-left: 10px;
     }
-    #defineShiftModal .modal-content button {
+    .summary {
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .shift-actions {
       margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <h2>Shift Scheduler</h2>
-  <div class="form-group">
+
+  <h1>Helsa Project</h1>
+  <p>Display shifts on a calendar and calculate the number of days for each shift type between two dates.</p>
+
+  <div class="controls">
     <label for="shiftSelect">Select Shift:</label>
-    <select id="shiftSelect">
-      <option value="">-- Select a shift --</option>
-    </select>
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" />
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" />
-    <button id="calculateBtn">Calculate and Show on Calendar</button>
-    <button id="exportBtn">Export</button>
+    <select id="shiftSelect"></select>
+    <input type="date" id="startDate">
+    <input type="date" id="endDate">
+    <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
   </div>
 
-  <div id="summaryBox">
-    <h3>Summary</h3>
-    <div id="summaryContent"></div>
+  <div class="shift-actions">
+    <button onclick="openModal()">Add New Shift</button>
+    <button onclick="editShift()">Edit Selected Shift</button>
+    <button onclick="deleteShift()">Delete Selected Shift</button>
   </div>
 
-  <div id="calendar"></div>
+  <div id="summary" class="summary"></div>
+  <div id="calendarHeader"></div>
+  <div id="calendar" class="calendar-container"></div>
 
-  <!-- Define Shift Modal -->
-  <div id="defineShiftModal">
-    <div class="modal-content">
-      <h3 id="modalTitle">Define New Shift</h3>
-      <label for="shiftName">Shift Name:</label>
-      <input type="text" id="shiftName" /><br/>
-      <label for="shiftStartDate">Start Date:</label>
-      <input type="date" id="shiftStartDate" /><br/>
-      <label>Pattern:</label>
-      <div id="patternBuilder">
+  <!-- Modal -->
+  <div id="shiftModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0008; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; width:300px; border-radius:5px;">
+      <h3 id="modalTitle">Add Shift</h3>
+      <label>Name: <input id="modalName" type="text"></label><br><br>
+      <label>Start Date: <input id="modalStartDate" type="date"></label><br><br>
+      <label>Pattern: </label>
+      <div>
         <button onclick="addToPattern('Day')">Day</button>
         <button onclick="addToPattern('Evening')">Evening</button>
         <button onclick="addToPattern('Night')">Night</button>
         <button onclick="addToPattern('Rest')">Rest</button>
-        <button onclick="removeLastPattern()">Remove Last</button>
       </div>
-      <div id="patternDisplay"></div>
-      <button onclick="saveShift()">Save Shift</button>
+      <p id="patternPreview"></p>
+      <button onclick="saveShift()">Save</button>
       <button onclick="closeModal()">Cancel</button>
     </div>
   </div>
 
   <script>
-    let shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+    let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
+    let editIndex = null;
     let currentPattern = [];
 
-    function populateShiftSelect() {
-      const select = document.getElementById('shiftSelect');
-      select.innerHTML = '<option value="">-- Select a shift --</option>';
-      shifts.forEach((shift, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = shift.name;
-        select.appendChild(option);
-      });
-      const addNewOption = document.createElement('option');
-      addNewOption.value = 'add-new';
-      addNewOption.textContent = 'Add new shift...';
-      select.appendChild(addNewOption);
-    }
-
-    function openModal() {
-      document.getElementById('defineShiftModal').style.display = 'flex';
-      document.getElementById('shiftName').value = '';
-      document.getElementById('shiftStartDate').value = '';
-      currentPattern = [];
-      updatePatternDisplay();
+    function openModal(editing = false) {
+      document.getElementById('shiftModal').style.display = 'flex';
+      document.getElementById('modalTitle').innerText = editing ? "Edit Shift" : "Add Shift";
+      document.getElementById('modalName').value = editing ? shifts[editIndex].name : "";
+      document.getElementById('modalStartDate').value = editing ? shifts[editIndex].startDate : "";
+      currentPattern = editing ? [...shifts[editIndex].pattern] : [];
+      updatePatternPreview();
     }
 
     function closeModal() {
-      document.getElementById('defineShiftModal').style.display = 'none';
+      document.getElementById('shiftModal').style.display = 'none';
+    }
+
+    function updatePatternPreview() {
+      document.getElementById("patternPreview").innerText = currentPattern.join(" → ");
     }
 
     function addToPattern(type) {
       currentPattern.push(type);
-      updatePatternDisplay();
+      updatePatternPreview();
     }
 
-    function removeLastPattern() {
-      currentPattern.pop();
-      updatePatternDisplay();
+    function saveShift() {
+      const name = document.getElementById('modalName').value.trim();
+      const startDate = document.getElementById('modalStartDate').value;
+
+      if (!name || !startDate || currentPattern.length === 0) return alert("Complete all fields!");
+
+      const shift = { name, startDate, pattern: [...currentPattern] };
+      if (editIndex !== null) {
+        shifts[editIndex] = shift;
+        editIndex = null;
+      } else {
+        shifts.push(shift);
+      }
+      localStorage.setItem("shifts", JSON.stringify(shifts));
+      closeModal();
+      populateShiftSelect();
     }
 
-    function updatePatternDisplay() {
-      document.getElementBy
-::contentReference[oaicite:12]{index=12}
- 
+    function editShift() {
+      const idx = document.getElementById('shiftSelect').value;
+      if (idx === "") return alert("Select a shift to edit.");
+      editIndex = idx;
+      openModal(true);
+    }
+
+    function deleteShift() {
+      const idx = document.getElementById('shiftSelect').value;
+      if (idx === "") return alert("Select a shift to delete.");
+      if (!confirm("Are you sure?")) return;
+      shifts.splice(idx, 1);
+      localStorage.setItem("shifts", JSON.stringify(shifts));
+      populateShiftSelect();
+    }
+
+    function populateShiftSelect() {
+      const select = document.getElementById('shiftSelect');
+      select.innerHTML = '<option value="">-- Select Shift --</option>';
+      shifts.forEach((s, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = s.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function calculateAndDisplay() {
+      const idx = document.getElementById('shiftSelect').value;
+      if (idx === "") return alert("Select a shift.");
+      const startDate = new Date(document.getElementById('startDate').value);
+      const endDate = new Date(document.getElementById('endDate').value);
+      if (!startDate || !endDate || endDate < startDate) return alert("Invalid dates.");
+      
+      const shift = shifts[idx];
+      const pattern = shift.pattern;
+      let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
+      let offByDay = { 0:0,1:0,2:0,3:0,4:0,5:0,6:0 };
+      let calendarData = [];
+      let current = new Date(startDate);
+      let i = 0;
+
+      while (current <= endDate) {
+        const shiftType = pattern[i % pattern.length];
+        const day = current.getDay();
+        result[shiftType]++;
+        if (shiftType === 'Rest') offByDay[day]++;
+        calendarData.push({ date: new Date(current), type: shiftType });
+        current.setDate(current.getDate() + 1);
+        i++;
+      }
+
+      // Summary
+      const total = i;
+      const summaryHTML = `
+        <h3>Summary</h3>
+        <p>Total Days: ${total}</p>
+        <p>Day Shifts: ${result.Day}</p>
+        <p>Evening Shifts: ${result.Evening}</p>
+        <p>Night Shifts: ${result.Night}</p>
+        <p>Rest Days: ${result.Rest}</p>
+        <p>Active Days: ${total - result.Rest}</p>
+        <p>Off-days: ${result.Rest}</p>
+        <p>Mon Off-days: ${offByDay[1]}</p>
+        <p>Tue Off-days: ${offByDay[2]}</p>
+        <p>Wed Off-days: ${offByDay[3]}</p>
+        <p>Thu Off-days: ${offByDay[4]}</p>
+        <p>Fri Off-days: ${offByDay[5]}</p>
+        <p>Sat Off-days: ${offByDay[6]}</p>
+        <p>Sun Off-days: ${offByDay[0]}</p>
+      `;
+      document.getElementById("summary").innerHTML = summaryHTML;
+
+      // Calendar rendering
+      renderCalendar(calendarData);
+    }
+
+    function renderCalendar(data) {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      document.getElementById('calendarHeader').innerHTML = `<h3>${data[0].date.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
+      const grid = document.getElementById('calendar');
+      grid.innerHTML = "";
+
+      days.forEach(day => {
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell calendar-header";
+        cell.innerText = day;
+        grid.appendChild(cell);
+      });
+
+      const firstDay = data[0].date.getDay();
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "calendar-cell";
+        grid.appendChild(empty);
+      }
+
+      data.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = `calendar-cell ${entry.type}`;
+        div.innerHTML = `${entry.date.getDate()}<br><strong>${entry.type}</strong>`;
+        grid.appendChild(div);
+      });
+    }
+
+    window.onload = populateShiftSelect;
+  </script>
+</body>
+</html>
