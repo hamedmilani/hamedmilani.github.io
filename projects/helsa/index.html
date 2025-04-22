@@ -52,6 +52,7 @@
         .Evening { background: #fff3cd; }
         .Night { background: #d4edda; }
         .Rest { background: #e2e3e5; }
+        .Off { background: #f8d7da; color: #721c24; }
         .month-separator {
             grid-column: 1 / -1;
             border-top: 2px solid black;
@@ -139,6 +140,7 @@
         let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
         let editIndex = null;
         let currentPattern = [];
+        const weekendDays = [0, 6]; // Sunday (0) and Saturday (6)
 
         function openModal(editing = false) {
             document.getElementById('shiftModal').style.display = 'flex';
@@ -224,7 +226,7 @@
             const shift = shifts[selectedIndex];
             const pattern = shift.pattern;
             let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
-            let offByType = { Day: 0, Evening: 0, Night: 0 };
+            let offByType = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
             let calendarData = [];
             let current = new Date(startDate);
             let i = 0;
@@ -232,9 +234,9 @@
             while (current <= endDate) {
                 const shiftType = pattern[i % pattern.length];
                 result[shiftType]++;
-                if (shiftType === 'Rest') {
-                    const prevType = pattern[(i - 1 + pattern.length) % pattern.length];
-                    if (prevType !== 'Rest') offByType[prevType]++;
+                const dayOfWeek = current.getDay();
+                if (weekendDays.includes(dayOfWeek)) {
+                    offByType[shiftType]++;
                 }
                 calendarData.push({ date: new Date(current), type: shiftType });
                 current.setDate(current.getDate() + 1);
@@ -242,7 +244,9 @@
             }
 
             const totalDays = i;
-            const activeDays = totalDays - Object.values(offByType).reduce((a, b) => a + b, 0);
+            const totalOffDays = Object.values(offByType).reduce((a, b) => a + b, 0);
+            const activeDays = totalDays - totalOffDays;
+
             const summaryHTML = `
                 <h3>Summary of shift plan "${shift.name}" from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}.</h3>
                 <p>Total Days: ${totalDays}</p>
@@ -250,12 +254,12 @@
                 <p>Evening Shifts: ${result.Evening}</p>
                 <p>Night Shifts: ${result.Night}</p>
                 <p>Rest Shifts: ${result.Rest}</p>
-                <p>Off days: ${Object.values(offByType).reduce((a, b) => a + b, 0)}</p>
+                <p>Off days: ${totalOffDays}</p>
                 <p>Active days: ${activeDays}</p>
                 <p>Day Shifts Off-days: ${offByType.Day}</p>
                 <p>Evening Shifts Off-days: ${offByType.Evening}</p>
                 <p>Night Shifts Off-days: ${offByType.Night}</p>
-                <p>Day Rest Off-days: 0</p>
+                <p>Rest Shifts Off-days: ${offByType.Rest}</p>
             `;
             document.getElementById("summary").innerHTML = summaryHTML;
 
@@ -263,7 +267,7 @@
         }
 
         function renderCalendar(data) {
-            const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
             const grid = document.getElementById('calendar');
             grid.innerHTML = "";
 
@@ -287,8 +291,13 @@
                     grid.appendChild(cell);
                 });
 
-                const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                for (let i = 0; i < firstDayOfMonth; i++) {
+                let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+                // Adjust Sunday (0) to be the last day (7) for Monday-start
+                if (firstDayOfMonth === 0) {
+                    firstDayOfMonth = 7;
+                }
+                // Add empty cells for the days before the first day of the month
+                for (let i = 1; i < firstDayOfMonth; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
@@ -303,6 +312,16 @@
                     currentMonth = date.getMonth();
                     currentYear = date.getFullYear();
                     addMonthHeader(new Date(currentYear, currentMonth, 1));
+
+                    let firstDayOfNewMonth = new Date(currentYear, currentMonth, 1).getDay();
+                    if (firstDayOfNewMonth === 0) {
+                        firstDayOfNewMonth = 7;
+                    }
+                    for (let i = 1; i < firstDayOfNewMonth; i++) {
+                        const empty = document.createElement("div");
+                        empty.className = "calendar-cell";
+                        grid.appendChild(empty);
+                    }
                 }
 
                 const div = document.createElement("div");
