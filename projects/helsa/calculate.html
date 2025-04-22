@@ -10,27 +10,50 @@
   <div class="page-container">
     <h2>Calculate Shift Days</h2>
     <div class="form-group">
-      <label>Select Shift:</label>
+      <label for="calcShiftSelect">Select Shift:</label>
       <select id="calcShiftSelect">
-        <option>Add new shift...</option>
+        <option value="">-- Select a shift --</option>
+        <option value="add-new">Add new shift...</option>
       </select>
 
-      <label>Start Date:</label>
+      <label for="calcStartDate">Start Date:</label>
       <input type="date" id="calcStartDate" />
 
-      <label>End Date:</label>
+      <label for="calcEndDate">End Date:</label>
       <input type="date" id="calcEndDate" />
     </div>
 
     <button onclick="calculateSummary()">Calculate</button>
+    <br><br>
     <a href="calendar.html">← Back to Shift on Calendar</a>
 
     <div id="calcResults" class="modal-content" style="display:none;"></div>
   </div>
 
-  <!-- Reuse Define Shift Modal -->
-  <div class="modal" id="defineShiftModal">
-    <!-- Same modal from calendar.html -->
+  <!-- Define Shift Modal -->
+  <div id="defineShiftModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h3>Define New Shift</h3>
+      <label for="shiftName">Shift Name:</label>
+      <input type="text" id="shiftName" />
+
+      <label for="shiftStartDate">Start Date:</label>
+      <input type="date" id="shiftStartDate" />
+
+      <label>Shift Pattern:</label>
+      <div id="shiftPatternBuilder" class="shift-icons">
+        <button type="button" onclick="addShiftToPattern('Day')">Day</button>
+        <button type="button" onclick="addShiftToPattern('Evening')">Evening</button>
+        <button type="button" onclick="addShiftToPattern('Night')">Night</button>
+        <button type="button" onclick="addShiftToPattern('Rest')">Rest</button>
+      </div>
+      <div id="currentPatternDisplay"></div>
+
+      <div class="modal-actions">
+        <button onclick="saveNewShift()">Save</button>
+        <button onclick="closeDefineModal()">Cancel</button>
+      </div>
+    </div>
   </div>
 </body>
 </html>
