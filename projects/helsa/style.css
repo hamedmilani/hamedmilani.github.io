@@ -1,0 +1,72 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f9f9f9;
+}
+
+h1, h2 {
+  color: #2c3e50;
+}
+
+.main-container, .page-container {
+  max-width: 800px;
+  margin: auto;
+}
+
+.button-group {
+  margin-top: 30px;
+}
+
+.btn {
+  display: inline-block;
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  margin-right: 15px;
+  border-radius: 5px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+select, input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+#iconPicker span {
+  margin-right: 10px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.icon.day { background: #ffe082; }
+.icon.evening { background: #ffccbc; }
+.icon.night { background: #b3e5fc; }
+.icon.rest { background: #c8e6c9; }
+
+#patternPreview {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+}
