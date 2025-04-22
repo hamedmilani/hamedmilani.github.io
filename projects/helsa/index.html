@@ -45,9 +45,25 @@
       text-align: left;
       max-width: 600px;
       margin: 0 auto;
+      border: 1px solid #aaa;
+      padding: 15px;
+      border-radius: 5px;
     }
     .shift-actions {
       margin-top: 10px;
+    }
+    .month-separator {
+      grid-column: 1 / -1;
+      border-top: 2px solid black;
+      position: relative;
+      height: 20px;
+    }
+    .month-label {
+      position: absolute;
+      top: 2px;
+      left: 0;
+      font-weight: bold;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -62,6 +78,11 @@
     <input type="date" id="startDate">
     <input type="date" id="endDate">
     <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
+    <select id="downloadType">
+      <option value="png">Download as JPG</option>
+      <option value="pdf">Download as PDF</option>
+    </select>
+    <button onclick="downloadCalendar()">Download</button>
   </div>
 
   <div class="shift-actions">
@@ -86,6 +107,7 @@
         <button onclick="addToPattern('Evening')">Evening</button>
         <button onclick="addToPattern('Night')">Night</button>
         <button onclick="addToPattern('Rest')">Rest</button>
+        <button onclick="removeLastPattern()">Undo Last</button>
       </div>
       <p id="patternPreview"></p>
       <button onclick="saveShift()">Save</button>
@@ -93,6 +115,8 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
     let editIndex = null;
@@ -120,12 +144,15 @@
       updatePatternPreview();
     }
 
+    function removeLastPattern() {
+      currentPattern.pop();
+      updatePatternPreview();
+    }
+
     function saveShift() {
       const name = document.getElementById('modalName').value.trim();
       const startDate = document.getElementById('modalStartDate').value;
-
       if (!name || !startDate || currentPattern.length === 0) return alert("Complete all fields!");
-
       const shift = { name, startDate, pattern: [...currentPattern] };
       if (editIndex !== null) {
         shifts[editIndex] = shift;
@@ -175,16 +202,18 @@
       const shift = shifts[idx];
       const pattern = shift.pattern;
       let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
-      let offByDay = { 0:0,1:0,2:0,3:0,4:0,5:0,6:0 };
+      let offByType = { Day:0, Evening:0, Night:0 };
       let calendarData = [];
       let current = new Date(startDate);
       let i = 0;
 
       while (current <= endDate) {
         const shiftType = pattern[i % pattern.length];
-        const day = current.getDay();
         result[shiftType]++;
-        if (shiftType === 'Rest') offByDay[day]++;
+        if (shiftType === 'Rest') {
+          const prevType = pattern[(i - 1 + pattern.length) % pattern.length];
+          if (prevType !== 'Rest') offByType[prevType]++;
+        }
         calendarData.push({ date: new Date(current), type: shiftType });
         current.setDate(current.getDate() + 1);
         i++;
@@ -200,24 +229,17 @@
         <p>Night Shifts: ${result.Night}</p>
         <p>Rest Days: ${result.Rest}</p>
         <p>Active Days: ${total - result.Rest}</p>
-        <p>Off-days: ${result.Rest}</p>
-        <p>Mon Off-days: ${offByDay[1]}</p>
-        <p>Tue Off-days: ${offByDay[2]}</p>
-        <p>Wed Off-days: ${offByDay[3]}</p>
-        <p>Thu Off-days: ${offByDay[4]}</p>
-        <p>Fri Off-days: ${offByDay[5]}</p>
-        <p>Sat Off-days: ${offByDay[6]}</p>
-        <p>Sun Off-days: ${offByDay[0]}</p>
+        <p>Day Shifts Off-days: ${offByType.Day}</p>
+        <p>Evening Shifts Off-days: ${offByType.Evening}</p>
+        <p>Night Shifts Off-days: ${offByType.Night}</p>
       `;
       document.getElementById("summary").innerHTML = summaryHTML;
 
-      // Calendar rendering
       renderCalendar(calendarData);
     }
 
     function renderCalendar(data) {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      document.getElementById('calendarHeader').innerHTML = `<h3>${data[0].date.toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>`;
       const grid = document.getElementById('calendar');
       grid.innerHTML = "";
 
@@ -235,12 +257,42 @@
         grid.appendChild(empty);
       }
 
-      data.forEach(entry => {
+      let prevMonth = data[0].date.getMonth();
+      data.forEach((entry, idx) => {
+        if (entry.date.getMonth() !== prevMonth) {
+          const separator = document.createElement("div");
+          separator.className = "month-separator";
+          const label = document.createElement("div");
+          label.className = "month-label";
+          label.textContent = entry.date.toLocaleString('default', { month: 'long' });
+          separator.appendChild(label);
+          grid.appendChild(separator);
+          prevMonth = entry.date.getMonth();
+        }
+
         const div = document.createElement("div");
         div.className = `calendar-cell ${entry.type}`;
         div.innerHTML = `${entry.date.getDate()}<br><strong>${entry.type}</strong>`;
         grid.appendChild(div);
       });
+    }
+
+    async function downloadCalendar() {
+      const type = document.getElementById('downloadType').value;
+      const calendar = document.getElementById('calendar');
+      const canvas = await html2canvas(calendar);
+      if (type === 'png') {
+        const link = document.createElement('a');
+        link.download = 'calendar.jpg';
+        link.href = canvas.toDataURL('image/jpeg');
+        link.click();
+      } else {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
+        const imgData = canvas.toDataURL('image/jpeg');
+        pdf.addImage(imgData, 'JPEG', 10, 10, 180, 0);
+        pdf.save('calendar.pdf');
+      }
     }
 
     window.onload = populateShiftSelect;
