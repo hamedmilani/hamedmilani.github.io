@@ -1,301 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Helsa Project</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      text-align: center;
-    }
-    .calendar-container {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-      margin-top: 20px;
-      max-width: 800px;
-      margin-inline: auto;
-    }
-    .calendar-cell {
-      border: 1px solid #ddd;
-      padding: 8px;
-      min-height: 60px;
-    }
-    .calendar-header {
-      font-weight: bold;
-      background: #f0f0f0;
-    }
-    .Day { background: #cce5ff; }
-    .Evening { background: #fff3cd; }
-    .Night { background: #d4edda; }
-    .Rest { background: #e2e3e5; }
-    .controls {
-      margin-bottom: 20px;
-    }
-    select, input[type="date"] {
-      margin: 0 5px;
-      padding: 5px;
-    }
-    button {
-      padding: 5px 10px;
-      margin-left: 10px;
-    }
-    .summary {
-      text-align: left;
-      max-width: 600px;
-      margin: 0 auto;
-      border: 1px solid #aaa;
-      padding: 15px;
-      border-radius: 5px;
-    }
-    .shift-actions {
-      margin-top: 10px;
-    }
-    .month-separator {
-      grid-column: 1 / -1;
-      border-top: 2px solid black;
-      position: relative;
-      height: 20px;
-    }
-    .month-label {
-      position: absolute;
-      top: 2px;
-      left: 0;
-      font-weight: bold;
-      font-size: 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Helsa Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+       .controls {
+            margin-bottom: 20px;
+        }
+        select, input[type="date"] {
+            margin: 0 5px;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+        .shift-actions {
+            margin-top: 10px;
+        }
+        .summary-container {
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            border: 1px solid #aaa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .calendar-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 20px;
+            max-width: 800px;
+            margin-inline: auto;
+        }
+        .calendar-cell {
+            border: 1px solid #ddd;
+            padding: 8px;
+            min-height: 60px;
+        }
+        .calendar-header {
+            font-weight: bold;
+            background: #f0f0f0;
+        }
+        .Day { background: #cce5ff; }
+        .Evening { background: #fff3cd; }
+        .Night { background: #d4edda; }
+        .Rest { background: #e2e3e5; }
+        .month-separator {
+            grid-column: 1 / -1;
+            border-top: 2px solid black;
+            position: relative;
+            height: 20px;
+            margin-top: 10px;
+        }
+        .month-label {
+            position: absolute;
+            top: 2px;
+            left: 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0008;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
+    <h1>Helsa Project</h1>
+    <p>Display shifts on a calendar and calculate the number of days for each shift type between two dates.</p>
 
-  <h1>Helsa Project</h1>
-  <p>Display shifts on a calendar and calculate the number of days for each shift type between two dates.</p>
-
-  <div class="controls">
-    <label for="shiftSelect">Select Shift:</label>
-    <select id="shiftSelect"></select>
-    <input type="date" id="startDate">
-    <input type="date" id="endDate">
-    <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
-    <select id="downloadType">
-      <option value="png">Download as JPG</option>
-      <option value="pdf">Download as PDF</option>
-    </select>
-    <button onclick="downloadCalendar()">Download</button>
-  </div>
-
-  <div class="shift-actions">
-    <button onclick="openModal()">Add New Shift</button>
-    <button onclick="editShift()">Edit Selected Shift</button>
-    <button onclick="deleteShift()">Delete Selected Shift</button>
-  </div>
-
-  <div id="summary" class="summary"></div>
-  <div id="calendarHeader"></div>
-  <div id="calendar" class="calendar-container"></div>
-
-  <!-- Modal -->
-  <div id="shiftModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0008; align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:20px; width:300px; border-radius:5px;">
-      <h3 id="modalTitle">Add Shift</h3>
-      <label>Name: <input id="modalName" type="text"></label><br><br>
-      <label>Start Date: <input id="modalStartDate" type="date"></label><br><br>
-      <label>Pattern: </label>
-      <div>
-        <button onclick="addToPattern('Day')">Day</button>
-        <button onclick="addToPattern('Evening')">Evening</button>
-        <button onclick="addToPattern('Night')">Night</button>
-        <button onclick="addToPattern('Rest')">Rest</button>
-        <button onclick="removeLastPattern()">Undo Last</button>
-      </div>
-      <p id="patternPreview"></p>
-      <button onclick="saveShift()">Save</button>
-      <button onclick="closeModal()">Cancel</button>
+    <div class="controls">
+        <label for="shiftSelect">Select Shift:</label>
+        <select id="shiftSelect"></select>
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+        <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
+        <select id="downloadType">
+            <option value="png">Download as JPG</option>
+            <option value="pdf">Download as PDF</option>
+        </select>
+        <button onclick="downloadReport()">Download Report</button>
     </div>
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>
-    let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
-    let editIndex = null;
-    let currentPattern = [];
+    <div class="shift-actions">
+        <button onclick="openModal()">Add New Shift</button>
+        <button onclick="editShift()">Edit Selected Shift</button>
+        <button onclick="deleteShift()">Delete Selected Shift</button>
+    </div>
 
-    function openModal(editing = false) {
-      document.getElementById('shiftModal').style.display = 'flex';
-      document.getElementById('modalTitle').innerText = editing ? "Edit Shift" : "Add Shift";
-      document.getElementById('modalName').value = editing ? shifts[editIndex].name : "";
-      document.getElementById('modalStartDate').value = editing ? shifts[editIndex].startDate : "";
-      currentPattern = editing ? [...shifts[editIndex].pattern] : [];
-      updatePatternPreview();
-    }
+    <div id="reportContainer">
+        <div id="summary" class="summary-container"></div>
+        <div id="calendarHeader"></div>
+        <div id="calendar" class="calendar-container"></div>
+    </div>
 
-    function closeModal() {
-      document.getElementById('shiftModal').style.display = 'none';
-    }
+    <div id="shiftModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Shift</h3>
+            <label>Name: <input id="modalName" type="text"></label><br><br>
+            <label>Start Date: <input id="modalStartDate" type="date"></label><br><br>
+            <label>Pattern: </label>
+            <div>
+                <button onclick="addToPattern('Day')">Day</button>
+                <button onclick="addToPattern('Evening')">Evening</button>
+                <button onclick="addToPattern('Night')">Night</button>
+                <button onclick="addToPattern('Rest')">Rest</button>
+                <button onclick="removeLastPattern()">Undo Last</button>
+            </div>
+            <p id="patternPreview"></p>
+            <button onclick="saveShift()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
 
-    function updatePatternPreview() {
-      document.getElementById("patternPreview").innerText = currentPattern.join(" → ");
-    }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let shifts = JSON.parse(localStorage.getItem("shifts") || "[]");
+        let editIndex = null;
+        let currentPattern = [];
 
-    function addToPattern(type) {
-      currentPattern.push(type);
-      updatePatternPreview();
-    }
-
-    function removeLastPattern() {
-      currentPattern.pop();
-      updatePatternPreview();
-    }
-
-    function saveShift() {
-      const name = document.getElementById('modalName').value.trim();
-      const startDate = document.getElementById('modalStartDate').value;
-      if (!name || !startDate || currentPattern.length === 0) return alert("Complete all fields!");
-      const shift = { name, startDate, pattern: [...currentPattern] };
-      if (editIndex !== null) {
-        shifts[editIndex] = shift;
-        editIndex = null;
-      } else {
-        shifts.push(shift);
-      }
-      localStorage.setItem("shifts", JSON.stringify(shifts));
-      closeModal();
-      populateShiftSelect();
-    }
-
-    function editShift() {
-      const idx = document.getElementById('shiftSelect').value;
-      if (idx === "") return alert("Select a shift to edit.");
-      editIndex = idx;
-      openModal(true);
-    }
-
-    function deleteShift() {
-      const idx = document.getElementById('shiftSelect').value;
-      if (idx === "") return alert("Select a shift to delete.");
-      if (!confirm("Are you sure?")) return;
-      shifts.splice(idx, 1);
-      localStorage.setItem("shifts", JSON.stringify(shifts));
-      populateShiftSelect();
-    }
-
-    function populateShiftSelect() {
-      const select = document.getElementById('shiftSelect');
-      select.innerHTML = '<option value="">-- Select Shift --</option>';
-      shifts.forEach((s, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = s.name;
-        select.appendChild(opt);
-      });
-    }
-
-    function calculateAndDisplay() {
-      const idx = document.getElementById('shiftSelect').value;
-      if (idx === "") return alert("Select a shift.");
-      const startDate = new Date(document.getElementById('startDate').value);
-      const endDate = new Date(document.getElementById('endDate').value);
-      if (!startDate || !endDate || endDate < startDate) return alert("Invalid dates.");
-      
-      const shift = shifts[idx];
-      const pattern = shift.pattern;
-      let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
-      let offByType = { Day:0, Evening:0, Night:0 };
-      let calendarData = [];
-      let current = new Date(startDate);
-      let i = 0;
-
-      while (current <= endDate) {
-        const shiftType = pattern[i % pattern.length];
-        result[shiftType]++;
-        if (shiftType === 'Rest') {
-          const prevType = pattern[(i - 1 + pattern.length) % pattern.length];
-          if (prevType !== 'Rest') offByType[prevType]++;
-        }
-        calendarData.push({ date: new Date(current), type: shiftType });
-        current.setDate(current.getDate() + 1);
-        i++;
-      }
-
-      // Summary
-      const total = i;
-      const summaryHTML = `
-        <h3>Summary</h3>
-        <p>Total Days: ${total}</p>
-        <p>Day Shifts: ${result.Day}</p>
-        <p>Evening Shifts: ${result.Evening}</p>
-        <p>Night Shifts: ${result.Night}</p>
-        <p>Rest Days: ${result.Rest}</p>
-        <p>Active Days: ${total - result.Rest}</p>
-        <p>Day Shifts Off-days: ${offByType.Day}</p>
-        <p>Evening Shifts Off-days: ${offByType.Evening}</p>
-        <p>Night Shifts Off-days: ${offByType.Night}</p>
-      `;
-      document.getElementById("summary").innerHTML = summaryHTML;
-
-      renderCalendar(calendarData);
-    }
-
-    function renderCalendar(data) {
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const grid = document.getElementById('calendar');
-      grid.innerHTML = "";
-
-      days.forEach(day => {
-        const cell = document.createElement("div");
-        cell.className = "calendar-cell calendar-header";
-        cell.innerText = day;
-        grid.appendChild(cell);
-      });
-
-      const firstDay = data[0].date.getDay();
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        empty.className = "calendar-cell";
-        grid.appendChild(empty);
-      }
-
-      let prevMonth = data[0].date.getMonth();
-      data.forEach((entry, idx) => {
-        if (entry.date.getMonth() !== prevMonth) {
-          const separator = document.createElement("div");
-          separator.className = "month-separator";
-          const label = document.createElement("div");
-          label.className = "month-label";
-          label.textContent = entry.date.toLocaleString('default', { month: 'long' });
-          separator.appendChild(label);
-          grid.appendChild(separator);
-          prevMonth = entry.date.getMonth();
+        function openModal(editing = false) {
+            document.getElementById('shiftModal').style.display = 'flex';
+            document.getElementById('modalTitle').innerText = editing ? "Edit Shift" : "Add Shift";
+            document.getElementById('modalName').value = editing ? shifts[editIndex].name : "";
+            document.getElementById('modalStartDate').value = editing ? shifts[editIndex].startDate : "";
+            currentPattern = editing ? [...shifts[editIndex].pattern] : [];
+            updatePatternPreview();
         }
 
-        const div = document.createElement("div");
-        div.className = `calendar-cell ${entry.type}`;
-        div.innerHTML = `${entry.date.getDate()}<br><strong>${entry.type}</strong>`;
-        grid.appendChild(div);
-      });
-    }
+        function closeModal() {
+            document.getElementById('shiftModal').style.display = 'none';
+        }
 
-    async function downloadCalendar() {
-      const type = document.getElementById('downloadType').value;
-      const calendar = document.getElementById('calendar');
-      const canvas = await html2canvas(calendar);
-      if (type === 'png') {
-        const link = document.createElement('a');
-        link.download = 'calendar.jpg';
-        link.href = canvas.toDataURL('image/jpeg');
-        link.click();
-      } else {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        const imgData = canvas.toDataURL('image/jpeg');
-        pdf.addImage(imgData, 'JPEG', 10, 10, 180, 0);
-        pdf.save('calendar.pdf');
-      }
-    }
+        function updatePatternPreview() {
+            document.getElementById("patternPreview").innerText = currentPattern.join(" → ");
+        }
 
-    window.onload = populateShiftSelect;
-  </script>
+        function addToPattern(type) {
+            currentPattern.push(type);
+            updatePatternPreview();
+        }
+
+        function removeLastPattern() {
+            currentPattern.pop();
+            updatePatternPreview();
+        }
+
+        function saveShift() {
+            const name = document.getElementById('modalName').value.trim();
+            const startDate = document.getElementById('modalStartDate').value;
+            if (!name || !startDate || currentPattern.length === 0) return alert("Complete all fields!");
+            const shift = { name, startDate, pattern: [...currentPattern] };
+            if (editIndex !== null) {
+                shifts[editIndex] = shift;
+                editIndex = null;
+            } else {
+                shifts.push(shift);
+            }
+            localStorage.setItem("shifts", JSON.stringify(shifts));
+            closeModal();
+            populateShiftSelect();
+        }
+
+        function editShift() {
+            const idx = document.getElementById('shiftSelect').value;
+            if (idx === "") return alert("Select a shift to edit.");
+            editIndex = idx;
+            openModal(true);
+        }
+
+        function deleteShift() {
+            const idx = document.getElementById('shiftSelect').value;
+            if (idx === "") return alert("Select a shift to delete.");
+            if (!confirm("Are you sure?")) return;
+            shifts.splice(idx, 1);
+            localStorage.setItem("shifts", JSON.stringify(shifts));
+            populateShiftSelect();
+        }
+
+        function populateShiftSelect() {
+            const select = document.getElementById('shiftSelect');
+            select.innerHTML = '<option value="">-- Select Shift --</option>';
+            shifts.forEach((s, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = s.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function calculateAndDisplay() {
+            const shiftSelect = document.getElementById('shiftSelect');
+            const selectedIndex = shiftSelect.value;
+            if (selectedIndex === "") return alert("Select a shift.");
+            const startDateInput = document.getElementById('startDate').value;
+            const endDateInput = document.getElementById('endDate').value;
+            const startDate = new Date(startDateInput);
+            const endDate = new Date(endDateInput);
+
+            if (!startDateInput || !endDateInput || endDate < startDate) return alert("Invalid dates.");
+
+            const shift = shifts[selectedIndex];
+            const pattern = shift.pattern;
+            let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
+            let offByType = { Day: 0, Evening: 0, Night: 0 };
+            let calendarData = [];
+            let current = new Date(startDate);
+            let i = 0;
+
+            while (current <= endDate) {
+                const shiftType = pattern[i % pattern.length];
+                result[shiftType]++;
+                if (shiftType === 'Rest') {
+                    const prevType = pattern[(i - 1 + pattern.length) % pattern.length];
+                    if (prevType !== 'Rest') offByType[prevType]++;
+                }
+                calendarData.push({ date: new Date(current), type: shiftType });
+                current.setDate(current.getDate() + 1);
+                i++;
+            }
+
+            const totalDays = i;
+            const activeDays = totalDays - Object.values(offByType).reduce((a, b) => a + b, 0);
+            const summaryHTML = `
+                <h3>Summary of shift plan "${shift.name}" from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}.</h3>
+                <p>Total Days: ${totalDays}</p>
+                <p>Day Shifts: ${result.Day}</p>
+                <p>Evening Shifts: ${result.Evening}</p>
+                <p>Night Shifts: ${result.Night}</p>
+                <p>Rest Shifts: ${result.Rest}</p>
+                <p>Off days: ${Object.values(offByType).reduce((a, b) => a + b, 0)}</p>
+                <p>Active days: ${activeDays}</p>
+                <p>Day Shifts Off-days: ${offByType.Day}</p>
+                <p>Evening Shifts Off-days: ${offByType.Evening}</p>
+                <p>Night Shifts Off-days: ${offByType.Night}</p>
+                <p>Day Rest Off-days: 0</p>
+            `;
+            document.getElementById("summary").innerHTML = summaryHTML;
+
+            renderCalendar(calendarData);
+        }
+
+        function renderCalendar(data) {
+            const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const grid = document.getElementById('calendar');
+            grid.innerHTML = "";
+
+            let currentDate = data[0].date;
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+
+            const addMonthHeader = (date) => {
+                const separator = document.createElement("div");
+                separator.className = "month-separator";
+                const label = document.createElement("div");
+                label.className = "month-label";
+                label.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                separator.appendChild(label);
+                grid.appendChild(separator);
+
+                daysOfWeek.forEach(day => {
+                    const cell = document.createElement("div");
+                    cell.className = "calendar-cell calendar-header";
+                    cell.innerText = day;
+                    grid.appendChild(cell);
+                });
+
+                const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    const empty = document.createElement("div");
+                    empty.className = "calendar-cell";
+                    grid.appendChild(empty);
+                }
+            };
+
+            addMonthHeader(new Date(currentYear, currentMonth, 1));
+
+            data.forEach((entry, index) => {
+                const date = entry.date;
+                if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+                    currentMonth = date.getMonth();
+                    currentYear = date.getFullYear();
+                    addMonthHeader(new Date(currentYear, currentMonth, 1));
+                }
+
+                const div = document.createElement("div");
+                div.className = `calendar-cell ${entry.type}`;
+                div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
+                grid.appendChild(div);
+            });
+        }
+
+        async function downloadReport() {
+            const type = document.getElementById('downloadType').value;
+            const reportElement = document.getElementById('reportContainer');
+
+            if (type === 'png') {
+                html2canvas(reportElement).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'shift_report.jpg';
+                    link.href = canvas.toDataURL('image/jpeg');
+                    link.click();
+                });
+            } else if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const canvas = await html2canvas(reportElement, { scale: 2 });
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+                const imgWidth = pdf.internal.pageSize.getWidth() - 20;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                pdf.save('shift_report.pdf');
+            }
+        }
+
+        window.onload = populateShiftSelect;
+    </script>
 </body>
 </html>
