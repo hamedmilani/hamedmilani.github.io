@@ -1,134 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Hamed Milani</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Shift Scheduler</title>
   <style>
     body {
-      margin: 0;
-      font-family: Georgia, serif;
-      background-color: #fdfdfd;
-      color: #333;
+      font-family: Arial, sans-serif;
+      margin: 20px;
     }
-
-    nav {
-      background-color: #333;
-      color: white;
-      padding: 12px;
-      text-align: center;
+    .form-group {
+      margin-bottom: 15px;
     }
-
-    nav a {
-      color: white;
-      margin: 0 15px;
-      text-decoration: none;
+    label {
+      margin-right: 10px;
+    }
+    select, input[type="date"] {
+      margin-right: 20px;
+    }
+    button {
+      margin-top: 10px;
+    }
+    #summaryBox {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-top: 20px;
+      width: fit-content;
+    }
+    #calendar {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+    .calendar-day {
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 80px;
+      position: relative;
+    }
+    .calendar-day .date {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 12px;
+      color: #666;
+    }
+    .shift-Day {
+      background-color: #d1e7dd;
+    }
+    .shift-Evening {
+      background-color: #fff3cd;
+    }
+    .shift-Night {
+      background-color: #f8d7da;
+    }
+    .shift-Rest {
+      background-color: #e2e3e5;
+    }
+    .month-separator {
+      grid-column: 1 / -1;
+      border-top: 2px solid #000;
+      margin-top: 20px;
+      padding-top: 5px;
       font-weight: bold;
     }
-
-    .container {
-      max-width: 1100px;
-      margin: 40px auto;
-      padding: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
+    #defineShiftModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
       justify-content: center;
-      gap: 40px;
+      align-items: center;
     }
-
-    .photo-section {
-      flex: 0 0 250px;
-      text-align: center;
+    #defineShiftModal .modal-content {
+      background: #fff;
+      padding: 20px;
+      width: 300px;
+      border-radius: 5px;
     }
-
-    .photo-section img {
-      width: 220px;
-      height: auto;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+    #defineShiftModal .modal-content h3 {
+      margin-top: 0;
     }
-
-    .contact {
+    #defineShiftModal .modal-content button {
       margin-top: 10px;
-      text-align: center;
-      font-size: 0.95em;
-      line-height: 1.6;
-    }
-
-    .contact a {
-      text-decoration: none;
-      color: #0066cc;
-    }
-
-    .contact img {
-      width: 18px;
-      height: 18px;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    .text-section {
-      flex: 1 1 600px;
-      padding: 10px;
-      text-align: justify;
-    }
-
-    .text-section h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .text-section {
-        text-align: justify;
-      }
     }
   </style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="cv.html">CV</a>
-    <a href="research.html">Research</a>
-    <a href="blog.html">Blog</a>
-    <a href="projects/helsa/index.html">Projects</a>
-    <a href="farsi.html">وبلاگ فارسی</a>
-  </nav>
+  <h2>Shift Scheduler</h2>
+  <div class="form-group">
+    <label for="shiftSelect">Select Shift:</label>
+    <select id="shiftSelect">
+      <option value="">-- Select a shift --</option>
+    </select>
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" />
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" />
+    <button id="calculateBtn">Calculate and Show on Calendar</button>
+    <button id="exportBtn">Export</button>
+  </div>
 
-  <div class="container">
-    <div class="photo-section">
-      <img src="your-photo.jpg" alt="Hamed Milani Photo">
-      <div class="contact">
-        <div>
-          <a href="mailto:hamed.milani@ucalgary.ca">hamed.milani@ucalgary.ca</a>
-        </div>
-        <div style="margin-top: 5px;">
-          <a href="https://www.linkedin.com/in/hamedmilani" target="_blank">
-            <img src="linkedin.png" alt="LinkedIn">LinkedIn
-          </a>
-        </div>
+  <div id="summaryBox">
+    <h3>Summary</h3>
+    <div id="summaryContent"></div>
+  </div>
+
+  <div id="calendar"></div>
+
+  <!-- Define Shift Modal -->
+  <div id="defineShiftModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Define New Shift</h3>
+      <label for="shiftName">Shift Name:</label>
+      <input type="text" id="shiftName" /><br/>
+      <label for="shiftStartDate">Start Date:</label>
+      <input type="date" id="shiftStartDate" /><br/>
+      <label>Pattern:</label>
+      <div id="patternBuilder">
+        <button onclick="addToPattern('Day')">Day</button>
+        <button onclick="addToPattern('Evening')">Evening</button>
+        <button onclick="addToPattern('Night')">Night</button>
+        <button onclick="addToPattern('Rest')">Rest</button>
+        <button onclick="removeLastPattern()">Remove Last</button>
       </div>
-    </div>
-
-    <div class="text-section">
-      <h1>Hamed Milani</h1>
-      <p>
-        I am an incoming Ph.D. student in Operations and Supply Chain Management at the Haskayne School of Business, University of Calgary, advised by Dr. Marco Bijvank and Dr. Hossein Piri. Before this, I pursued Ph.D. studies in Operations Management at Koç University and earned my M.Sc. in Industrial Engineering from Sharif University of Technology. I am interested in designing mathematical models that capture real-world healthcare problems and building algorithms to turn those models into actionable insights. My research combines Operations Research and Statistics to improve decision-making under uncertainty, especially in healthcare and supply chains applications.
-      </p>
-      <p>
-        I am currently working on a project about breast cancer screening with two main parts. The first part focuses on evaluating the trade-offs and cost-effectiveness of public-level screening strategies, using a microsimulation tool. The second part is to develop a personalized framework that jointly optimizes screening and diagnosis based on individual risk factors, using approximate dynamic programming. We collaborate with co-authors from the Cumming School of Medicine and work closely with the Canadian Partnership Against Cancer (CPAC).
-      </p>
-      <p>
-        Outside of research, I love cinema, literature, and metal music. I blog in English and Farsi, and I would be happy if you visit and share your thoughts!
-      </p>
+      <div id="patternDisplay"></div>
+      <button onclick="saveShift()">Save Shift</button>
+      <button onclick="closeModal()">Cancel</button>
     </div>
   </div>
-</body>
-</html>
+
+  <script>
+    let shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+    let currentPattern = [];
+
+    function populateShiftSelect() {
+      const select = document.getElementById('shiftSelect');
+      select.innerHTML = '<option value="">-- Select a shift --</option>';
+      shifts.forEach((shift, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = shift.name;
+        select.appendChild(option);
+      });
+      const addNewOption = document.createElement('option');
+      addNewOption.value = 'add-new';
+      addNewOption.textContent = 'Add new shift...';
+      select.appendChild(addNewOption);
+    }
+
+    function openModal() {
+      document.getElementById('defineShiftModal').style.display = 'flex';
+      document.getElementById('shiftName').value = '';
+      document.getElementById('shiftStartDate').value = '';
+      currentPattern = [];
+      updatePatternDisplay();
+    }
+
+    function closeModal() {
+      document.getElementById('defineShiftModal').style.display = 'none';
+    }
+
+    function addToPattern(type) {
+      currentPattern.push(type);
+      updatePatternDisplay();
+    }
+
+    function removeLastPattern() {
+      currentPattern.pop();
+      updatePatternDisplay();
+    }
+
+    function updatePatternDisplay() {
+      document.getElementBy
+::contentReference[oaicite:12]{index=12}
+ 
