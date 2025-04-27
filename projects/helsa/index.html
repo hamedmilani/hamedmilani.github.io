@@ -272,7 +272,7 @@
             grid.innerHTML = "";
 
             if (!data || data.length === 0) {
-                return; // Handle cases with no data
+                return;
             }
 
             let currentDate = new Date(data[0].date);
@@ -296,11 +296,16 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                // Adjust Sunday (0) to be the last day (6) for Monday-start index (0-6)
-                let adjustedFirstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+                // getDay() returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday.
+                // We want Monday to be the start (index 0).
+                let leadingBlanks = 0;
+                if (firstDayOfMonth === 0) { // Sunday
+                    leadingBlanks = 6;
+                } else {
+                    leadingBlanks = firstDayOfMonth - 1;
+                }
 
-                // Add empty cells for the days before the first day of the month
-                for (let i = 0; i < adjustedFirstDayOfMonth; i++) {
+                for (let i = 0; i < leadingBlanks; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
@@ -326,7 +331,6 @@
                 grid.appendChild(div);
             });
 
-            // Add empty cells at the end to complete the last week if necessary
             const totalCells = grid.children.length;
             const remainingCells = 7 - (totalCells % 7);
             if (remainingCells > 0 && remainingCells < 7) {
