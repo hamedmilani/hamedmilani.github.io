@@ -274,18 +274,11 @@
                 return;
             }
 
-            let startDate = new Date(data[0].date);
-            let startDayOfWeek = startDate.getDay(); // 0 for Sunday, 1 for Monday, ...
+            let startDate = new Date(data[0].date); // Get the actual starting date from the data
+            let startDayOfWeek = startDate.getDay();
 
-            // Calculate leading blanks based on the starting day of the week
-            let leadingBlanks = 0;
-            if (startDayOfWeek === 0) { // Sunday
-                leadingBlanks = 6;
-            } else {
-                leadingBlanks = startDayOfWeek - 1;
-            }
+            let leadingBlanks = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
 
-            // Add leading empty cells
             for (let i = 0; i < leadingBlanks; i++) {
                 const empty = document.createElement("div");
                 empty.className = "calendar-cell";
@@ -312,20 +305,15 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                let leadingBlanksMonth = 0;
-                if (firstDayOfMonth === 0) {
-                    leadingBlanksMonth = 6;
-                } else {
-                    leadingBlanksMonth = firstDayOfMonth - 1;
-                }
-                for (let i = 0; i < leadingBlanksMonth; i++) { // Add leading blanks for subsequent months
+                let leadingBlanksMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+                for (let i = 0; i < leadingBlanksMonth; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
                 }
             };
 
-            // Add the days of the first month header (it will handle its own leading blanks)
+            // Add the first month header based on the actual start date
             addMonthHeader(new Date(currentYear, currentMonth, 1));
 
             data.forEach((entry, index) => {
