@@ -271,7 +271,11 @@
             const grid = document.getElementById('calendar');
             grid.innerHTML = "";
 
-            let currentDate = new Date(data[0].date); // Start from the first date
+            if (!data || data.length === 0) {
+                return; // Handle cases with no data
+            }
+
+            let currentDate = new Date(data[0].date);
             let currentMonth = currentDate.getMonth();
             let currentYear = currentDate.getFullYear();
 
@@ -292,12 +296,11 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                // Adjust Sunday (0) to be the last day (7) for Monday-start
-                if (firstDayOfMonth === 0) {
-                    firstDayOfMonth = 7;
-                }
+                // Adjust Sunday (0) to be the last day (6) for Monday-start index (0-6)
+                let adjustedFirstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
                 // Add empty cells for the days before the first day of the month
-                for (let i = 1; i < firstDayOfMonth; i++) {
+                for (let i = 0; i < adjustedFirstDayOfMonth; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
@@ -307,7 +310,7 @@
             addMonthHeader(new Date(currentYear, currentMonth, 1));
 
             data.forEach((entry, index) => {
-                const date = new Date(entry.date); // Use a new Date object to avoid modifying the original
+                const date = new Date(entry.date);
                 const entryMonth = date.getMonth();
                 const entryYear = date.getFullYear();
 
@@ -317,20 +320,9 @@
                     addMonthHeader(new Date(currentYear, currentMonth, 1));
                 }
 
-                const dayOfWeek = date.getDay(); // 0 for Sunday, 1 for Monday, etc.
-                const adjustedDayOfWeek = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // Adjust to Monday (0) to Sunday (6)
-
-                // Calculate the position in the grid based on the day of the week and the number of preceding days
-                const dayOfMonth = date.getDate();
-                const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-                const adjustedFirstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-                const gridPosition = (dayOfMonth - 1 + adjustedFirstDayOfMonth) % 7;
-
                 const div = document.createElement("div");
                 div.className = `calendar-cell ${entry.type}`;
                 div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
-
-                // We need to ensure the cells are added in the correct order, the grid layout will handle the positioning
                 grid.appendChild(div);
             });
 
