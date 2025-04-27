@@ -275,9 +275,26 @@
                 return;
             }
 
-            let currentDate = new Date(data[0].date);
-            let currentMonth = currentDate.getMonth();
-            let currentYear = currentDate.getFullYear();
+            let startDate = new Date(data[0].date);
+            let startDayOfWeek = startDate.getDay(); // 0 for Sunday, 1 for Monday, ...
+
+            // Calculate leading blanks based on the starting day of the week
+            let leadingBlanks = 0;
+            if (startDayOfWeek === 0) { // Sunday
+                leadingBlanks = 6;
+            } else {
+                leadingBlanks = startDayOfWeek - 1;
+            }
+
+            // Add leading empty cells
+            for (let i = 0; i < leadingBlanks; i++) {
+                const empty = document.createElement("div");
+                empty.className = "calendar-cell";
+                grid.appendChild(empty);
+            }
+
+            let currentMonth = startDate.getMonth();
+            let currentYear = startDate.getFullYear();
 
             const addMonthHeader = (date) => {
                 const separator = document.createElement("div");
@@ -296,22 +313,20 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                // getDay() returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday.
-                // We want Monday to be the start (index 0).
-                let leadingBlanks = 0;
-                if (firstDayOfMonth === 0) { // Sunday
-                    leadingBlanks = 6;
+                let leadingBlanksMonth = 0;
+                if (firstDayOfMonth === 0) {
+                    leadingBlanksMonth = 6;
                 } else {
-                    leadingBlanks = firstDayOfMonth - 1;
+                    leadingBlanksMonth = firstDayOfMonth - 1;
                 }
-
-                for (let i = 0; i < leadingBlanks; i++) {
+                for (let i = 0; i < leadingBlanksMonth; i++) { // Add leading blanks for subsequent months
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
                 }
             };
 
+            // Add the days of the first month header (it will handle its own leading blanks)
             addMonthHeader(new Date(currentYear, currentMonth, 1));
 
             data.forEach((entry, index) => {
