@@ -2,123 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Helsa Shift Management mini App</title>
+    <title>Helsa Project</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        .header {
-            background-color: #fff;
-            padding: 20px;
+            margin: 20px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
         }
-
-        .logo {
-            max-height: 60px;
-            /* Adjust as needed */
-            width: auto;
-            /* Maintain aspect ratio */
-            border-radius: 5px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .controls {
+       .controls {
             margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: center;
         }
-
-        select,
-        input[type="date"],
+        select, input[type="date"] {
+            margin: 0 5px;
+            padding: 5px;
+        }
         button {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
+            padding: 5px 10px;
+            margin-left: 10px;
         }
-
-        button {
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
         .shift-actions {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+            margin-top: 10px;
         }
-
         .summary-container {
             text-align: left;
-            border: 1px solid #ddd;
+            max-width: 600px;
+            margin: 0 auto 20px auto;
+            border: 1px solid #aaa;
             padding: 15px;
             border-radius: 5px;
-            margin-bottom: 20px;
         }
-
         .calendar-container {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 4px;
             margin-top: 20px;
+            max-width: 800px;
+            margin-inline: auto;
         }
-
         .calendar-cell {
             border: 1px solid #ddd;
             padding: 8px;
             min-height: 60px;
         }
-
         .calendar-header {
             font-weight: bold;
             background: #f0f0f0;
         }
-
-        .Day {
-            background: #cce5ff;
-        }
-
-        .Evening {
-            background: #fff3cd;
-        }
-
-        .Night {
-            background: #d4edda;
-        }
-
-        .Rest {
-            background: #e2e3e5;
-        }
-
+        .Day { background: #cce5ff; }
+        .Evening { background: #fff3cd; }
+        .Night { background: #d4edda; }
+        .Rest { background: #e2e3e5; }
+        .Off { /* You can add specific styling for off-days here if needed */ }
         .month-separator {
             grid-column: 1 / -1;
             border-top: 2px solid black;
@@ -126,7 +60,6 @@
             height: 20px;
             margin-top: 10px;
         }
-
         .month-label {
             position: absolute;
             top: 2px;
@@ -134,7 +67,6 @@
             font-weight: bold;
             font-size: 14px;
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -146,65 +78,65 @@
             align-items: center;
             justify-content: center;
         }
-
         .modal-content {
             background: #fff;
             padding: 20px;
             width: 300px;
             border-radius: 5px;
         }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="http://googleusercontent.com/image_generation_content/1" alt="Helsa Logo" class="logo">
-        <h1>Helsa Shift Management mini App</h1>
+    <h1>Helsa Project</h1>
+    <p>Display shifts on a calendar and calculate the number of days for each shift type between two dates.</p>
+
+    <div class="controls">
+        <label for="shiftSelect">Select Shift:</label>
+        <select id="shiftSelect"></select>
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+        <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
+        <select id="downloadType">
+            <option value="jpg">Download as JPG</option>
+            <option value="pdf">Download as PDF</option>
+        </select>
+        <button onclick="downloadReport()">Download Report</button>
     </div>
-    <div class="container">
-        <p>This tool helps shift healthcare personnel visualize their schedules on a calendar and analyze their workload between two dates. Define your shift patterns, apply them to calendars, and calculate workdays, holidays, and more.</p>
 
-        <div class="controls">
-            <label for="shiftSelect">Select Shift:</label>
-            <select id="shiftSelect"></select>
-            <input type="date" id="startDate">
-            <input type="date" id="endDate">
-            <button onclick="calculateAndDisplay()">Calculate and Show on Calendar</button>
-            <select id="downloadType">
-                <option value="png">Download as JPG</option>
-                <option value="pdf">Download as PDF</option>
-            </select>
-            <button onclick="downloadReport()">Download Report</button>
-        </div>
+    <div class="shift-actions">
+        <button onclick="openModal()">Add New Shift</button>
+        <button onclick="editShift()">Edit Selected Shift</button>
+        <button onclick="deleteShift()">Delete Selected Shift</button>
+    </div>
 
-        <div class="shift-actions">
-            <button onclick="openModal()">Add New Shift</button>
-            <button onclick="editShift()">Edit Selected Shift</button>
-            <button onclick="deleteShift()">Delete Selected Shift</button>
-        </div>
+    <div id="reportContainer">
+        <div id="summary" class="summary-container"></div>
+        <div id="calendarHeader"></div>
+        <div id="calendar" class="calendar-container"></div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
 
-        <div id="reportContainer">
-            <div id="summary" class="summary-container"></div>
-            <div id="calendarHeader"></div>
-            <div id="calendar" class="calendar-container"></div>
-        </div>
-
-        <div id="shiftModal" class="modal">
-            <div class="modal-content">
-                <h3 id="modalTitle">Add Shift</h3>
-                <label>Name: <input id="modalName" type="text"></label><br><br>
-                <label>Start Date: <input id="modalStartDate" type="date"></label><br><br>
-                <label>Pattern: </label>
-                <div>
-                    <button onclick="addToPattern('Day')">Day</button>
-                    <button onclick="addToPattern('Evening')">Evening</button>
-                    <button onclick="addToPattern('Night')">Night</button>
-                    <button onclick="addToPattern('Rest')">Rest</button>
-                    <button onclick="removeLastPattern()">Undo Last</button>
-                </div>
-                <p id="patternPreview"></p>
-                <button onclick="saveShift()">Save</button>
-                <button onclick="closeModal()">Cancel</button>
+    <div id="shiftModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Shift</h3>
+            <label>Name: <input id="modalName" type="text"></label><br><br>
+            <label>Start Date: <input id="modalStartDate" type="date"></label><br><br>
+            <label>Pattern: </label>
+            <div>
+                <button onclick="addToPattern('Day')">Day</button>
+                <button onclick="addToPattern('Evening')">Evening</button>
+                <button onclick="addToPattern('Night')">Night</button>
+                <button onclick="addToPattern('Rest')">Rest</button>
+                <button onclick="removeLastPattern()">Undo Last</button>
             </div>
+            <p id="patternPreview"></p>
+            <button onclick="saveShift()">Save</button>
+            <button onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
@@ -298,6 +230,17 @@
             if (!startDateInput || !endDateInput || endDate < startDate) return alert("Invalid dates.");
 
             const shift = shifts[selectedIndex];
+            const shiftStartDate = new Date(shift.startDate);
+
+            if (startDate < shiftStartDate) {
+                document.getElementById('errorMessage').innerText = "Error: Shift is not active on the selected start date.";
+                document.getElementById("summary").innerHTML = "";
+                document.getElementById("calendar").innerHTML = "";
+                return;
+            } else {
+                document.getElementById('errorMessage').innerText = "";
+            }
+
             const pattern = shift.pattern;
             let result = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
             let offByType = { Day: 0, Evening: 0, Night: 0, Rest: 0 };
@@ -340,13 +283,11 @@
             renderCalendar(calendarData);
         }
         function renderCalendar(data) {
-            const daysOfWeek = ["Mon", "Tue", "Wed",
-                "Thu", "Fri", "Sat", "Sun"];
+            const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
             const grid = document.getElementById('calendar');
             grid.innerHTML = "";
 
-            if (!data
-                || data.length === 0) {
+            if (!data || data.length === 0) {
                 return;
             }
 
@@ -364,8 +305,7 @@
             });
 
             // Add leading blanks for the first week
-            for (let i
-                = 0; i < leadingBlanks; i++) {
+            for (let i = 0; i < leadingBlanks; i++) {
                 const empty = document.createElement("div");
                 empty.className = "calendar-cell";
                 grid.appendChild(empty);
@@ -397,8 +337,7 @@
                     });
 
                     let firstDayOfMonth = new Date(entryYear, entryMonth, 1).getDay();
-                    let leadingBlanksMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth -
-                        1;
+                    let leadingBlanksMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
                     for (let i = 0; i < leadingBlanksMonth; i++) {
                         const empty = document.createElement("div");
                         empty.className = "calendar-cell";
@@ -411,8 +350,7 @@
 
                 const div = document.createElement("div");
                 div.className = `calendar-cell ${entry.type}`;
-                div.innerHTML =
-                    `${date.getDate()}<br><strong>${entry.type}</strong>`;
+                div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
                 grid.appendChild(div);
             });
 
@@ -420,8 +358,7 @@
             const totalCells = grid.children.length;
             const remainingCells = 7 - (totalCells % 7);
             if (remainingCells > 0 && remainingCells < 7) {
-                for
-                    (let i = 0; i < remainingCells; i++) {
+                for (let i = 0; i < remainingCells; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
                     grid.appendChild(empty);
@@ -430,44 +367,32 @@
         }
 
 
-        async function
-            downloadReport() {
-            const type
-                = document.getElementById('downloadType').value;
-            const
-                reportElement = document.getElementById('reportContainer');
+        async function downloadReport() {
+            const type = document.getElementById('downloadType').value;
+            const reportElement = document.getElementById('reportContainer');
 
-            if (type
-                === 'png') {
+            if (type === 'jpg') {
                 html2canvas(reportElement).then(canvas => {
                     const link = document.createElement('a');
                     link.download = 'shift_report.jpg';
                     link.href = canvas.toDataURL('image/jpeg');
                     link.click();
                 });
-            } else if
-                (type === 'pdf') {
-                const
-                    { jsPDF } = window.jspdf;
-                const
-                    pdf = new jsPDF('p', 'mm', 'a4');
-                const
-                    canvas = await html2canvas(reportElement, { scale: 2 });
-                const
-                    imgData = canvas.toDataURL('image/jpeg', 1.0);
+            } else if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const canvas = await html2canvas(reportElement, { scale: 2 });
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
 
-                const
-                    imgWidth = pdf.internal.pageSize.getWidth() - 20;
-                const
-                    imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const imgWidth = pdf.internal.pageSize.getWidth() - 20;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
                 pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
                 pdf.save('shift_report.pdf');
             }
         }
 
-        window.onload
-            = populateShiftSelect;
+        window.onload = populateShiftSelect;
     </script>
 </body>
 </html>
