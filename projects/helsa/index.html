@@ -271,7 +271,7 @@
             const grid = document.getElementById('calendar');
             grid.innerHTML = "";
 
-            let currentDate = data[0].date;
+            let currentDate = new Date(data[0].date); // Start from the first date
             let currentMonth = currentDate.getMonth();
             let currentYear = currentDate.getFullYear();
 
@@ -292,9 +292,11 @@
                 });
 
                 let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+                // Adjust Sunday (0) to be the last day (7) for Monday-start
                 if (firstDayOfMonth === 0) {
                     firstDayOfMonth = 7;
                 }
+                // Add empty cells for the days before the first day of the month
                 for (let i = 1; i < firstDayOfMonth; i++) {
                     const empty = document.createElement("div");
                     empty.className = "calendar-cell";
@@ -305,28 +307,43 @@
             addMonthHeader(new Date(currentYear, currentMonth, 1));
 
             data.forEach((entry, index) => {
-                const date = entry.date;
-                if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
-                    currentMonth = date.getMonth();
-                    currentYear = date.getFullYear();
-                    addMonthHeader(new Date(currentYear, currentMonth, 1));
+                const date = new Date(entry.date); // Use a new Date object to avoid modifying the original
+                const entryMonth = date.getMonth();
+                const entryYear = date.getFullYear();
 
-                    let firstDayOfNewMonth = new Date(currentYear, currentMonth, 1).getDay();
-                    if (firstDayOfNewMonth === 0) {
-                        firstDayOfNewMonth = 7;
-                    }
-                    for (let i = 1; i < firstDayOfNewMonth; i++) {
-                        const empty = document.createElement("div");
-                        empty.className = "calendar-cell";
-                        grid.appendChild(empty);
-                    }
+                if (entryMonth !== currentMonth || entryYear !== currentYear) {
+                    currentMonth = entryMonth;
+                    currentYear = entryYear;
+                    addMonthHeader(new Date(currentYear, currentMonth, 1));
                 }
+
+                const dayOfWeek = date.getDay(); // 0 for Sunday, 1 for Monday, etc.
+                const adjustedDayOfWeek = (dayOfWeek === 0) ? 6 : dayOfWeek - 1; // Adjust to Monday (0) to Sunday (6)
+
+                // Calculate the position in the grid based on the day of the week and the number of preceding days
+                const dayOfMonth = date.getDate();
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                const adjustedFirstDayOfMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+                const gridPosition = (dayOfMonth - 1 + adjustedFirstDayOfMonth) % 7;
 
                 const div = document.createElement("div");
                 div.className = `calendar-cell ${entry.type}`;
                 div.innerHTML = `${date.getDate()}<br><strong>${entry.type}</strong>`;
+
+                // We need to ensure the cells are added in the correct order, the grid layout will handle the positioning
                 grid.appendChild(div);
             });
+
+            // Add empty cells at the end to complete the last week if necessary
+            const totalCells = grid.children.length;
+            const remainingCells = 7 - (totalCells % 7);
+            if (remainingCells > 0 && remainingCells < 7) {
+                for (let i = 0; i < remainingCells; i++) {
+                    const empty = document.createElement("div");
+                    empty.className = "calendar-cell";
+                    grid.appendChild(empty);
+                }
+            }
         }
 
         async function downloadReport() {
