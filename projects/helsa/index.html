@@ -274,11 +274,20 @@
                 return;
             }
 
-            let startDate = new Date(data[0].date); // Get the actual starting date from the data
+            let startDate = new Date(data[0].date);
             let startDayOfWeek = startDate.getDay();
 
             let leadingBlanks = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
 
+            // Add the day of the week header row
+            daysOfWeek.forEach(day => {
+                const headerCell = document.createElement("div");
+                headerCell.className = "calendar-cell calendar-header";
+                headerCell.innerText = day;
+                grid.appendChild(headerCell);
+            });
+
+            // Add leading blanks for the first week
             for (let i = 0; i < leadingBlanks; i++) {
                 const empty = document.createElement("div");
                 empty.className = "calendar-cell";
@@ -288,43 +297,38 @@
             let currentMonth = startDate.getMonth();
             let currentYear = startDate.getFullYear();
 
-            const addMonthHeader = (date) => {
-                const separator = document.createElement("div");
-                separator.className = "month-separator";
-                const label = document.createElement("div");
-                label.className = "month-label";
-                label.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-                separator.appendChild(label);
-                grid.appendChild(separator);
-
-                daysOfWeek.forEach(day => {
-                    const cell = document.createElement("div");
-                    cell.className = "calendar-cell calendar-header";
-                    cell.innerText = day;
-                    grid.appendChild(cell);
-                });
-
-                let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-                let leadingBlanksMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
-                for (let i = 0; i < leadingBlanksMonth; i++) {
-                    const empty = document.createElement("div");
-                    empty.className = "calendar-cell";
-                    grid.appendChild(empty);
-                }
-            };
-
-            // Add the first month header based on the actual start date
-            addMonthHeader(new Date(currentYear, currentMonth, 1));
-
             data.forEach((entry, index) => {
                 const date = new Date(entry.date);
                 const entryMonth = date.getMonth();
                 const entryYear = date.getFullYear();
 
                 if (entryMonth !== currentMonth || entryYear !== currentYear) {
+                    const separator = document.createElement("div");
+                    separator.className = "month-separator";
+                    const label = document.createElement("div");
+                    label.className = "month-label";
+                    label.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    separator.appendChild(label);
+                    grid.appendChild(separator);
+
+                    // Add day of week headers after each month separator
+                    daysOfWeek.forEach(day => {
+                        const headerCell = document.createElement("div");
+                        headerCell.className = "calendar-cell calendar-header";
+                        headerCell.innerText = day;
+                        grid.appendChild(headerCell);
+                    });
+
+                    let firstDayOfMonth = new Date(entryYear, entryMonth, 1).getDay();
+                    let leadingBlanksMonth = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+                    for (let i = 0; i < leadingBlanksMonth; i++) {
+                        const empty = document.createElement("div");
+                        empty.className = "calendar-cell";
+                        grid.appendChild(empty);
+                    }
+
                     currentMonth = entryMonth;
                     currentYear = entryYear;
-                    addMonthHeader(new Date(currentYear, currentMonth, 1));
                 }
 
                 const div = document.createElement("div");
@@ -333,6 +337,7 @@
                 grid.appendChild(div);
             });
 
+            // Fill any remaining cells in the last week
             const totalCells = grid.children.length;
             const remainingCells = 7 - (totalCells % 7);
             if (remainingCells > 0 && remainingCells < 7) {
@@ -343,7 +348,7 @@
                 }
             }
         }
-        
+
 
         async function downloadReport() {
             const type = document.getElementById('downloadType').value;
