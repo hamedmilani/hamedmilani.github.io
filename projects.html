@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Projects - Hamed Milani</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: Georgia, serif;
+            background-color: #fdfdfd;
+            color: #333;
+        }
+
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 12px;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .project-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .project-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .project-item h2 {
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .project-item p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .project-item a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .project-item a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="cv.html">CV</a>
+        <a href="research.html">Research</a>
+        <a href="blog.html">Blog</a>
+        <a href="projects.html">Projects</a>
+        <a href="farsi.html">وبلاگ فارسی</a>
+    </nav>
+
+    <div class="container">
+        <h1>Projects</h1>
+        <ul class="project-list">
+            <li class="project-item">
+                <h2><a href="projects/helsa/index.html">Helsa My Shift mini App</a></h2>
+                <p>This tool helps shift personnel visualize their schedules on a calendar and analyze their workload between two dates.</p>
+            </li>
+            <li class="project-item">
+                <h2><a href="projects/helsa/index_nsp.html">Helsa Shift Management App</a></h2>
+                <p>This tool uses an optimization model to solve the Nurse Scheduling Problem considering the nurses' preferences and satisfaction.</p>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
