@@ -198,7 +198,7 @@
 
         function validateInputs(inputs, includeDate = false) {
             for (let input of inputs) {
-                if (input.type === 'date' && !includeDate) continue; // Skip date fields unless specified
+                if (input.type === 'date' && !includeDate) continue;
                 if (!input.value) return `Field ${input.placeholder} is empty.`;
                 if (input.type === 'number') {
                     const value = parseFloat(input.value);
@@ -457,6 +457,9 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
         if row["preference"] == 0:
             unavailable[key] = True
     
+    # Track assignments to prevent duplicate shift types on the same day
+    assigned_shifts = set()  # Stores (nurse_id, shift_id, date)
+    
     # Greedy scheduling: assign nurses to shifts based on highest preference
     for _, req in requirements_df.iterrows():
         start_date = req["start_date"].date()
@@ -469,8 +472,6 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
         nurses_subset = senior_nurses if nurse_type == 1 else nurses
         
         for d in pd.date_range(start=start_date, end=end_date, freq='D'):
-            # Track assigned nurses for this day
-            assigned = set()
             # Sort nurses by preference for this shift and date
             candidates = []
             for i in nurses_subset:
@@ -484,7 +485,8 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
             for i, _ in candidates:
                 if count >= max_req:
                     break
-                if i not in assigned:  # Ensure one shift per day
+                # Check if nurse is already assigned this shift type on this day
+                if (i, shift_id, d.date()) not in assigned_shifts:
                     schedule.append({
                         "nurse_id": i,
                         "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
@@ -493,7 +495,7 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
                         "date": d.strftime('%Y-%m-%d'),
                         "is_senior": 1 if i in senior_nurses else 0
                     })
-                    assigned.add(i)
+                    assigned_shifts.add((i, shift_id, d.date()))
                     count += 1
             
             # Check minimum requirement
