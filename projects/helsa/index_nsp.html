@@ -460,47 +460,57 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
     # Track assignments to prevent duplicate shift types on the same day
     assigned_shifts = set()  # Stores (nurse_id, shift_id, date)
     
-    # Greedy scheduling: assign nurses to shifts based on highest preference
-    for _, req in requirements_df.iterrows():
-        start_date = req["start_date"].date()
-        end_date = req["end_date"].date()
-        shift_id = req["shift_id"]
-        min_req = req["min_req"]
-        max_req = req["max_req"]
-        nurse_type = req["nurse_type"]
+    # Process each day and all shifts for that day
+    for d in date_horizon:
+        d_date = d.date()
+        # Get all requirements for this day
+        day_reqs = requirements_df[
+            (requirements_df['start_date'].dt.date <= d_date) &
+            (requirements_df['end_date'].dt.date >= d_date)
+        ]
         
-        nurses_subset = senior_nurses if nurse_type == 1 else nurses
-        
-        for d in pd.date_range(start=start_date, end=end_date, freq='D'):
-            # Sort nurses by preference for this shift and date
-            candidates = []
-            for i in nurses_subset:
-                if (i, shift_id, d.date()) not in unavailable:
-                    pref = preference.get((i, shift_id, d.date()), 0)
-                    candidates.append((i, pref))
-            candidates.sort(key=lambda x: x[1], reverse=True)
+        # Process each shift type for the day
+        for shift_id in SHIFTS.keys():
+            shift_reqs = day_reqs[day_reqs['shift_id'] == shift_id]
+            if shift_reqs.empty:
+                continue  # No requirements for this shift on this day
             
-            # Assign up to max_req nurses
-            count = 0
-            for i, _ in candidates:
-                if count >= max_req:
-                    break
-                # Check if nurse is already assigned this shift type on this day
-                if (i, shift_id, d.date()) not in assigned_shifts:
-                    schedule.append({
-                        "nurse_id": i,
-                        "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
-                        "shift_id": shift_id,
-                        "shift_name": SHIFTS[shift_id]["name"],
-                        "date": d.strftime('%Y-%m-%d'),
-                        "is_senior": 1 if i in senior_nurses else 0
-                    })
-                    assigned_shifts.add((i, shift_id, d.date()))
-                    count += 1
-            
-            # Check minimum requirement
-            if count < min_req:
-                return None, f"Not enough nurses for shift {shift_id} on {d.strftime('%Y-%m-%d')}"
+            for _, req in shift_reqs.iterrows():
+                min_req = req["min_req"]
+                max_req = req["max_req"]
+                nurse_type = req["nurse_type"]
+                
+                nurses_subset = senior_nurses if nurse_type == 1 else nurses
+                
+                # Sort nurses by preference for this shift and date
+                candidates = []
+                for i in nurses_subset:
+                    if (i, shift_id, d_date) not in unavailable:
+                        pref = preference.get((i, shift_id, d_date), 0)
+                        candidates.append((i, pref))
+                candidates.sort(key=lambda x: x[1], reverse=True)
+                
+                # Assign up to max_req nurses
+                count = 0
+                for i, _ in candidates:
+                    if count >= max_req:
+                        break
+                    # Check if nurse is already assigned this shift type on this day
+                    if (i, shift_id, d_date) not in assigned_shifts:
+                        schedule.append({
+                            "nurse_id": i,
+                            "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
+                            "shift_id": shift_id,
+                            "shift_name": SHIFTS[shift_id]["name"],
+                            "date": d.strftime('%Y-%m-%d'),
+                            "is_senior": 1 if i in senior_nurses else 0
+                        })
+                        assigned_shifts.add((i, shift_id, d_date))
+                        count += 1
+                
+                # Check minimum requirement
+                if count < min_req:
+                    return None, f"Not enough nurses for shift {shift_id} on {d.strftime('%Y-%m-%d')}"
     
     schedule_df = pd.DataFrame(schedule)
     # Filter schedule to only include valid shift IDs
@@ -547,25 +557,33 @@ def create_gantt_chart(schedule_df, date_horizon):
     min_date = min(date_horizon).date()
     date_to_num = {date.date(): i for i, date in enumerate(date_horizon)}
     
+    # Calculate bar height for multiple shifts (up to 3 shifts per day: Morning, Evening, Night)
+    bar_height = 0.8 / 3  # Divide nurse row into 3 segments
+    
     for idx, (nurse_id, nurse_name) in enumerate(zip(unique_nurses['nurse_id'], unique_nurses['nurse_name'])):
         nurse_schedule = schedule_df[schedule_df["nurse_id"] == nurse_id]
-        for _, row in nurse_schedule.iterrows():
-            shift_id = row["shift_id"]
-            if shift_id not in SHIFTS:
-                continue  # Skip invalid shift IDs
-            start_num = date_to_num[pd.to_datetime(row["date"]).date()]
-            rect = patches.Rectangle(
-                (start_num - 0.5, idx - 0.4), 1, 0.8,
-                facecolor=SHIFTS[shift_id]["color"],
-                edgecolor="black", alpha=0.7,
-                hatch="////" if row["is_senior"] else None
-            )
-            ax.add_patch(rect)
-            ax.text(
-                start_num, idx, SHIFTS[shift_id]["name"][0],
-                ha="center", va="center", fontweight="bold", color="white",
-                fontsize=12, path_effects=[patheffects.withStroke(linewidth=2, foreground="black")]
-            )
+        # Group shifts by date to handle multiple shifts per day
+        for date_str in nurse_schedule["date"].unique():
+            date_shifts = nurse_schedule[nurse_schedule["date"] == date_str]
+            for shift_idx, (_, row) in enumerate(date_shifts.iterrows()):
+                shift_id = row["shift_id"]
+                if shift_id not in SHIFTS:
+                    continue  # Skip invalid shift IDs
+                start_num = date_to_num[pd.to_datetime(row["date"]).date()]
+                # Position bar in one of three segments (top, middle, bottom)
+                y_pos = idx - 0.4 + shift_idx * bar_height
+                rect = patches.Rectangle(
+                    (start_num - 0.5, y_pos), 1, bar_height,
+                    facecolor=SHIFTS[shift_id]["color"],
+                    edgecolor="black", alpha=0.9,
+                    hatch="////" if row["is_senior"] else None
+                )
+                ax.add_patch(rect)
+                ax.text(
+                    start_num, y_pos + bar_height / 2, SHIFTS[shift_id]["name"][0],
+                    ha="center", va="center", fontweight="bold", color="white",
+                    fontsize=10, path_effects=[patheffects.withStroke(linewidth=2, foreground="black")]
+                )
     
     ax.set_xlabel("Date")
     ax.set_ylabel("Nurse")
