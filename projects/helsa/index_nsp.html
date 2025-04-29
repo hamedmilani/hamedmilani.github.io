@@ -1,310 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Helsa Nurse Shift Management App</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-        }
-        h1, h2 {
-            color: #333;
-        }
-        .input-section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .input-line {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .input-line label {
-            flex-shrink: 0;
-            width: 150px;
-            text-align: left;
-        }
-        .input-line input[type="text"],
-        .input-line input[type="number"],
-        .input-line input[type="date"] {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-        }
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #manual-inputs > div:not(:first-child),
-        #nurses-input > div:not(:first-child),
-        #requirements-input > div:not(:first-child),
-        #unavailabilities-input > div:not(:first-child),
-        #preferences-input > div:not(:first-child) {
-            margin-top: 10px;
-            border-top: 1px dashed #eee;
-            padding-top: 10px;
-        }
-        #gantt-chart {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        #reports {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        #reports a {
-            display: block;
-            margin-bottom: 5px;
-            color: #007bff;
-            text-decoration: none;
-        }
-        #reports a:hover {
-            text-decoration: underline;
-        }
-        .note {
-            color: #777;
-            font-size: 0.9em;
-            margin-top: 5px;
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Helsa Nurse Shift Management App</title>
+  <style>
+    body { font-family: Arial; margin: 2rem; background-color: #f4f4f4; }
+    h1 { color: #333; }
+    fieldset { border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; background-color: white; }
+    legend { font-weight: bold; }
+    label { display: inline-block; width: 150px; margin-top: 0.5rem; }
+    input, select, button { margin-top: 0.5rem; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+    .section { margin-bottom: 2rem; }
+  </style>
 </head>
 <body>
-    <h1>Helsa Nurse Shift Management App</h1>
-    <p>This tool helps you generate an optimized nurse schedule based on your input data. You can either manually enter the information below or upload a zip file containing four CSV files (nurses.csv, requirements.csv, unavailabilities.csv, preferences.csv).</p>
 
-    <div class="input-section">
-        <h2>Manual Input</h2>
-        <p class="note">Enter the data for nurses, shift requirements, unavailabilities, and preferences below. You can add multiple entries for each by clicking the "Add" buttons.</p>
+<h1>Helsa Nurse Shift Management App</h1>
 
-        <div id="manual-inputs">
-            <div id="nurses-input">
-                <h3>Nurses Information</h3>
-                <p class="note">Enter nurse details (ID, Name, Type - 0 for normal, 1 for senior).</p>
-                <div class="input-line">
-                    <label>Nurse Info:</label>
-                    <input type="text" placeholder="ID" data-input-type="nurse_id">
-                    <input type="text" placeholder="Name" data-input-type="nurse_name">
-                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type">
-                </div>
-                <button type="button" onclick="addNurseInput()">Add Nurse</button>
-            </div>
+<p>This tool helps healthcare administrators schedule nurses optimally by considering their availability, shift demands, and preferences. You can either manually enter data below or use prepared CSV templates.</p>
 
-            <div id="requirements-input">
-                <h3>Shift Requirements</h3>
-                <p class="note">Specify the start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses for each shift.</p>
-                <div class="input-line">
-                    <label>Requirement:</label>
-                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift">
-                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type">
-                    <input type="number" placeholder="Min Req" data-input-type="req_min">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max">
-                </div>
-                <button type="button" onclick="addRequirementInput()">Add Requirement</button>
-            </div>
+<div class="section">
+  <fieldset>
+    <legend>📋 Manual Data Entry</legend>
 
-            <div id="unavailabilities-input">
-                <h3>Unavailabilities</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and unavailability (e.g., 1 for unavailable).</p>
-                <div class="input-line">
-                    <label>Unavailability:</label>
-                    <input type="text" placeholder="Nurse ID" data-input-type="unavail_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="unavail_shift">
-                    <input type="date" placeholder="Date" data-input-type="unavail_date">
-                    <input type="number" placeholder="Unavailable (1)" data-input-type="unavail_status">
-                </div>
-                <button type="button" onclick="addUnavailabilityInput()">Add Unavailability</button>
-            </div>
+    <h3>Enter Nurses Info</h3>
+    <p>Enter nurse details. Type: 0 = Normal, 1 = Senior</p>
+    <table id="nursesTable">
+      <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addRow('nursesTable')">Add Nurse</button>
 
-            <div id="preferences-input">
-                <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (e.g., higher number means higher preference).</p>
-                <div class="input-line">
-                    <label>Preference:</label>
-                    <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift">
-                    <input type="date" placeholder="Date" data-input-type="pref_date">
-                    <input type="number" placeholder="Preference Level" data-input-type="pref_level">
-                </div>
-                <button type="button" onclick="addPreferenceInput()">Add Preference</button>
-            </div>
-        </div>
-    </div>
+    <h3>Shift Requirements</h3>
+    <p>Format: Start Date, End Date, Shift ID (1=Morning,2=Evening,3=Night), Nurse Type, Min, Max</p>
+    <table id="requirementsTable">
+      <thead><tr><th>Start</th><th>End</th><th>Shift</th><th>Type</th><th>Min</th><th>Max</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addRow('requirementsTable')">Add Requirement</button>
 
-    <div class="input-section">
-        <h2>Upload Input Files (ZIP)</h2>
-        <p class="note">Alternatively, you can download an example input ZIP file, edit the CSV files inside, and upload the modified ZIP file.</p>
-        <button type="button">Download Example Input (ZIP)</button>
-        <input type="file" accept=".zip">
-    </div>
+    <h3>Unavailable Shifts</h3>
+    <p>Specify unavailabilities (Nurse ID, Shift ID, Date, Type)</p>
+    <table id="unavailTable">
+      <thead><tr><th>ID</th><th>Shift</th><th>Date</th><th>Type</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addRow('unavailTable')">Add Unavailability</button>
 
-    <button type="button" onclick="runScheduling()">Generate Schedule and Reports</button>
+    <h3>Preferences</h3>
+    <p>Preferred shifts (Nurse ID, Shift ID, Date, Type)</p>
+    <table id="prefsTable">
+      <thead><tr><th>ID</th><th>Shift</th><th>Date</th><th>Type</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addRow('prefsTable')">Add Preference</button>
+  </fieldset>
 
-    <div id="gantt-chart">
-        <h2>Gantt Chart</h2>
-        <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p>
-        </div>
+  <fieldset>
+    <legend>📁 CSV Upload Option</legend>
+    <p>You can download the example input files below, edit them locally, zip them, and re-upload.</p>
+    <a href="example_inputs.zip" download>📥 Download Example Input ZIP</a><br/><br/>
+    <label for="zipUpload">📤 Upload ZIP File:</label>
+    <input type="file" id="zipUpload" accept=".zip" /><br/><br/>
+    <button onclick="handleZipUpload()">Process Uploaded ZIP</button>
+  </fieldset>
+</div>
 
-    <div id="reports">
-        <h2>Reports</h2>
-        <p class="note">Download the generated reports in CSV format.</p>
-        <a href="#">Download Optimal Schedule (CSV)</a>
-        <a href="#">Download Nurse Statistics (CSV)</a>
-        <a href="#">Download Shift Coverage (CSV)</a>
-    </div>
+<div class="section">
+  <button onclick="generateSchedule()">⚙️ Generate Schedule (Mock)</button>
+</div>
 
-    <script>
-        // --- JavaScript to handle dynamic input fields ---
-        function addNurseInput() {
-            const nursesInput = document.getElementById('nurses-input');
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
-            newInputLine.innerHTML = `
-                <label>Nurse Info:</label>
-                <input type="text" placeholder="ID" data-input-type="nurse_id">
-                <input type="text" placeholder="Name" data-input-type="nurse_name">
-                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type">
-            `;
-            nursesInput.appendChild(newInputLine);
-        }
+<div class="section">
+  <h2>📊 Gantt Chart (Simulated)</h2>
+  <p>This is a placeholder. Real charts will appear once Python backend is connected.</p>
+  <img src="gantt_example.png" alt="Gantt Chart Example" style="width:100%; max-width:600px;">
+</div>
 
-        function addRequirementInput() {
-            const requirementsInput = document.getElementById('requirements-input');
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
-            newInputLine.innerHTML = `
-                <label>Requirement:</label>
-                <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift">
-                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type">
-                <input type="number" placeholder="Min Req" data-input-type="req_min">
-                <input type="number" placeholder="Max Req" data-input-type="req_max">
-            `;
-            requirementsInput.appendChild(newInputLine);
-        }
+<div class="section">
+  <h2>📄 Download Reports</h2>
+  <p>Download mock output reports (replace later with actual backend output).</p>
+  <ul>
+    <li><a href="optimal_schedule.csv" download>Download Optimal Schedule</a></li>
+    <li><a href="nurse_stats.csv" download>Download Nurse Stats</a></li>
+    <li><a href="shift_coverage.csv" download>Download Shift Coverage</a></li>
+  </ul>
+</div>
 
-        function addUnavailabilityInput() {
-            const unavailabilitiesInput = document.getElementById('unavailabilities-input');
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
-            newInputLine.innerHTML = `
-                <label>Unavailability:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="unavail_nurse_id">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="unavail_shift">
-                <input type="date" placeholder="Date" data-input-type="unavail_date">
-                <input type="number" placeholder="Unavailable (1)" data-input-type="unavail_status">
-            `;
-            unavailabilitiesInput.appendChild(newInputLine);
-        }
+<script>
+  function addRow(tableId) {
+    const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+    const newRow = table.insertRow();
+    const numCols = table.parentElement.getElementsByTagName('thead')[0].rows[0].cells.length - 1;
+    for (let i = 0; i < numCols; i++) {
+      const cell = newRow.insertCell();
+      cell.innerHTML = `<input type="text" />`;
+    }
+    const delCell = newRow.insertCell();
+    delCell.innerHTML = `<button onclick="this.parentElement.parentElement.remove()">❌</button>`;
+  }
 
-        function addPreferenceInput() {
-            const preferencesInput = document.getElementById('preferences-input');
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
-            newInputLine.innerHTML = `
-                <label>Preference:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift">
-                <input type="date" placeholder="Date" data-input-type="pref_date">
-                <input type="number" placeholder="Preference Level" data-input-type="pref_level">
-            `;
-            preferencesInput.appendChild(newInputLine);
-        }
+  function generateSchedule() {
+    alert("This is a mock implementation. Add a backend to process inputs.");
+  }
 
-        function runScheduling() {
-            // This function will eventually collect the input data
-            // from the manual input fields or the uploaded zip file,
-            // and then trigger the backend Python script (this part
-            // requires a backend server to run the Python code).
+  function handleZipUpload() {
+    alert("ZIP upload handled here. You'll need a backend to extract and use the files.");
+  }
+</script>
 
-            // For now, let's just log the manually entered data to the console.
-            const nursesData = [];
-            const nurseInputs = document.querySelectorAll('#nurses-input .input-line:not(:first-child), #nurses-input .input-line:first-child');
-            nurseInputs.forEach(line => {
-                const id = line.querySelector('[data-input-type="nurse_id"]')?.value;
-                const name = line.querySelector('[data-input-type="nurse_name"]')?.value;
-                const type = line.querySelector('[data-input-type="nurse_type"]')?.value;
-                if (id && name && type) {
-                    nursesData.push({ ID: id, name: name, type: parseInt(type) });
-                }
-            });
-            console.log("Nurses Data:", nursesData);
-
-            const requirementsData = [];
-            const requirementInputs = document.querySelectorAll('#requirements-input .input-line:not(:first-child), #requirements-input .input-line:first-child');
-            requirementInputs.forEach(line => {
-                const startDate = line.querySelector('[data-input-type="req_start_date"]')?.value;
-                const endDate = line.querySelector('[data-input-type="req_end_date"]')?.value;
-                const shift = line.querySelector('[data-input-type="req_shift"]')?.value;
-                const nurseType = line.querySelector('[data-input-type="req_nurse_type"]')?.value;
-                const minReq = line.querySelector('[data-input-type="req_min"]')?.value;
-                const maxReq = line.querySelector('[data-input-type="req_max"]')?.value;
-                if (startDate && endDate && shift && nurseType && minReq && maxReq) {
-                    requirementsData.push({ start_date: startDate, end_date: endDate, shift_id: parseInt(shift), nurse_type: parseInt(nurseType), min_req: parseInt(minReq), max_req: parseInt(maxReq) });
-                }
-            });
-            console.log("Requirements Data:", requirementsData);
-
-            const unavailabilitiesData = [];
-            const unavailabilityInputs = document.querySelectorAll('#unavailabilities-input .input-line:not(:first-child), #unavailabilities-input .input-line:first-child');
-            unavailabilityInputs.forEach(line => {
-                const nurseId = line.querySelector('[data-input-type="unavail_nurse_id"]')?.value;
-                const shift = line.querySelector('[data-input-type="unavail_shift"]')?.value;
-                const date = line.querySelector('[data-input-type="unavail_date"]')?.value;
-                const unavailable = line.querySelector('[data-input-type="unavail_status"]')?.value;
-                if (nurseId && shift && date && unavailable) {
-                    unavailabilitiesData.push({ nurse_id: nurseId, shift_id: parseInt(shift), date: date, unavailable: parseInt(unavailable) });
-                }
-            });
-            console.log("Unavailabilities Data:", unavailabilitiesData);
-
-            const preferencesData = [];
-            const preferenceInputs = document.querySelectorAll('#preferences-input .input-line:not(:first-child), #preferences-input .input-line:first-child');
-            preferenceInputs.forEach(line => {
-                const nurseId = line.querySelector('[data-input-type="pref_nurse_id"]')?.value;
-                const shift = line.querySelector('[data-input-type="pref_shift"]')?.value;
-                const date = line.querySelector('[data-input-type="pref_date"]')?.value;
-                const preference = line.querySelector('[data-input-type="pref_level"]')?.value;
-                if (nurseId && shift && date && preference) {
-                    preferencesData.push({ nurse_id: nurseId, shift_id: parseInt(shift), date: date, preference: parseInt(preference) });
-                }
-            });
-            console.log("Preferences Data:", preferencesData);
-
-            alert("Scheduling will run (backend implementation needed to process this data).");
-
-            // In a real application, you would send this data to a backend server
-            // that runs the Python script. The server would then send back the
-            // results (Gantt chart image and links to the report CSV files).
-
-            // For this HTML-only example, we'll just display a placeholder.
-            document.getElementById('gantt-chart').innerHTML = '<h2>Gantt Chart</h2><p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p><img src="placeholder_gantt.png" alt="Gantt Chart">';
-            document.querySelector('#reports a:nth-child(1)').href = 'placeholder_schedule.csv';
-            document.querySelector('#reports a:nth-child(2)').href = 'placeholder_stats.csv';
-            document.querySelector('#reports a:nth-child(3)').href = 'placeholder_coverage.csv';
-        }
-    </script>
 </body>
 </html>
