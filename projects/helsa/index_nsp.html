@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Helsa Nurse Shift Management App</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <style>
         body {
             font-family: sans-serif;
@@ -86,11 +87,15 @@
             margin-top: 5px;
             display: block;
         }
+        #error-message {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Helsa Nurse Shift Management App</h1>
-    <p>This tool helps you generate an optimized nurse schedule based on your input data. You can either manually enter the information below or upload a zip file containing four CSV files (nurses.csv, requirements.csv, unavailabilities.csv, preferences.csv).</p>
+    <p>This tool helps you generate an optimized nurse schedule based on your input data. Enter the information below to create a schedule.</p>
 
     <div class="input-section">
         <h2>Manual Input</h2>
@@ -152,30 +157,31 @@
         </div>
     </div>
 
-    <div class="input-section">
-        <h2>Upload Input Files (ZIP)</h2>
-        <p class="note">Alternatively, you can download an example input ZIP file, edit the CSV files inside, and upload the modified ZIP file.</p>
-        <button type="button">Download Example Input (ZIP)</button>
-        <input type="file" accept=".zip">
-    </div>
-
     <button type="button" onclick="runScheduling()">Generate Schedule and Reports</button>
+    <div id="error-message"></div>
 
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
         <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p>
-        </div>
+    </div>
 
     <div id="reports">
         <h2>Reports</h2>
         <p class="note">Download the generated reports in CSV format.</p>
-        <a href="#">Download Optimal Schedule (CSV)</a>
-        <a href="#">Download Nurse Statistics (CSV)</a>
-        <a href="#">Download Shift Coverage (CSV)</a>
+        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
     </div>
 
     <script>
-        // --- JavaScript to handle dynamic input fields ---
+        let pyodide;
+
+        async function loadPyodideAndPackages() {
+            pyodide = await loadPyodide();
+            await pyodide.loadPackage(['pandas', 'matplotlib']);
+            console.log("Pyodide and packages loaded");
+        }
+
         function addNurseInput() {
             const nursesInput = document.getElementById('nurses-input');
             const newInputLine = document.createElement('div');
@@ -233,15 +239,15 @@
             preferencesInput.appendChild(newInputLine);
         }
 
-        function runScheduling() {
-            // This function will eventually collect the input data
-            // from the manual input fields or the uploaded zip file,
-            // and then trigger the backend Python script (this part
-            // requires a backend server to run the Python code).
+        async function runScheduling() {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
+            const ganttChartDiv = document.getElementById('gantt-chart');
+            const reportsDiv = document.getElementById('reports');
 
-            // For now, let's just log the manually entered data to the console.
+            // Collect input data
             const nursesData = [];
-            const nurseInputs = document.querySelectorAll('#nurses-input .input-line:not(:first-child), #nurses-input .input-line:first-child');
+            const nurseInputs = document.querySelectorAll('#nurses-input .input-line');
             nurseInputs.forEach(line => {
                 const id = line.querySelector('[data-input-type="nurse_id"]')?.value;
                 const name = line.querySelector('[data-input-type="nurse_name"]')?.value;
@@ -250,10 +256,9 @@
                     nursesData.push({ ID: id, name: name, type: parseInt(type) });
                 }
             });
-            console.log("Nurses Data:", nursesData);
 
             const requirementsData = [];
-            const requirementInputs = document.querySelectorAll('#requirements-input .input-line:not(:first-child), #requirements-input .input-line:first-child');
+            const requirementInputs = document.querySelectorAll('#requirements-input .input-line');
             requirementInputs.forEach(line => {
                 const startDate = line.querySelector('[data-input-type="req_start_date"]')?.value;
                 const endDate = line.querySelector('[data-input-type="req_end_date"]')?.value;
@@ -262,49 +267,296 @@
                 const minReq = line.querySelector('[data-input-type="req_min"]')?.value;
                 const maxReq = line.querySelector('[data-input-type="req_max"]')?.value;
                 if (startDate && endDate && shift && nurseType && minReq && maxReq) {
-                    requirementsData.push({ start_date: startDate, end_date: endDate, shift_id: parseInt(shift), nurse_type: parseInt(nurseType), min_req: parseInt(minReq), max_req: parseInt(maxReq) });
+                    requirementsData.push({
+                        start_date: startDate,
+                        end_date: endDate,
+                        shift_id: parseInt(shift),
+                        nurse_type: parseInt(nurseType),
+                        min_req: parseInt(minReq),
+                        max_req: parseInt(maxReq)
+                    });
                 }
             });
-            console.log("Requirements Data:", requirementsData);
 
             const unavailabilitiesData = [];
-            const unavailabilityInputs = document.querySelectorAll('#unavailabilities-input .input-line:not(:first-child), #unavailabilities-input .input-line:first-child');
+            const unavailabilityInputs = document.querySelectorAll('#unavailabilities-input .input-line');
             unavailabilityInputs.forEach(line => {
                 const nurseId = line.querySelector('[data-input-type="unavail_nurse_id"]')?.value;
                 const shift = line.querySelector('[data-input-type="unavail_shift"]')?.value;
                 const date = line.querySelector('[data-input-type="unavail_date"]')?.value;
-                const unavailable = line.querySelector('[data-input-type="unavail_status"]')?.value;
-                if (nurseId && shift && date && unavailable) {
-                    unavailabilitiesData.push({ nurse_id: nurseId, shift_id: parseInt(shift), date: date, unavailable: parseInt(unavailable) });
+                const status = line.querySelector('[data-input-type="unavail_status"]')?.value;
+                if (nurseId && shift && date && status) {
+                    unavailabilitiesData.push({
+                        nurse_id: nurseId,
+                        shift_id: parseInt(shift),
+                        date: date,
+                        preference: status == 1 ? 0 : 1
+                    });
                 }
             });
-            console.log("Unavailabilities Data:", unavailabilitiesData);
 
             const preferencesData = [];
-            const preferenceInputs = document.querySelectorAll('#preferences-input .input-line:not(:first-child), #preferences-input .input-line:first-child');
+            const preferenceInputs = document.querySelectorAll('#preferences-input .input-line');
             preferenceInputs.forEach(line => {
                 const nurseId = line.querySelector('[data-input-type="pref_nurse_id"]')?.value;
                 const shift = line.querySelector('[data-input-type="pref_shift"]')?.value;
                 const date = line.querySelector('[data-input-type="pref_date"]')?.value;
-                const preference = line.querySelector('[data-input-type="pref_level"]')?.value;
-                if (nurseId && shift && date && preference) {
-                    preferencesData.push({ nurse_id: nurseId, shift_id: parseInt(shift), date: date, preference: parseInt(preference) });
+                const level = line.querySelector('[data-input-type="pref_level"]')?.value;
+                if (nurseId && shift && date && level) {
+                    preferencesData.push({
+                        nurse_id: nurseId,
+                        shift_id: parseInt(shift),
+                        date: date,
+                        preference: parseInt(level)
+                    });
                 }
             });
-            console.log("Preferences Data:", preferencesData);
 
-            alert("Scheduling will run (backend implementation needed to process this data).");
+            if (!nursesData.length || !requirementsData.length) {
+                errorMessage.textContent = 'Please provide at least one nurse and one shift requirement.';
+                return;
+            }
 
-            // In a real application, you would send this data to a backend server
-            // that runs the Python script. The server would then send back the
-            // results (Gantt chart image and links to the report CSV files).
+            try {
+                // Combine unavailabilities and preferences
+                const combinedPrefsData = [...unavailabilitiesData, ...preferencesData];
 
-            // For this HTML-only example, we'll just display a placeholder.
-            document.getElementById('gantt-chart').innerHTML = '<h2>Gantt Chart</h2><p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p><img src="placeholder_gantt.png" alt="Gantt Chart">';
-            document.querySelector('#reports a:nth-child(1)').href = 'placeholder_schedule.csv';
-            document.querySelector('#reports a:nth-child(2)').href = 'placeholder_stats.csv';
-            document.querySelector('#reports a:nth-child(3)').href = 'placeholder_coverage.csv';
+                // Python code to process inputs and generate outputs
+                const pythonCode = `
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from datetime import datetime
+from io import BytesIO
+import base64
+
+SHIFTS = {
+    1: {"name": "Morning", "duration": 8, "color": "#4CAF50"},
+    2: {"name": "Evening", "duration": 8, "color": "#FFC107"},
+    3: {"name": "Night", "duration": 10, "color": "#F44336"}
+}
+
+def create_dataframes(nurses_data, requirements_data, prefs_data):
+    nurses_df = pd.DataFrame(nurses_data)
+    requirements_df = pd.DataFrame(requirements_data)
+    prefs_df = pd.DataFrame(prefs_data)
+    
+    # Convert dates to datetime
+    requirements_df['start_date'] = pd.to_datetime(requirements_df['start_date'])
+    requirements_df['end_date'] = pd.to_datetime(requirements_df['end_date'])
+    if not prefs_df.empty:
+        prefs_df['date'] = pd.to_datetime(prefs_df['date'])
+    
+    # Calculate date horizon
+    start_date = requirements_df["start_date"].min()
+    end_date = requirements_df["end_date"].max()
+    date_horizon = pd.date_range(start=start_date, end=end_date, freq='D').tolist()
+    
+    return nurses_df, requirements_df, prefs_df, date_horizon
+
+def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
+    nurses = nurses_df["ID"].tolist()
+    senior_nurses = nurses_df[nurses_df["type"] == 1]["ID"].tolist()
+    schedule = []
+    
+    # Build preference dictionary
+    preference = {}
+    unavailable = {}
+    for _, row in prefs_df.iterrows():
+        date_key = row["date"].date()
+        key = (row["nurse_id"], row["shift_id"], date_key)
+        preference[key] = row["preference"]
+        if row["preference"] == 0:
+            unavailable[key] = True
+    
+    # Greedy scheduling: assign nurses to shifts based on highest preference
+    for _, req in requirements_df.iterrows():
+        start_date = req["start_date"].date()
+        end_date = req["end_date"].date()
+        shift_id = req["shift_id"]
+        min_req = req["min_req"]
+        max_req = req["max_req"]
+        nurse_type = req["nurse_type"]
+        
+        nurses_subset = senior_nurses if nurse_type == 1 else nurses
+        
+        for d in pd.date_range(start=start_date, end=end_date, freq='D'):
+            # Track assigned nurses for this day
+            assigned = set()
+            # Sort nurses by preference for this shift and date
+            candidates = []
+            for i in nurses_subset:
+                if (i, shift_id, d.date()) not in unavailable:
+                    pref = preference.get((i, shift_id, d.date()), 0)
+                    candidates.append((i, pref))
+            candidates.sort(key=lambda x: x[1], reverse=True)
+            
+            # Assign up to max_req nurses
+            count = 0
+            for i, _ in candidates:
+                if count >= max_req:
+                    break
+                if i not in assigned:  # Ensure one shift per day
+                    schedule.append({
+                        "nurse_id": i,
+                        "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
+                        "shift_id": shift_id,
+                        "shift_name": SHIFTS[shift_id]["name"],
+                        "date": d.strftime('%Y-%m-%d'),
+                        "is_senior": 1 if i in senior_nurses else 0
+                    })
+                    assigned.add(i)
+                    count += 1
+            
+            # Check minimum requirement
+            if count < min_req:
+                return None, f"Not enough nurses for shift {shift_id} on {d.strftime('%Y-%m-%d')}"
+    
+    schedule_df = pd.DataFrame(schedule)
+    return schedule_df, None
+
+def generate_reports(schedule_df):
+    nurse_stats = []
+    for nurse_id in schedule_df["nurse_id"].unique():
+        nurse_data = schedule_df[schedule_df["nurse_id"] == nurse_id]
+        stats = {
+            "nurse_id": nurse_id,
+            "nurse_name": nurse_data["nurse_name"].iloc[0],
+            "total_shifts": len(nurse_data),
+            "total_hours": sum(SHIFTS[s]["duration"] for s in nurse_data["shift_id"]),
+            "is_senior": nurse_data["is_senior"].iloc[0]
         }
+        for shift_id, shift in SHIFTS.items():
+            stats[f"{shift['name']}_shifts"] = len(nurse_data[nurse_data["shift_id"] == shift_id])
+        nurse_stats.append(stats)
+    
+    coverage = []
+    for date_str in schedule_df["date"].unique():
+        for shift_id, shift in SHIFTS.items():
+            shift_data = schedule_df[
+                (schedule_df["date"] == date_str) &
+                (schedule_df["shift_id"] == shift_id)
+            ]
+            coverage.append({
+                "date": date_str,
+                "shift_id": shift_id,
+                "shift_name": shift["name"],
+                "total_nurses": len(shift_data),
+                "senior_nurses": sum(shift_data["is_senior"])
+            })
+    
+    return pd.DataFrame(nurse_stats), pd.DataFrame(coverage)
+
+def create_gantt_chart(schedule_df, date_horizon):
+    fig, ax = plt.subplots(figsize=(15, 8))
+    unique_nurses = schedule_df[['nurse_id', 'nurse_name']].drop_duplicates().sort_values('nurse_id')
+    num_nurses = len(unique_nurses)
+    num_dates = len(date_horizon)
+    min_date = min(date_horizon).date()
+    date_to_num = {date.date(): i for i, date in enumerate(date_horizon)}
+    
+    for idx, (nurse_id, nurse_name) in enumerate(zip(unique_nurses['nurse_id'], unique_nurses['nurse_name'])):
+        nurse_schedule = schedule_df[schedule_df["nurse_id"] == nurse_id]
+        for _, row in nurse_schedule.iterrows():
+            start_num = date_to_num[pd.to_datetime(row["date"]).date()]
+            rect = patches.Rectangle(
+                (start_num - 0.5, idx - 0.4), 1, 0.8,
+                facecolor=SHIFTS[row["shift_id"]]["color"],
+                edgecolor="black", alpha=0.7,
+                hatch="////" if row["is_senior"] else None
+            )
+            ax.add_patch(rect)
+            ax.text(
+                start_num, idx, SHIFTS[row["shift_id"]]["name"][0],
+                ha="center", va="center", fontweight="bold"
+            )
+    
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Nurse")
+    ax.set_title("Nurse Schedule Gantt Chart")
+    ax.set_xticks(range(num_dates))
+    ax.set_xticklabels([d.strftime('%Y-%m-%d') for d in date_horizon], rotation=45, ha="right")
+    ax.set_yticks(range(num_nurses))
+    ax.set_yticklabels([f"{name} (ID: {id})" for id, name in zip(unique_nurses['nurse_id'], unique_nurses['nurse_name'])])
+    ax.grid(axis="x", linestyle="--", alpha=0.7)
+    ax.set_ylim(-0.5, num_nurses - 0.5)
+    ax.set_xlim(-0.5, num_dates - 0.5)
+    
+    legend_patches = [patches.Patch(color=shift["color"], label=shift["name"]) for shift in SHIFTS.values()]
+    legend_patches.append(patches.Patch(facecolor="white", edgecolor="black", hatch="////", label="Senior Nurse"))
+    ax.legend(handles=legend_patches, bbox_to_anchor=(1.05, 1), loc="upper left")
+    
+    plt.tight_layout()
+    
+    # Save plot to base64
+    buf = BytesIO()
+    plt.savefig(buf, format="png", dpi=300)
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    plt.close()
+    
+    return img_base64
+
+def main(nurses_data, requirements_data, prefs_data):
+    nurses_df, requirements_df, prefs_df, date_horizon = create_dataframes(nurses_data, requirements_data, prefs_data)
+    schedule_df, error = simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon)
+    
+    if schedule_df is None:
+        return None, None, None, None, error
+    
+    nurse_stats_df, coverage_df = generate_reports(schedule_df)
+    gantt_img = create_gantt_chart(schedule_df, date_horizon)
+    
+    return schedule_df, nurse_stats_df, coverage_df, gantt_img, None
+
+# Pass input data from JavaScript
+result = main(${JSON.stringify(nursesData)}, ${JSON.stringify(requirementsData)}, ${JSON.stringify(combinedPrefsData)})
+                `;
+
+                // Run Python code
+                await pyodide.runPythonAsync(pythonCode);
+                const result = pyodide.globals.get("result").toJs();
+                const [schedule_df, nurse_stats_df, coverage_df, gantt_img, error] = result;
+
+                if (error) {
+                    errorMessage.textContent = `Scheduling failed: ${error}`;
+                    return;
+                }
+
+                // Display Gantt chart
+                ganttChartDiv.innerHTML = `
+                    <h2>Gantt Chart</h2>
+                    <img src="data:image/png;base64,${gantt_img}" alt="Gantt Chart" style="max-width: 100%;">
+                `;
+
+                // Convert DataFrames to CSV and create download links
+                const schedule_csv = schedule_df.to_csv();
+                const stats_csv = nurse_stats_df.to_csv();
+                const coverage_csv = coverage_df.to_csv();
+
+                const scheduleLink = document.getElementById('schedule-csv');
+                const statsLink = document.getElementById('stats-csv');
+                const coverageLink = document.getElementById('coverage-csv');
+
+                scheduleLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(schedule_csv);
+                scheduleLink.download = 'optimal_schedule.csv';
+                scheduleLink.style.display = 'block';
+
+                statsLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(stats_csv);
+                statsLink.download = 'nurse_stats.csv';
+                statsLink.style.display = 'block';
+
+                coverageLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(coverage_csv);
+                coverageLink.download = 'shift_coverage.csv';
+                coverageLink.style.display = 'block';
+
+            } catch (err) {
+                errorMessage.textContent = `Error: ${err.message}`;
+            }
+        }
+
+        // Load Pyodide when the page loads
+        loadPyodideAndPackages();
     </script>
 </body>
 </html>
