@@ -196,21 +196,31 @@
             console.log("Pyodide and packages loaded");
         }
 
-        function validateInputs(inputs) {
+        function validateInputs(inputs, includeDate = false) {
             for (let input of inputs) {
-                if (!input.value) return false;
-                if (input.type === 'number' && (input.value < input.min || input.value > input.max)) return false;
+                if (input.type === 'date' && !includeDate) continue; // Skip date fields unless specified
+                if (!input.value) return `Field ${input.placeholder} is empty.`;
+                if (input.type === 'number') {
+                    const value = parseFloat(input.value);
+                    const min = parseFloat(input.min);
+                    const max = parseFloat(input.max);
+                    if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
+                        return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
+                    }
+                }
             }
-            return true;
+            return null;
         }
 
         function addNurseInput() {
             const nursesInput = document.getElementById('nurses-input');
             const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            if (!validateInputs(inputs)) {
-                alert('Please fill all fields correctly (Type: 0 or 1).');
+            const error = validateInputs(inputs);
+            if (error) {
+                alert(error);
                 return;
             }
+            console.log('Nurse inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
             const newInputLine = document.createElement('div');
             newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
@@ -231,16 +241,22 @@
         function addRequirementInput() {
             const requirementsInput = document.getElementById('requirements-input');
             const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            if (!validateInputs(inputs)) {
-                alert('Please fill all fields correctly (Shift: 1-3, Nurse Type: 0 or 1, Min/Max Req: >=0).');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
                 return;
             }
             const startDate = new Date(inputs[0].value);
             const endDate = new Date(inputs[1].value);
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                alert('Please enter valid dates for Start Date and End Date.');
+                return;
+            }
             if (startDate > endDate) {
                 alert('End Date must be on or after Start Date.');
                 return;
             }
+            console.log('Requirement inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
             const newInputLine = document.createElement('div');
             newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
@@ -264,10 +280,12 @@
         function addPreferenceInput() {
             const preferencesInput = document.getElementById('preferences-input');
             const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            if (!validateInputs(inputs)) {
-                alert('Please fill all fields correctly (Shift: 1-3, Preference Level: 0-10).');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
                 return;
             }
+            console.log('Preference inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
             const newInputLine = document.createElement('div');
             newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
@@ -297,9 +315,22 @@
         function saveInput(button) {
             const inputLine = button.parentElement;
             const inputs = inputLine.querySelectorAll('input');
-            if (!validateInputs(inputs)) {
-                alert('Please fill all fields correctly.');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
                 return;
+            }
+            if (inputs[0].dataset.inputType === 'req_start_date') {
+                const startDate = new Date(inputs[0].value);
+                const endDate = new Date(inputs[1].value);
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    alert('Please enter valid dates for Start Date and End Date.');
+                    return;
+                }
+                if (startDate > endDate) {
+                    alert('End Date must be on or after Start Date.');
+                    return;
+                }
             }
             inputs.forEach(input => input.setAttribute('readonly', 'true'));
             button.textContent = 'Edit';
