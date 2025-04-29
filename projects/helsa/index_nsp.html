@@ -128,124 +128,199 @@
         <h2>Manual Input</h2>
         <p class="note">Enter the data for nurses, shift requirements, and preferences below. You can add multiple entries for each by clicking the "Add" buttons. A preference level of 0 means the nurse is unavailable; 1–10 indicates preference (10 is most preferred).</p>
 
-        <div id="manual-inputs">
-            <div id="nurses-input">
-                <h3>Nurses Information</h3>
-                <p class="note">Enter nurse details (ID, Name, Type - 0 for normal, 1 for senior).</p>
-                <div class="input-line">
-                    <label>Nurse Info:</label>
-                    <input type="text" placeholder="ID" data-input-type="nurse_id">
-                    <input type="text" placeholder="Name" data-input-type="nurse_name">
-                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
-                </div>
-                <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
+    <div id="manual-inputs">
+        <div id="nurses-input">
+            <h3>Nurses Information</h3>
+            <p class="note">Enter nurse details (ID, Name, Type - 0 for normal, 1 for senior).</p>
+            <div class="input-line">
+                <label>Nurse Info:</label>
+                <input type="text" placeholder="ID" data-input-type="nurse_id">
+                <input type="text" placeholder="Name" data-input-type="nurse_name">
+                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
             </div>
+            <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
+        </div>
 
-            <div id="requirements-input">
-                <h3>Shift Requirements</h3>
-                <p class="note">Specify the start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses for each shift.</p>
-                <div class="input-line">
-                    <label>Requirement:</label>
-                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
-                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
-                    <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
-                </div>
-                <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
+        <div id="requirements-input">
+            <h3>Shift Requirements</h3>
+            <p class="note">Specify the start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses for each shift.</p>
+            <div class="input-line">
+                <label>Requirement:</label>
+                <input type="date" placeholder="Start Date" data-input-type="req_start_date">
+                <input type="date" placeholder="End Date" data-input-type="req_end_date">
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
+                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
+                <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
+                <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
             </div>
+            <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
+        </div>
 
-            <div id="preferences-input">
-                <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (0–10; 0 means unavailable).</p>
-                <div class="input-line">
-                    <label>Preference:</label>
-                    <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
-                    <input type="date" placeholder="Date" data-input-type="pref_date">
-                    <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
-                </div>
-                <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
+        <div id="preferences-input">
+            <h3>Preferences</h3>
+            <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (0–10; 0 means unavailable).</p>
+            <div class="input-line">
+                <label>Preference:</label>
+                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
+                <input type="date" placeholder="Date" data-input-type="pref_date">
+                <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
             </div>
+            <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
         </div>
     </div>
+</div>
 
-    <button type="button" onclick="runScheduling()">Generate Schedule and Reports</button>
-    <div id="error-message"></div>
+<button type="button" onclick="runScheduling()">Generate Schedule and Reports</button>
+<div id="error-message"></div>
 
-    <div id="gantt-chart">
-        <h2>Gantt Chart</h2>
-        <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p>
-    </div>
+<div id="gantt-chart">
+    <h2>Gantt Chart</h2>
+    <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after the scheduling is generated.</p>
+</div>
 
-    <div id="reports">
-        <h2>Reports</h2>
-        <p class="note">Download the generated reports in CSV format.</p>
-        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
-        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
-        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
-    </div>
+<div id="reports">
+    <h2>Reports</h2>
+    <p class="note">Download the generated reports in CSV format.</p>
+    <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+    <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+    <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
+</div>
 
-    <script>
-        let pyodide;
+<script>
+    let pyodide;
 
-        async function loadPyodideAndPackages() {
-            pyodide = await loadPyodide();
-            await pyodide.loadPackage(['pandas', 'matplotlib']);
-            console.log("Pyodide and packages loaded");
-        }
+    async function loadPyodideAndPackages() {
+        pyodide = await loadPyodide();
+        await pyodide.loadPackage(['pandas', 'matplotlib']);
+        console.log("Pyodide and packages loaded");
+    }
 
-        function validateInputs(inputs, includeDate = false) {
-            for (let input of inputs) {
-                if (input.type === 'date' && !includeDate) continue;
-                if (!input.value) return `Field ${input.placeholder} is empty.`;
-                if (input.type === 'number') {
-                    const value = parseFloat(input.value);
-                    const min = parseFloat(input.min);
-                    const max = parseFloat(input.max);
-                    if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
-                        return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
-                    }
+    function validateInputs(inputs, includeDate = false) {
+        for (let input of inputs) {
+            if (input.type === 'date' && !includeDate) continue;
+            if (!input.value) return `Field ${input.placeholder} is empty.`;
+            if (input.type === 'number') {
+                const value = parseFloat(input.value);
+                const min = parseFloat(input.min);
+                const max = parseFloat(input.max);
+                if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
+                    return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
                 }
             }
-            return null;
         }
+        return null;
+    }
 
-        function addNurseInput() {
-            const nursesInput = document.getElementById('nurses-input');
-            const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs);
-            if (error) {
-                alert(error);
-                return;
-            }
-            console.log('Nurse inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Nurse Info:</label>
-                <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
-                <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
-                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            nursesInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            const sourceInputs = inputs;
-            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
-            sourceInputs.forEach(input => input.value = '');
+    function addNurseInput() {
+        const nursesInput = document.getElementById('nurses-input');
+        const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs);
+        if (error) {
+            alert(error);
+            return;
         }
+        console.log('Nurse inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Nurse Info:</label>
+            <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
+            <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
+            <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        nursesInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        const sourceInputs = inputs;
+        newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+        sourceInputs.forEach(input => input.value = '');
+    }
 
-        function addRequirementInput() {
-            const requirementsInput = document.getElementById('requirements-input');
-            const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
-            }
+    function addRequirementInput() {
+        const requirementsInput = document.getElementById('requirements-input');
+        const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        const startDate = new Date(inputs[0].value);
+        const endDate = new Date(inputs[1].value);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert('Please enter valid dates for Start Date and End Date.');
+            return;
+        }
+        if (startDate > endDate) {
+            alert('End Date must be on or after Start Date.');
+            return;
+        }
+        console.log('Requirement inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Requirement:</label>
+            <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
+            <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
+            <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
+            <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
+            <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
+            <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        requirementsInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        const sourceInputs = inputs;
+        newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+        sourceInputs.forEach(input => input.value = '');
+    }
+
+    function addPreferenceInput() {
+        const preferencesInput = document.getElementById('preferences-input');
+        const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        console.log('Preference inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Preference:</label>
+            <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
+            <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
+            <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
+            <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        preferencesInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        const sourceInputs = inputs;
+        newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+        sourceInputs.forEach(input => input.value = '');
+    }
+
+    function editInput(button) {
+        const inputLine = button.parentElement;
+        const inputs = inputLine.querySelectorAll('input');
+        inputs.forEach(input => input.removeAttribute('readonly'));
+        button.textContent = 'Save';
+        button.onclick = () => saveInput(button);
+    }
+
+    function saveInput(button) {
+        const inputLine = button.parentElement;
+        const inputs = inputLine.querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        if (inputs[0].dataset.inputType === 'req_start_date') {
             const startDate = new Date(inputs[0].value);
             const endDate = new Date(inputs[1].value);
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -256,155 +331,80 @@
                 alert('End Date must be on or after Start Date.');
                 return;
             }
-            console.log('Requirement inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Requirement:</label>
-                <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
-                <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
-                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
-                <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
-                <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            requirementsInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            const sourceInputs = inputs;
-            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
-            sourceInputs.forEach(input => input.value = '');
         }
+        inputs.forEach(input => input.setAttribute('readonly', 'true'));
+        button.textContent = 'Edit';
+        button.onclick = () => editInput(button);
+    }
 
-        function addPreferenceInput() {
-            const preferencesInput = document.getElementById('preferences-input');
-            const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
+    function deleteInput(button) {
+        button.parentElement.remove();
+    }
+
+    async function runScheduling() {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = '';
+        const ganttChartDiv = document.getElementById('gantt-chart');
+        const reportsDiv = document.getElementById('reports');
+
+        // Collect input data
+        const nursesData = [];
+        const nurseInputs = document.querySelectorAll('#nurses-input .input-line');
+        nurseInputs.forEach(line => {
+            const id = line.querySelector('[data-input-type="nurse_id"]')?.value;
+            const name = line.querySelector('[data-input-type="nurse_name"]')?.value;
+            const type = line.querySelector('[data-input-type="nurse_type"]')?.value;
+            if (id && name && type) {
+                nursesData.push({ ID: id, name: name, type: parseInt(type) });
             }
-            console.log('Preference inputs:', Array.from(inputs).map(i => ({ placeholder: i.placeholder, value: i.value })));
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Preference:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
-                <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
-                <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            preferencesInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            const sourceInputs = inputs;
-            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
-            sourceInputs.forEach(input => input.value = '');
-        }
+        });
 
-        function editInput(button) {
-            const inputLine = button.parentElement;
-            const inputs = inputLine.querySelectorAll('input');
-            inputs.forEach(input => input.removeAttribute('readonly'));
-            button.textContent = 'Save';
-            button.onclick = () => saveInput(button);
-        }
-
-        function saveInput(button) {
-            const inputLine = button.parentElement;
-            const inputs = inputLine.querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
+        const requirementsData = [];
+        const requirementInputs = document.querySelectorAll('#requirements-input .input-line');
+        requirementInputs.forEach(line => {
+            const startDate = line.querySelector('[data-input-type="req_start_date"]')?.value;
+            const endDate = line.querySelector('[data-input-type="req_end_date"]')?.value;
+            const shift = line.querySelector('[data-input-type="req_shift"]')?.value;
+            const nurseType = line.querySelector('[data-input-type="req_nurse_type"]')?.value;
+            const minReq = line.querySelector('[data-input-type="req_min"]')?.value;
+            const maxReq = line.querySelector('[data-input-type="req_max"]')?.value;
+            if (startDate && endDate && shift && nurseType && minReq && maxReq) {
+                requirementsData.push({
+                    start_date: startDate,
+                    end_date: endDate,
+                    shift_id: parseInt(shift),
+                    nurse_type: parseInt(nurseType),
+                    min_req: parseInt(minReq),
+                    max_req: parseInt(maxReq)
+                });
             }
-            if (inputs[0].dataset.inputType === 'req_start_date') {
-                const startDate = new Date(inputs[0].value);
-                const endDate = new Date(inputs[1].value);
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    alert('Please enter valid dates for Start Date and End Date.');
-                    return;
-                }
-                if (startDate > endDate) {
-                    alert('End Date must be on or after Start Date.');
-                    return;
-                }
+        });
+
+        const preferencesData = [];
+        const preferenceInputs = document.querySelectorAll('#preferences-input .input-line');
+        preferenceInputs.forEach(line => {
+            const nurseId = line.querySelector('[data-input-type="pref_nurse_id"]')?.value;
+            const shift = line.querySelector('[data-input-type="pref_shift"]')?.value;
+            const date = line.querySelector('[data-input-type="pref_date"]')?.value;
+            const level = line.querySelector('[data-input-type="pref_level"]')?.value;
+            if (nurseId && shift && date && level) {
+                preferencesData.push({
+                    nurse_id: nurseId,
+                    shift_id: parseInt(shift),
+                    date: date,
+                    preference: parseInt(level)
+                });
             }
-            inputs.forEach(input => input.setAttribute('readonly', 'true'));
-            button.textContent = 'Edit';
-            button.onclick = () => editInput(button);
+        });
+
+        if (!nursesData.length || !requirementsData.length) {
+            errorMessage.textContent = 'Please provide at least one nurse and one shift requirement.';
+            return;
         }
 
-        function deleteInput(button) {
-            button.parentElement.remove();
-        }
-
-        async function runScheduling() {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = '';
-            const ganttChartDiv = document.getElementById('gantt-chart');
-            const reportsDiv = document.getElementById('reports');
-
-            // Collect input data
-            const nursesData = [];
-            const nurseInputs = document.querySelectorAll('#nurses-input .input-line');
-            nurseInputs.forEach(line => {
-                const id = line.querySelector('[data-input-type="nurse_id"]')?.value;
-                const name = line.querySelector('[data-input-type="nurse_name"]')?.value;
-                const type = line.querySelector('[data-input-type="nurse_type"]')?.value;
-                if (id && name && type) {
-                    nursesData.push({ ID: id, name: name, type: parseInt(type) });
-                }
-            });
-
-            const requirementsData = [];
-            const requirementInputs = document.querySelectorAll('#requirements-input .input-line');
-            requirementInputs.forEach(line => {
-                const startDate = line.querySelector('[data-input-type="req_start_date"]')?.value;
-                const endDate = line.querySelector('[data-input-type="req_end_date"]')?.value;
-                const shift = line.querySelector('[data-input-type="req_shift"]')?.value;
-                const nurseType = line.querySelector('[data-input-type="req_nurse_type"]')?.value;
-                const minReq = line.querySelector('[data-input-type="req_min"]')?.value;
-                const maxReq = line.querySelector('[data-input-type="req_max"]')?.value;
-                if (startDate && endDate && shift && nurseType && minReq && maxReq) {
-                    requirementsData.push({
-                        start_date: startDate,
-                        end_date: endDate,
-                        shift_id: parseInt(shift),
-                        nurse_type: parseInt(nurseType),
-                        min_req: parseInt(minReq),
-                        max_req: parseInt(maxReq)
-                    });
-                }
-            });
-
-            const preferencesData = [];
-            const preferenceInputs = document.querySelectorAll('#preferences-input .input-line');
-            preferenceInputs.forEach(line => {
-                const nurseId = line.querySelector('[data-input-type="pref_nurse_id"]')?.value;
-                const shift = line.querySelector('[data-input-type="pref_shift"]')?.value;
-                const date = line.querySelector('[data-input-type="pref_date"]')?.value;
-                const level = line.querySelector('[data-input-type="pref_level"]')?.value;
-                if (nurseId && shift && date && level) {
-                    preferencesData.push({
-                        nurse_id: nurseId,
-                        shift_id: parseInt(shift),
-                        date: date,
-                        preference: parseInt(level)
-                    });
-                }
-            });
-
-            if (!nursesData.length || !requirementsData.length) {
-                errorMessage.textContent = 'Please provide at least one nurse and one shift requirement.';
-                return;
-            }
-
-            try {
-                // Python code to process inputs and generate outputs
-                const pythonCode = `
+        try {
+            // Python code to process inputs and generate outputs
+            const pythonCode = `
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -457,12 +457,11 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
         if row["preference"] == 0:
             unavailable[key] = True
     
-    # Track assignments to prevent duplicate shift types on the same day
-    assigned_shifts = set()  # Stores (nurse_id, shift_id, date)
-    
     # Process each day and all shifts for that day
     for d in date_horizon:
         d_date = d.date()
+        # Track assigned nurses for this day (one shift per nurse per day)
+        assigned_nurses = set()
         # Get all requirements for this day
         day_reqs = requirements_df[
             (requirements_df['start_date'].dt.date <= d_date) &
@@ -485,7 +484,7 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
                 # Sort nurses by preference for this shift and date
                 candidates = []
                 for i in nurses_subset:
-                    if (i, shift_id, d_date) not in unavailable:
+                    if i not in assigned_nurses and (i, shift_id, d_date) not in unavailable:
                         pref = preference.get((i, shift_id, d_date), 0)
                         candidates.append((i, pref))
                 candidates.sort(key=lambda x: x[1], reverse=True)
@@ -495,18 +494,16 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
                 for i, _ in candidates:
                     if count >= max_req:
                         break
-                    # Check if nurse is already assigned this shift type on this day
-                    if (i, shift_id, d_date) not in assigned_shifts:
-                        schedule.append({
-                            "nurse_id": i,
-                            "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
-                            "shift_id": shift_id,
-                            "shift_name": SHIFTS[shift_id]["name"],
-                            "date": d.strftime('%Y-%m-%d'),
-                            "is_senior": 1 if i in senior_nurses else 0
-                        })
-                        assigned_shifts.add((i, shift_id, d_date))
-                        count += 1
+                    schedule.append({
+                        "nurse_id": i,
+                        "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
+                        "shift_id": shift_id,
+                        "shift_name": SHIFTS[shift_id]["name"],
+                        "date": d.strftime('%Y-%m-%d'),
+                        "is_senior": 1 if i in senior_nurses else 0
+                    })
+                    assigned_nurses.add(i)
+                    count += 1
                 
                 # Check minimum requirement
                 if count < min_req:
@@ -557,33 +554,25 @@ def create_gantt_chart(schedule_df, date_horizon):
     min_date = min(date_horizon).date()
     date_to_num = {date.date(): i for i, date in enumerate(date_horizon)}
     
-    # Calculate bar height for multiple shifts (up to 3 shifts per day: Morning, Evening, Night)
-    bar_height = 0.8 / 3  # Divide nurse row into 3 segments
-    
     for idx, (nurse_id, nurse_name) in enumerate(zip(unique_nurses['nurse_id'], unique_nurses['nurse_name'])):
         nurse_schedule = schedule_df[schedule_df["nurse_id"] == nurse_id]
-        # Group shifts by date to handle multiple shifts per day
-        for date_str in nurse_schedule["date"].unique():
-            date_shifts = nurse_schedule[nurse_schedule["date"] == date_str]
-            for shift_idx, (_, row) in enumerate(date_shifts.iterrows()):
-                shift_id = row["shift_id"]
-                if shift_id not in SHIFTS:
-                    continue  # Skip invalid shift IDs
-                start_num = date_to_num[pd.to_datetime(row["date"]).date()]
-                # Position bar in one of three segments (top, middle, bottom)
-                y_pos = idx - 0.4 + shift_idx * bar_height
-                rect = patches.Rectangle(
-                    (start_num - 0.5, y_pos), 1, bar_height,
-                    facecolor=SHIFTS[shift_id]["color"],
-                    edgecolor="black", alpha=0.9,
-                    hatch="////" if row["is_senior"] else None
-                )
-                ax.add_patch(rect)
-                ax.text(
-                    start_num, y_pos + bar_height / 2, SHIFTS[shift_id]["name"][0],
-                    ha="center", va="center", fontweight="bold", color="white",
-                    fontsize=10, path_effects=[patheffects.withStroke(linewidth=2, foreground="black")]
-                )
+        for _, row in nurse_schedule.iterrows():
+            shift_id = row["shift_id"]
+            if shift_id not in SHIFTS:
+                continue  # Skip invalid shift IDs
+            start_num = date_to_num[pd.to_datetime(row["date"]).date()]
+            rect = patches.Rectangle(
+                (start_num - 0.5, idx - 0.4), 1, 0.8,
+                facecolor=SHIFTS[shift_id]["color"],
+                edgecolor="black", alpha=1.0,
+                hatch="////" if row["is_senior"] else None
+            )
+            ax.add_patch(rect)
+            ax.text(
+                start_num, idx, SHIFTS[shift_id]["name"][0],
+                ha="center", va="center", fontweight="bold", color="white",
+                fontsize=12, path_effects=[patheffects.withStroke(linewidth=2, foreground="black")]
+            )
     
     ax.set_xlabel("Date")
     ax.set_ylabel("Nurse")
@@ -625,52 +614,52 @@ def main(nurses_data, requirements_data, prefs_data):
 
 # Pass input data from JavaScript
 result = main(${JSON.stringify(nursesData)}, ${JSON.stringify(requirementsData)}, ${JSON.stringify(preferencesData)})
-                `;
+            `;
 
-                // Run Python code
-                await pyodide.runPythonAsync(pythonCode);
-                const result = pyodide.globals.get("result").toJs();
-                const [schedule_df, nurse_stats_df, coverage_df, gantt_img, error] = result;
+            // Run Python code
+            await pyodide.runPythonAsync(pythonCode);
+            const result = pyodide.globals.get("result").toJs();
+            const [schedule_df, nurse_stats_df, coverage_df, gantt_img, error] = result;
 
-                if (error) {
-                    errorMessage.textContent = `Scheduling failed: ${error}`;
-                    return;
-                }
-
-                // Display Gantt chart
-                ganttChartDiv.innerHTML = `
-                    <h2>Gantt Chart</h2>
-                    <img src="data:image/png;base64,${gantt_img}" alt="Gantt Chart" style="max-width: 100%;">
-                `;
-
-                // Convert DataFrames to CSV and create download links
-                const schedule_csv = schedule_df.to_csv();
-                const stats_csv = nurse_stats_df.to_csv();
-                const coverage_csv = coverage_df.to_csv();
-
-                const scheduleLink = document.getElementById('schedule-csv');
-                const statsLink = document.getElementById('stats-csv');
-                const coverageLink = document.getElementById('coverage-csv');
-
-                scheduleLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(schedule_csv);
-                scheduleLink.download = 'optimal_schedule.csv';
-                scheduleLink.style.display = 'block';
-
-                statsLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(stats_csv);
-                statsLink.download = 'nurse_stats.csv';
-                statsLink.style.display = 'block';
-
-                coverageLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(coverage_csv);
-                coverageLink.download = 'shift_coverage.csv';
-                coverageLink.style.display = 'block';
-
-            } catch (err) {
-                errorMessage.textContent = `Error: ${err.message}`;
+            if (error) {
+                errorMessage.textContent = `Scheduling failed: ${error}`;
+                return;
             }
-        }
 
-        // Load Pyodide when the page loads
-        loadPyodideAndPackages();
-    </script>
+            // Display Gantt chart
+            ganttChartDiv.innerHTML = `
+                <h2>Gantt Chart</h2>
+                <img src="data:image/png;base64,${gantt_img}" alt="Gantt Chart" style="max-width: 100%;">
+            `;
+
+            // Convert DataFrames to CSV and create download links
+            const schedule_csv = schedule_df.to_csv();
+            const stats_csv = nurse_stats_df.to_csv();
+            const coverage_csv = coverage_df.to_csv();
+
+            const scheduleLink = document.getElementById('schedule-csv');
+            const statsLink = document.getElementById('stats-csv');
+            const coverageLink = document.getElementById('coverage-csv');
+
+            scheduleLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(schedule_csv);
+            scheduleLink.download = 'optimal_schedule.csv';
+            scheduleLink.style.display = 'block';
+
+            statsLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(stats_csv);
+            statsLink.download = 'nurse_stats.csv';
+            statsLink.style.display = 'block';
+
+            coverageLink.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(coverage_csv);
+            coverageLink.download = 'shift_coverage.csv';
+            coverageLink.style.display = 'block';
+
+        } catch (err) {
+            errorMessage.textContent = `Error: ${err.message}`;
+        }
+    }
+
+    // Load Pyodide when the page loads
+    loadPyodideAndPackages();
+</script>
 </body>
 </html>
