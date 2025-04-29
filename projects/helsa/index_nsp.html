@@ -24,6 +24,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
+            align-items: center;
         }
         .input-line label {
             flex-shrink: 0;
@@ -49,10 +50,36 @@
         button:hover {
             background-color: #0056b3;
         }
+        .add-button {
+            margin-top: 10px;
+        }
+        .entered-item {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .action-button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        .edit-button {
+            background-color: #28a745;
+        }
+        .edit-button:hover {
+            background-color: #218838;
+        }
+        .delete-button {
+            background-color: #dc3545;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
         #manual-inputs > div:not(:first-child),
         #nurses-input > div:not(:first-child),
         #requirements-input > div:not(:first-child),
-        #unavailabilities-input > div:not(:first-child),
         #preferences-input > div:not(:first-child) {
             margin-top: 10px;
             border-top: 1px dashed #eee;
@@ -99,7 +126,7 @@
 
     <div class="input-section">
         <h2>Manual Input</h2>
-        <p class="note">Enter the data for nurses, shift requirements, unavailabilities, and preferences below. You can add multiple entries for each by clicking the "Add" buttons.</p>
+        <p class="note">Enter the data for nurses, shift requirements, and preferences below. You can add multiple entries for each by clicking the "Add" buttons. A preference level of 0 means the nurse is unavailable; 1–10 indicates preference (10 is most preferred).</p>
 
         <div id="manual-inputs">
             <div id="nurses-input">
@@ -109,9 +136,9 @@
                     <label>Nurse Info:</label>
                     <input type="text" placeholder="ID" data-input-type="nurse_id">
                     <input type="text" placeholder="Name" data-input-type="nurse_name">
-                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type">
+                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
                 </div>
-                <button type="button" onclick="addNurseInput()">Add Nurse</button>
+                <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
             </div>
 
             <div id="requirements-input">
@@ -121,38 +148,25 @@
                     <label>Requirement:</label>
                     <input type="date" placeholder="Start Date" data-input-type="req_start_date">
                     <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift">
-                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type">
-                    <input type="number" placeholder="Min Req" data-input-type="req_min">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max">
+                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
+                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
+                    <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
+                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
                 </div>
-                <button type="button" onclick="addRequirementInput()">Add Requirement</button>
-            </div>
-
-            <div id="unavailabilities-input">
-                <h3>Unavailabilities</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and unavailability (e.g., 1 for unavailable).</p>
-                <div class="input-line">
-                    <label>Unavailability:</label>
-                    <input type="text" placeholder="Nurse ID" data-input-type="unavail_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="unavail_shift">
-                    <input type="date" placeholder="Date" data-input-type="unavail_date">
-                    <input type="number" placeholder="Unavailable (1)" data-input-type="unavail_status">
-                </div>
-                <button type="button" onclick="addUnavailabilityInput()">Add Unavailability</button>
+                <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
             </div>
 
             <div id="preferences-input">
                 <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (e.g., higher number means higher preference).</p>
+                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (0–10; 0 means unavailable).</p>
                 <div class="input-line">
                     <label>Preference:</label>
                     <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift">
+                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
                     <input type="date" placeholder="Date" data-input-type="pref_date">
-                    <input type="number" placeholder="Preference Level" data-input-type="pref_level">
+                    <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
                 </div>
-                <button type="button" onclick="addPreferenceInput()">Add Preference</button>
+                <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
             </div>
         </div>
     </div>
@@ -185,58 +199,86 @@
         function addNurseInput() {
             const nursesInput = document.getElementById('nurses-input');
             const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
+            newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
                 <label>Nurse Info:</label>
-                <input type="text" placeholder="ID" data-input-type="nurse_id">
-                <input type="text" placeholder="Name" data-input-type="nurse_name">
-                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type">
+                <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
+                <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
+                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
             `;
             nursesInput.appendChild(newInputLine);
+            // Copy values from input fields and clear them
+            const inputs = nursesInput.querySelector('.input-line:not(.entered-item)');
+            const newInputs = newInputLine.querySelectorAll('input');
+            const sourceInputs = inputs.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+            sourceInputs.forEach(input => input.value = '');
         }
 
         function addRequirementInput() {
             const requirementsInput = document.getElementById('requirements-input');
             const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
+            newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
                 <label>Requirement:</label>
-                <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift">
-                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type">
-                <input type="number" placeholder="Min Req" data-input-type="req_min">
-                <input type="number" placeholder="Max Req" data-input-type="req_max">
+                <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
+                <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
+                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
+                <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
+                <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
             `;
             requirementsInput.appendChild(newInputLine);
-        }
-
-        function addUnavailabilityInput() {
-            const unavailabilitiesInput = document.getElementById('unavailabilities-input');
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
-            newInputLine.innerHTML = `
-                <label>Unavailability:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="unavail_nurse_id">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="unavail_shift">
-                <input type="date" placeholder="Date" data-input-type="unavail_date">
-                <input type="number" placeholder="Unavailable (1)" data-input-type="unavail_status">
-            `;
-            unavailabilitiesInput.appendChild(newInputLine);
+            const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)');
+            const newInputs = newInputLine.querySelectorAll('input');
+            const sourceInputs = inputs.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+            sourceInputs.forEach(input => input.value = '');
         }
 
         function addPreferenceInput() {
             const preferencesInput = document.getElementById('preferences-input');
             const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line');
+            newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
                 <label>Preference:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift">
-                <input type="date" placeholder="Date" data-input-type="pref_date">
-                <input type="number" placeholder="Preference Level" data-input-type="pref_level">
+                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
+                <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
+                <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
             `;
             preferencesInput.appendChild(newInputLine);
+            const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)');
+            const newInputs = newInputLine.querySelectorAll('input');
+            const sourceInputs = inputs.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = sourceInputs[i].value);
+            sourceInputs.forEach(input => input.value = '');
+        }
+
+        function editInput(button) {
+            const inputLine = button.parentElement;
+            const inputs = inputLine.querySelectorAll('input');
+            inputs.forEach(input => input.removeAttribute('readonly'));
+            button.textContent = 'Save';
+            button.onclick = () => saveInput(button);
+        }
+
+        function saveInput(button) {
+            const inputLine = button.parentElement;
+            const inputs = inputLine.querySelectorAll('input');
+            inputs.forEach(input => input.setAttribute('readonly', 'true'));
+            button.textContent = 'Edit';
+            button.onclick = () => editInput(button);
+        }
+
+        function deleteInput(button) {
+            button.parentElement.remove();
         }
 
         async function runScheduling() {
@@ -278,23 +320,6 @@
                 }
             });
 
-            const unavailabilitiesData = [];
-            const unavailabilityInputs = document.querySelectorAll('#unavailabilities-input .input-line');
-            unavailabilityInputs.forEach(line => {
-                const nurseId = line.querySelector('[data-input-type="unavail_nurse_id"]')?.value;
-                const shift = line.querySelector('[data-input-type="unavail_shift"]')?.value;
-                const date = line.querySelector('[data-input-type="unavail_date"]')?.value;
-                const status = line.querySelector('[data-input-type="unavail_status"]')?.value;
-                if (nurseId && shift && date && status) {
-                    unavailabilitiesData.push({
-                        nurse_id: nurseId,
-                        shift_id: parseInt(shift),
-                        date: date,
-                        preference: status == 1 ? 0 : 1
-                    });
-                }
-            });
-
             const preferencesData = [];
             const preferenceInputs = document.querySelectorAll('#preferences-input .input-line');
             preferenceInputs.forEach(line => {
@@ -318,9 +343,6 @@
             }
 
             try {
-                // Combine unavailabilities and preferences
-                const combinedPrefsData = [...unavailabilitiesData, ...preferencesData];
-
                 // Python code to process inputs and generate outputs
                 const pythonCode = `
 import pandas as pd
@@ -396,7 +418,7 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
             for i, _ in candidates:
                 if count >= max_req:
                     break
-                if i not in assigned:  # Ensure one shift per day
+                if i not in assigned:  // Ensure one shift per day
                     schedule.append({
                         "nurse_id": i,
                         "nurse_name": nurses_df[nurses_df["ID"] == i]["name"].iloc[0],
@@ -408,7 +430,7 @@ def simple_scheduler(nurses_df, requirements_df, prefs_df, date_horizon):
                     assigned.add(i)
                     count += 1
             
-            # Check minimum requirement
+            // Check minimum requirement
             if count < min_req:
                 return None, f"Not enough nurses for shift {shift_id} on {d.strftime('%Y-%m-%d')}"
     
@@ -488,7 +510,7 @@ def create_gantt_chart(schedule_df, date_horizon):
     
     plt.tight_layout()
     
-    # Save plot to base64
+    // Save plot to base64
     buf = BytesIO()
     plt.savefig(buf, format="png", dpi=300)
     buf.seek(0)
@@ -509,8 +531,8 @@ def main(nurses_data, requirements_data, prefs_data):
     
     return schedule_df, nurse_stats_df, coverage_df, gantt_img, None
 
-# Pass input data from JavaScript
-result = main(${JSON.stringify(nursesData)}, ${JSON.stringify(requirementsData)}, ${JSON.stringify(combinedPrefsData)})
+// Pass input data from JavaScript
+result = main(${JSON.stringify(nursesData)}, ${JSON.stringify(requirementsData)}, ${JSON.stringify(preferencesData)})
                 `;
 
                 // Run Python code
