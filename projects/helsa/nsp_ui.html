@@ -4,6 +4,7 @@
   <title>Nurse Scheduling App</title>
   <style>
     body { font-family: sans-serif; }
+    .upload-label { display: block; margin-bottom: 5px; font-weight: bold; }
     input[type="file"] { display: block; margin-bottom: 10px; }
     button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
     #status { margin-bottom: 20px; font-weight: bold; }
@@ -13,8 +14,13 @@
 <body>
   <h2>Nurse Scheduling Problem</h2>
 
+  <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
   <input type="file" id="nursesFile" accept=".csv" required>
+
+  <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
   <input type="file" id="preferencesFile" accept=".csv" required>
+
+  <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
   <input type="file" id="requirementsFile" accept=".csv" required>
 
   <button onclick="uploadAndRun()">Run Scheduling Optimization</button>
@@ -43,9 +49,9 @@
       document.getElementById("output-links").style.display = "none";
 
       const formData = new FormData();
-      formData.append("nurses_file", nursesFile);
-      formData.append("preferences_file", preferencesFile);
-      formData.append("requirements_file", requirementsFile);
+      formData.append("nurses_file", nursesFile); // Name is important
+      formData.append("preferences_file", preferencesFile); // Name is important
+      formData.append("requirements_file", requirementsFile); // Name is important
 
       const response = await fetch("https://hamedmilani.pythonanywhere.com/upload_and_run", {
         method: "POST",
