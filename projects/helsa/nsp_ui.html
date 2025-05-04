@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nurse Scheduling App</title>
+  <style>
+    body { font-family: sans-serif; }
+    button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
+    #status { margin-bottom: 20px; font-weight: bold; }
+    .output-link { display: block; margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Nurse Scheduling Problem</h2>
+
+  <button onclick="runScheduling()">Run Scheduling Optimization</button>
+
+  <div id="status"></div>
+  <div id="output-links" style="display: none;">
+    <h3>Output Files:</h3>
+    <a id="schedule-link" class="output-link" target="_blank">Optimal Schedule (CSV)</a>
+    <a id="stats-link" class="output-link" target="_blank">Nurse Statistics (CSV)</a>
+    <a id="coverage-link" class="output-link" target="_blank">Shift Coverage (CSV)</a>
+    <img id="gantt-chart" style="max-width: 100%;" alt="Gantt Chart">
+  </div>
+
+  <script>
+    async function runScheduling() {
+      document.getElementById("status").innerText = "Running optimization...";
+      document.getElementById("output-links").style.display = "none";
+
+      const response = await fetch("https://hamedmilani.pythonanywhere.com/run_schedule", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+      document.getElementById("status").innerText = data.response || data.error || "An error occurred.";
+
+      if (data.response && data.response.startsWith("Optimization successful")) {
+        document.getElementById("output-links").style.display = "block";
+        const outputBaseURL = "https://hamedmilani.pythonanywhere.com/get_output/";
+        document.getElementById("schedule-link").href = outputBaseURL + "optimal_schedule.csv";
+        document.getElementById("stats-link").href = outputBaseURL + "nurse_stats.csv";
+        document.getElementById("coverage-link").href = outputBaseURL + "shift_coverage.csv";
+        document.getElementById("gantt-chart").src = outputBaseURL + "schedule_gantt.png";
+      }
+    }
+  </script>
+</body>
+</html>
