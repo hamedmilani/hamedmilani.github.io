@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Chatbot</title>
+</head>
+<body>
+  <h2>Chat with Bot</h2>
+  <input type="text" id="userInput" placeholder="Say something..." />
+  <button onclick="sendMessage()">Send</button>
+  <p id="response"></p>
+
+  <script>
+    async function sendMessage() {
+      const message = document.getElementById("userInput").value;
+      const res = await fetch("https://YOUR-USERNAME.pythonanywhere.com/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = data.response;
+    }
+  </script>
+</body>
+</html>
