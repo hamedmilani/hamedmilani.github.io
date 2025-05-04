@@ -12,7 +12,7 @@
   <script>
     async function sendMessage() {
       const message = document.getElementById("userInput").value;
-      const res = await fetch("https://hamedmilani.pythonanywhere.com/chat", {
+      const res = await fetch("https://hamedmilani.pythonanywhere.com/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: message })
