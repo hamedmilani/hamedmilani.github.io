@@ -4,6 +4,7 @@
   <title>Nurse Scheduling App</title>
   <style>
     body { font-family: sans-serif; }
+    input[type="file"] { display: block; margin-bottom: 10px; }
     button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
     #status { margin-bottom: 20px; font-weight: bold; }
     .output-link { display: block; margin-bottom: 5px; }
@@ -12,7 +13,11 @@
 <body>
   <h2>Nurse Scheduling Problem</h2>
 
-  <button onclick="runScheduling()">Run Scheduling Optimization</button>
+  <input type="file" id="nursesFile" accept=".csv" required>
+  <input type="file" id="preferencesFile" accept=".csv" required>
+  <input type="file" id="requirementsFile" accept=".csv" required>
+
+  <button onclick="uploadAndRun()">Run Scheduling Optimization</button>
 
   <div id="status"></div>
   <div id="output-links" style="display: none;">
@@ -24,16 +29,31 @@
   </div>
 
   <script>
-    async function runScheduling() {
-      document.getElementById("status").innerText = "Running optimization...";
+    async function uploadAndRun() {
+      const nursesFile = document.getElementById("nursesFile").files[0];
+      const preferencesFile = document.getElementById("preferencesFile").files[0];
+      const requirementsFile = document.getElementById("requirementsFile").files[0];
+
+      if (!nursesFile || !preferencesFile || !requirementsFile) {
+        document.getElementById("status").innerText = "Please select all three input files.";
+        return;
+      }
+
+      document.getElementById("status").innerText = "Uploading files and running optimization...";
       document.getElementById("output-links").style.display = "none";
 
-      const response = await fetch("https://hamedmilani.pythonanywhere.com/run_schedule", {
+      const formData = new FormData();
+      formData.append("nurses_file", nursesFile);
+      formData.append("preferences_file", preferencesFile);
+      formData.append("requirements_file", requirementsFile);
+
+      const response = await fetch("https://hamedmilani.pythonanywhere.com/upload_and_run", {
         method: "POST",
+        body: formData,
       });
 
       const data = await response.json();
-      document.getElementById("status").innerText = data.response || data.error || "An error occurred.";
+      document.getElementById("status").innerText = data.response || data.error || "An error occurred during upload or processing.";
 
       if (data.response && data.response.startsWith("Optimization successful")) {
         document.getElementById("output-links").style.display = "block";
