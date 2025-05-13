@@ -351,6 +351,13 @@
             button.parentElement.remove();
         }
 
+        // Helper function to convert YYYY-MM-DD to MM/DD/YYYY
+        function formatDateToMMDDYYYY(dateStr) {
+            if (!dateStr) return '';
+            const [year, month, day] = dateStr.split('-');
+            return `${month}/${day}/${year}`;
+        }
+
         // Convert manual inputs to CSV
         function manualToCSV() {
             const nurses = [];
@@ -366,13 +373,16 @@
             // Requirements
             document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
-                requirements.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
+                const startDate = formatDateToMMDDYYYY(inputs[0].value);
+                const endDate = formatDateToMMDDYYYY(inputs[1].value);
+                requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
             });
 
             // Preferences
             document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
-                preferences.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value},${inputs[3].value}`);
+                const date = formatDateToMMDDYYYY(inputs[2].value);
+                preferences.push(`${inputs[0].value},${inputs[1].value},${date},${inputs[3].value}`);
             });
 
             return {
