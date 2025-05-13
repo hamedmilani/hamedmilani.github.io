@@ -1,75 +1,534 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Nurse Scheduling App</title>
-  <style>
-    body { font-family: sans-serif; }
-    .upload-label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input[type="file"] { display: block; margin-bottom: 10px; }
-    button { padding: 10px 20px; margin-bottom: 20px; cursor: pointer; }
-    #status { margin-bottom: 20px; font-weight: bold; }
-    .output-link { display: block; margin-bottom: 5px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helsa Nurse Shift Management App</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .input-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .input-line {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .input-line label {
+            flex-shrink: 0;
+            width: 150px;
+            text-align: left;
+        }
+        .input-line input[type="text"],
+        .input-line input[type="number"],
+        .input-line input[type="date"],
+        .input-line input[type="file"] {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .add-button {
+            margin-top: 10px;
+        }
+        .entered-item {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+        }
+        .action-button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        .edit-button {
+            background-color: #28a745;
+        }
+        .edit-button:hover {
+            background-color: #218838;
+        }
+        .delete-button {
+            background-color: #dc3545;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        #manual-inputs > div:not(:first-child),
+        #nurses-input > div:not(:first-child),
+        #requirements-input > div:not(:first-child),
+        #preferences-input > div:not(:first-child) {
+            margin-top: 10px;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+        #gantt-chart {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        #reports {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        #reports a {
+            display: block;
+            margin-bottom: 5px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        #reports a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            color: #777;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: block;
+        }
+        #status, #error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        .upload-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <h2>Nurse Scheduling Problem</h2>
+    <h1>Helsa Nurse Shift Management App</h1>
+    <p>This tool helps you generate an optimized nurse schedule. Upload CSV files or enter data manually (or both). Manual entries will override duplicate file entries.</p>
 
-  <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
-  <input type="file" id="nursesFile" accept=".csv" required>
+    <div class="input-section">
+        <h2>File Upload</h2>
+        <p class="note">Upload CSV files for nurses, preferences, and requirements. Leave blank if using manual input.</p>
+        <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
+        <input type="file" id="nursesFile" accept=".csv">
+        <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
+        <input type="file" id="preferencesFile" accept=".csv">
+        <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
+        <input type="file" id="requirementsFile" accept=".csv">
+    </div>
 
-  <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
-  <input type="file" id="preferencesFile" accept=".csv" required>
+    <div class="input-section">
+        <h2>Manual Input</h2>
+        <p class="note">Enter data for nurses, shift requirements, and preferences. Add multiple entries by clicking the "Add" buttons. Preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
 
-  <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
-  <input type="file" id="requirementsFile" accept=".csv" required>
+        <div id="manual-inputs">
+            <div id="nurses-input">
+                <h3>Nurses Information</h3>
+                <p class="note">Enter nurse details (ID, Name, Type - 0 for normal, 1 for senior).</p>
+                <div class="input-line">
+                    <label>Nurse Info:</label>
+                    <input type="text" placeholder="ID" data-input-type="nurse_id">
+                    <input type="text" placeholder="Name" data-input-type="nurse_name">
+                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
+                </div>
+                <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
+            </div>
 
-  <button onclick="uploadAndRun()">Run Scheduling Optimization</button>
+            <div id="requirements-input">
+                <h3>Shift Requirements</h3>
+                <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses.</p>
+                <div class="input-line">
+                    <label>Requirement:</label>
+                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
+                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
+                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
+                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
+                    <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
+                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
+                </div>
+                <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
+            </div>
 
-  <div id="status"></div>
-  <div id="output-links" style="display: none;">
-    <h3>Output Files:</h3>
-    <a id="schedule-link" class="output-link" target="_blank">Optimal Schedule (CSV)</a>
-    <a id="stats-link" class="output-link" target="_blank">Nurse Statistics (CSV)</a>
-    <a id="coverage-link" class="output-link" target="_blank">Shift Coverage (CSV)</a>
-    <img id="gantt-chart" style="max-width: 100%;" alt="Gantt Chart">
-  </div>
+            <div id="preferences-input">
+                <h3>Preferences</h3>
+                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (0–10).</p>
+                <div class="input-line">
+                    <label>Preference:</label>
+                    <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
+                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
+                    <input type="date" placeholder="Date" data-input-type="pref_date">
+                    <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
+                </div>
+                <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    async function uploadAndRun() {
-      const nursesFile = document.getElementById("nursesFile").files[0];
-      const preferencesFile = document.getElementById("preferencesFile").files[0];
-      const requirementsFile = document.getElementById("requirementsFile").files[0];
+    <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
+    <div id="status"></div>
 
-      if (!nursesFile || !preferencesFile || !requirementsFile) {
-        document.getElementById("status").innerText = "Please select all three input files.";
-        return;
-      }
+    <div id="gantt-chart">
+        <h2>Gantt Chart</h2>
+        <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after generation.</p>
+        <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
+    </div>
 
-      document.getElementById("status").innerText = "Uploading files and running optimization...";
-      document.getElementById("output-links").style.display = "none";
+    <div id="reports">
+        <h2>Reports</h2>
+        <p class="note">Download the generated reports in CSV format.</p>
+        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
+    </div>
 
-      const formData = new FormData();
-      formData.append("nurses_file", nursesFile); // Name is important
-      formData.append("preferences_file", preferencesFile); // Name is important
-      formData.append("requirements_file", requirementsFile); // Name is important
+    <script>
+        // Validation function
+        function validateInputs(inputs, includeDate = false) {
+            for (let input of inputs) {
+                if (input.type === 'date' && !includeDate) continue;
+                if (!input.value && input.type !== 'file') return `Field ${input.placeholder} is empty.`;
+                if (input.type === 'number') {
+                    const value = parseFloat(input.value);
+                    const min = parseFloat(input.min);
+                    const max = parseFloat(input.max);
+                    if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
+                        return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
+                    }
+                }
+            }
+            return null;
+        }
 
-      const response = await fetch("https://hamedmilani.pythonanywhere.com/upload_and_run", {
-        method: "POST",
-        body: formData,
-      });
+        // Add nurse input
+        function addNurseInput() {
+            const nursesInput = document.getElementById('nurses-input');
+            const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+            const error = validateInputs(inputs);
+            if (error) {
+                alert(error);
+                return;
+            }
+            const newInputLine = document.createElement('div');
+            newInputLine.classList.add('input-line', 'entered-item');
+            newInputLine.innerHTML = `
+                <label>Nurse Info:</label>
+                <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
+                <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
+                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+            `;
+            nursesInput.appendChild(newInputLine);
+            const newInputs = newInputLine.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = inputs[i].value);
+            inputs.forEach(input => input.value = '');
+        }
 
-      const data = await response.json();
-      document.getElementById("status").innerText = data.response || data.error || "An error occurred during upload or processing.";
+        // Add requirement input
+        function addRequirementInput() {
+            const requirementsInput = document.getElementById('requirements-input');
+            const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
+                return;
+            }
+            const startDate = new Date(inputs[0].value);
+            const endDate = new Date(inputs[1].value);
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                alert('Please enter valid dates for Start Date and End Date.');
+                return;
+            }
+            if (startDate > endDate) {
+                alert('End Date must be on or after Start Date.');
+                return;
+            }
+            const newInputLine = document.createElement('div');
+            newInputLine.classList.add('input-line', 'entered-item');
+            newInputLine.innerHTML = `
+                <label>Requirement:</label>
+                <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
+                <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
+                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
+                <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
+                <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+            `;
+            requirementsInput.appendChild(newInputLine);
+            const newInputs = newInputLine.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = inputs[i].value);
+            inputs.forEach(input => input.value = '');
+        }
 
-      if (data.response && data.response.startsWith("Optimization successful")) {
-        document.getElementById("output-links").style.display = "block";
-        const outputBaseURL = "https://hamedmilani.pythonanywhere.com/get_output/";
-        document.getElementById("schedule-link").href = outputBaseURL + "optimal_schedule.csv";
-        document.getElementById("stats-link").href = outputBaseURL + "nurse_stats.csv";
-        document.getElementById("coverage-link").href = outputBaseURL + "shift_coverage.csv";
-        document.getElementById("gantt-chart").src = outputBaseURL + "schedule_gantt.png";
-      }
-    }
-  </script>
+        // Add preference input
+        function addPreferenceInput() {
+            const preferencesInput = document.getElementById('preferences-input');
+            const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
+                return;
+            }
+            const newInputLine = document.createElement('div');
+            newInputLine.classList.add('input-line', 'entered-item');
+            newInputLine.innerHTML = `
+                <label>Preference:</label>
+                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
+                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
+                <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
+                <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
+                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+            `;
+            preferencesInput.appendChild(newInputLine);
+            const newInputs = newInputLine.querySelectorAll('input');
+            newInputs.forEach((input, i) => input.value = inputs[i].value);
+            inputs.forEach(input => input.value = '');
+        }
+
+        // Edit input
+        function editInput(button) {
+            const inputLine = button.parentElement;
+            const inputs = inputLine.querySelectorAll('input');
+            inputs.forEach(input => input.removeAttribute('readonly'));
+            button.textContent = 'Save';
+            button.onclick = () => saveInput(button);
+        }
+
+        // Save input
+        function saveInput(button) {
+            const inputLine = button.parentElement;
+            const inputs = inputLine.querySelectorAll('input');
+            const error = validateInputs(inputs, true);
+            if (error) {
+                alert(error);
+                return;
+            }
+            if (inputs[0].dataset.inputType === 'req_start_date') {
+                const startDate = new Date(inputs[0].value);
+                const endDate = new Date(inputs[1].value);
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    alert('Please enter valid dates for Start Date and End Date.');
+                    return;
+                }
+                if (startDate > endDate) {
+                    alert('End Date must be on or after Start Date.');
+                    return;
+                }
+            }
+            inputs.forEach(input => input.setAttribute('readonly', 'true'));
+            button.textContent = 'Edit';
+            button.onclick = () => editInput(button);
+        }
+
+        // Delete input
+        function deleteInput(button) {
+            button.parentElement.remove();
+        }
+
+        // Convert manual inputs to CSV
+        function manualToCSV() {
+            const nurses = [];
+            const requirements = [];
+            const preferences = [];
+
+            // Nurses
+            document.querySelectorAll('#nurses-input .entered-item').forEach(line => {
+                const inputs = line.querySelectorAll('input');
+                nurses.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value}`);
+            });
+
+            // Requirements
+            document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
+                const inputs = line.querySelectorAll('input');
+                requirements.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
+            });
+
+            // Preferences
+            document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
+                const inputs = line.querySelectorAll('input');
+                preferences.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value},${inputs[3].value}`);
+            });
+
+            return {
+                nurses: nurses.length ? 'ID,name,type\n' + nurses.join('\n') : '',
+                requirements: requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + requirements.join('\n') : '',
+                preferences: preferences.length ? 'nurse_id,shift_id,date,preference\n' + preferences.join('\n') : ''
+            };
+        }
+
+        // Merge file and manual inputs
+        async function mergeInputs(nursesFile, preferencesFile, requirementsFile) {
+            const manual = manualToCSV();
+            const result = { nurses: [], preferences: [], requirements: [] };
+
+            // Read files if provided
+            const readFile = (file) => new Promise((resolve) => {
+                if (!file) return resolve('');
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result.trim());
+                reader.readAsText(file);
+            });
+
+            const [nursesFileContent, preferencesFileContent, requirementsFileContent] = await Promise.all([
+                readFile(nursesFile),
+                readFile(preferencesFile),
+                readFile(requirementsFile)
+            ]);
+
+            // Process nurses
+            if (nursesFileContent) {
+                result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim());
+            }
+            if (manual.nurses) {
+                const manualNurses = manual.nurses.split('\n').slice(1).filter(line => line.trim());
+                const nurseIds = new Set(result.nurses.map(line => line.split(',')[0]));
+                manualNurses.forEach(line => {
+                    const id = line.split(',')[0];
+                    if (!nurseIds.has(id)) {
+                        result.nurses.push(line);
+                        nurseIds.add(id);
+                    } else {
+                        const index = result.nurses.findIndex(l => l.startsWith(id + ','));
+                        if (index !== -1) result.nurses[index] = line;
+                        else result.nurses.push(line);
+                    }
+                });
+            }
+
+            // Process preferences
+            if (preferencesFileContent) {
+                result.preferences = preferencesFileContent.split('\n').slice(1).filter(line => line.trim());
+            }
+            if (manual.preferences) {
+                const manualPrefs = manual.preferences.split('\n').slice(1).filter(line => line.trim());
+                const prefKeys = new Set(result.preferences.map(line => line.split(',').slice(0, 3).join(',')));
+                manualPrefs.forEach(line => {
+                    const key = line.split(',').slice(0, 3).join(',');
+                    if (!prefKeys.has(key)) {
+                        result.preferences.push(line);
+                        prefKeys.add(key);
+                    } else {
+                        const index = result.preferences.findIndex(l => l.startsWith(key + ','));
+                        if (index !== -1) result.preferences[index] = line;
+                        else result.preferences.push(line);
+                    }
+                });
+            }
+
+            // Process requirements
+            if (requirementsFileContent) {
+                result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim());
+            }
+            if (manual.requirements) {
+                const manualReqs = manual.requirements.split('\n').slice(1).filter(line => line.trim());
+                const reqKeys = new Set(result.requirements.map(line => line.split(',').slice(0, 4).join(',')));
+                manualReqs.forEach(line => {
+                    const key = line.split(',').slice(0, 4).join(',');
+                    if (!reqKeys.has(key)) {
+                        result.requirements.push(line);
+                        reqKeys.add(key);
+                    } else {
+                        const index = result.requirements.findIndex(l => l.startsWith(key + ','));
+                        if (index !== -1) result.requirements[index] = line;
+                        else result.requirements.push(line);
+                    }
+                });
+            }
+
+            // Convert back to CSV strings
+            return {
+                nurses: result.nurses.length ? 'ID,name,type\n' + result.nurses.join('\n') : '',
+                preferences: result.preferences.length ? 'nurse_id,shift_id,date,preference\n' + result.preferences.join('\n') : '',
+                requirements: result.requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + result.requirements.join('\n') : ''
+            };
+        }
+
+        // Generate schedule
+        async function generateSchedule() {
+            const nursesFile = document.getElementById('nursesFile').files[0];
+            const preferencesFile = document.getElementById('preferencesFile').files[0];
+            const requirementsFile = document.getElementById('requirementsFile').files[0];
+
+            // Check if at least some input is provided
+            const manual = manualToCSV();
+            if (!nursesFile && !manual.nurses &&
+                !preferencesFile && !manual.preferences &&
+                !requirementsFile && !manual.requirements) {
+                document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
+                return;
+            }
+
+            document.getElementById('status').innerText = 'Processing inputs and running optimization...';
+            document.getElementById('gantt-image').style.display = 'none';
+            document.getElementById('schedule-csv').style.display = 'none';
+            document.getElementById('stats-csv').style.display = 'none';
+            document.getElementById('coverage-csv').style.display = 'none';
+
+            try {
+                const merged = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
+
+                // Validate merged inputs
+                if (!merged.nurses || !merged.preferences || !merged.requirements) {
+                    document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
+                    return;
+                }
+
+                // Create FormData
+                const formData = new FormData();
+                formData.append('nurses_file', new Blob([merged.nurses], { type: 'text/csv' }), 'nurses.csv');
+                formData.append('preferences_file', new Blob([merged.preferences], { type: 'text/csv' }), 'preferences.csv');
+                formData.append('requirements_file', new Blob([merged.requirements], { type: 'text/csv' }), 'requirements.csv');
+
+                // Send to backend
+                const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+                document.getElementById('status').innerText = data.response || data.error || 'An error occurred during processing.';
+
+                if (data.response && data.response.startsWith('Optimization successful')) {
+                    const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
+                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
+                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
+                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
+                    document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
+                    document.getElementById('schedule-csv').style.display = 'block';
+                    document.getElementById('stats-csv').style.display = 'block';
+                    document.getElementById('coverage-csv').style.display = 'block';
+                    document.getElementById('gantt-image').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('status').innerText = 'Error: ' + error.message;
+            }
+        }
+    </script>
 </body>
 </html>
