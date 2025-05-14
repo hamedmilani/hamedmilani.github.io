@@ -143,6 +143,18 @@
         #templates a:hover {
             text-decoration: underline;
         }
+        #gantt-placeholder {
+            max-width: 100%;
+            display: block;
+            margin-top: 10px;
+        }
+        #gantt-caption {
+            color: #777;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: block;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -221,7 +233,9 @@
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
         <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after generation.</p>
+        <img id="gantt-placeholder" src="placeholder_gantt.png" alt="Gantt Chart Placeholder">
         <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
+        <span id="gantt-caption">This Gantt chart is based on template inputs.</span>
     </div>
 
     <div id="reports">
@@ -379,26 +393,26 @@
             button.parentElement.remove();
         }
 
-        // Helper function to convert YYYY-MM-DD to MM/DD/YYYY
+        // Helper function to convert ISO-8601 date (YYYY-MM-DD) to MM/DD/YYYY
         function formatDateToMMDDYYYY(dateStr) {
             if (!dateStr) return '';
             const [year, month, day] = dateStr.split('-');
             return `${month}/${day}/${year}`;
         }
 
-        // Convert manual inputs to CSV
+        // Convert manual inputs to CSV format
         function manualToCSV() {
             const nurses = [];
             const requirements = [];
             const preferences = [];
 
-            // Nurses
+            // Nurses data
             document.querySelectorAll('#nurses-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
                 nurses.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value}`);
             });
 
-            // Requirements
+            // Shift requirements data
             document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
                 const startDate = formatDateToMMDDYYYY(inputs[0].value);
@@ -406,7 +420,7 @@
                 requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
             });
 
-            // Preferences
+            // Preferences data
             document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
                 const date = formatDateToMMDDYYYY(inputs[2].value);
@@ -420,12 +434,12 @@
             };
         }
 
-        // Merge file and manual inputs
+        // Merge data from uploaded files and manual inputs
         async function mergeInputs(nursesFile, preferencesFile, requirementsFile) {
             const manual = manualToCSV();
             const result = { nurses: [], preferences: [], requirements: [] };
 
-            // Read files if provided
+            // Function to read the content of a file
             const readFile = (file) => new Promise((resolve) => {
                 if (!file) return resolve('');
                 const reader = new FileReader();
@@ -439,7 +453,7 @@
                 readFile(requirementsFile)
             ]);
 
-            // Process nurses
+            // Process nurses data
             if (nursesFileContent) {
                 result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim());
             }
@@ -459,7 +473,7 @@
                 });
             }
 
-            // Process preferences
+            // Process preferences data
             if (preferencesFileContent) {
                 result.preferences = preferencesFileContent.split('\n').slice(1).filter(line => line.trim());
             }
@@ -479,7 +493,7 @@
                 });
             }
 
-            // Process requirements
+            // Process shift requirements data
             if (requirementsFileContent) {
                 result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim());
             }
@@ -499,7 +513,7 @@
                 });
             }
 
-            // Convert back to CSV strings
+            // Convert the merged data back to CSV strings
             return {
                 nurses: result.nurses.length ? 'ID,name,type\n' + result.nurses.join('\n') : '',
                 preferences: result.preferences.length ? 'nurse_id,shift_id,date,preference\n' + result.preferences.join('\n') : '',
@@ -507,61 +521,65 @@
             };
         }
 
-        // Generate schedule
+        // Function to initiate the schedule generation process
         async function generateSchedule() {
             const nursesFile = document.getElementById('nursesFile').files[0];
             const preferencesFile = document.getElementById('preferencesFile').files[0];
             const requirementsFile = document.getElementById('requirementsFile').files[0];
 
-            // Check if at least some input is provided
-            const manual = manualToCSV();
-            if (!nursesFile && !manual.nurses &&
-                !preferencesFile && !manual.preferences &&
-                !requirementsFile && !manual.requirements) {
+            // Check if at least one input source (file or manual) has data
+            const manualData = manualToCSV();
+            const hasFileInput = nursesFile || preferencesFile || requirementsFile;
+            const hasManualInput = manualData.nurses || manualData.preferences || manualData.requirements;
+
+            if (!hasFileInput && !hasManualInput) {
                 document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
                 return;
             }
 
             document.getElementById('status').innerText = 'Processing inputs and running optimization...';
+            document.getElementById('gantt-placeholder').style.display = 'block';
             document.getElementById('gantt-image').style.display = 'none';
             document.getElementById('schedule-csv').style.display = 'none';
             document.getElementById('stats-csv').style.display = 'none';
             document.getElementById('coverage-csv').style.display = 'none';
 
             try {
-                const merged = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
+                const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
 
-                // Validate merged inputs
-                if (!merged.nurses || !merged.preferences || !merged.requirements) {
+                // Basic validation to ensure all data types are present
+                if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
                     document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
                     return;
                 }
 
-                // Create FormData
+                // Prepare the form data to send to the backend
                 const formData = new FormData();
-                formData.append('nurses_file', new Blob([merged.nurses], { type: 'text/csv' }), 'nurses.csv');
-                formData.append('preferences_file', new Blob([merged.preferences], { type: 'text/csv' }), 'preferences.csv');
-                formData.append('requirements_file', new Blob([merged.requirements], { type: 'text/csv' }), 'requirements.csv');
+                formData.append('nurses_file', new Blob([mergedData.nurses], { type: 'text/csv' }), 'nurses.csv');
+                formData.append('preferences_file', new Blob([mergedData.preferences], { type: 'text/csv' }), 'preferences.csv');
+                formData.append('requirements_file', new Blob([mergedData.requirements], { type: 'text/csv' }), 'requirements.csv');
 
-                // Send to backend
+                // Send the data to the backend for optimization
                 const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
                     method: 'POST',
                     body: formData,
                 });
 
-                const data = await response.json();
-                document.getElementById('status').innerText = data.response || data.error || 'An error occurred during processing.';
+                const result = await response.json();
+                document.getElementById('status').innerText = result.response || result.error || 'An error occurred during processing.';
 
-                if (data.response && data.response.startsWith('Optimization successful')) {
+                // If the optimization was successful, display the results
+                if (result.response && result.response.startsWith('Optimization successful')) {
                     const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
                     document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
                     document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
                     document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
                     document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
+                    document.getElementById('gantt-placeholder').style.display = 'none';
+                    document.getElementById('gantt-image').style.display = 'block';
                     document.getElementById('schedule-csv').style.display = 'block';
                     document.getElementById('stats-csv').style.display = 'block';
                     document.getElementById('coverage-csv').style.display = 'block';
-                    document.getElementById('gantt-image').style.display = 'block';
                 }
             } catch (error) {
                 document.getElementById('status').innerText = 'Error: ' + error.message;
