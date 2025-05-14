@@ -123,11 +123,39 @@
             margin-bottom: 5px;
             display: block;
         }
+        #templates {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        #templates h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        #templates a {
+            display: block;
+            margin-bottom: 5px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        #templates a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <h1>Helsa Nurse Shift Management App</h1>
     <p>This tool helps you generate an optimized nurse schedule. Upload CSV files or enter data manually (or both). Manual entries will override duplicate file entries.</p>
+
+    <div id="templates" class="input-section">
+        <h2>Download Templates</h2>
+        <p class="note">Download the templates below, edit them, and then upload them in the "File Upload" section.</p>
+        <a href="templates/nurses_template.csv" download="nurses_template.csv">Download Nurses Template (CSV)</a>
+        <a href="templates/preferences_template.csv" download="preferences_template.csv">Download Preferences Template (CSV)</a>
+        <a href="templates/requirements_template.csv" download="requirements_template.csv">Download Requirements Template (CSV)</a>
+    </div>
 
     <div class="input-section">
         <h2>File Upload</h2>
@@ -205,7 +233,7 @@
     </div>
 
     <script>
-        // Validation function
+        // Validation
         function validateInputs(inputs, includeDate = false) {
             for (let input of inputs) {
                 if (input.type === 'date' && !includeDate) continue;
