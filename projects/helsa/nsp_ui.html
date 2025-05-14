@@ -233,9 +233,9 @@
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
         <p class="note">The Gantt chart visualizing the nurse schedule will be displayed here after generation.</p>
+        <span id="gantt-caption" style="display:block; text-align:center; color:#777; font-size:0.9em; margin-top:5px;">The below Gantt chart is based on template inputs.</span>
         <img id="gantt-placeholder" src="placeholder_gantt.png" alt="Gantt Chart Placeholder">
         <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
-        <span id="gantt-caption">This Gantt chart is based on template inputs.</span>
     </div>
 
     <div id="reports">
@@ -543,6 +543,7 @@
             document.getElementById('schedule-csv').style.display = 'none';
             document.getElementById('stats-csv').style.display = 'none';
             document.getElementById('coverage-csv').style.display = 'none';
+            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
 
             try {
                 const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
@@ -580,6 +581,7 @@
                     document.getElementById('schedule-csv').style.display = 'block';
                     document.getElementById('stats-csv').style.display = 'block';
                     document.getElementById('coverage-csv').style.display = 'block';
+                    document.getElementById('gantt-caption').innerText = 'The Gantt chart for the optimal schedule.';
                 }
             } catch (error) {
                 document.getElementById('status').innerText = 'Error: ' + error.message;
