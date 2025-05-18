@@ -239,6 +239,14 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
         </div>
     </div>
 
+        <div id="reports">
+        <h2>Reports</h2>
+        <p class="note">Download the generated reports in CSV format.</p>
+        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
+    </div>
+
     <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
     <div id="status"></div>
 
@@ -250,13 +258,7 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
         <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
     </div>
 
-    <div id="reports">
-        <h2>Reports</h2>
-        <p class="note">Download the generated reports in CSV format.</p>
-        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
-        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
-        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
-    </div>
+
 
     <script>
         // Validation
