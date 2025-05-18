@@ -239,6 +239,9 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
         </div>
     </div>
 
+    <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
+    <div id="status"></div>
+
              <div id="reports">
                 <h2>Reports</h2>
                 <p class="note">Download the generated reports in CSV format.</p>
@@ -247,8 +250,7 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
                 <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
             </div>
 
-    <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
-    <div id="status"></div>
+
 
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
