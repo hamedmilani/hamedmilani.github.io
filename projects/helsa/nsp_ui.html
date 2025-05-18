@@ -170,12 +170,17 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
 
 </p>
 
+    <p>
+        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Upload the completed files and then click "Generate Schedule and Reports".
+    </p>
+
+    <p>
+        You can also download sample output files (generated based on the template inputs) to understand the expected format and compare them with your own results. These sample outputs are provided at the bottom of this page and will be replaced with new output files based on your uploaded inputs after generating the schedule.
+    </p>
+
     <div id="templates" class="input-section">
         <h2>Download Templates</h2>
-        <p class="note">Download the following three input templates. Fill them in based on your own nurse list and needs, keep the header rows and the file names unchanged, and upload them before clicking Generate Optimal Schedule.</p>
-        <p class="note">Currently, the app supports scheduling for up to 20 nurses.</p>
-        <p class="note">Shift IDs: Morning: 1, Evening: 2, Night: 3.</p>
-        <p class="note">Preference Levels: 0 means not available. 1 to 10 means level of preference (1 = least preferred, 10 = most preferred). No entry is treated as neutral (no preference).</p>
+
         <a href="templates/nurses_file.csv" download="nurses_file.csv">Download Nurses Template (CSV)</a>
         <a href="templates/preferences_file.csv" download="preferences_file.csv">Download Preferences Template (CSV)</a>
         <a href="templates/requirements_file.csv" download="requirements_file.csv">Download Requirements Template (CSV)</a>
@@ -183,7 +188,7 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
 
     <div class="input-section">
         <h2>File Upload</h2>
-        <p class="note">Upload CSV files for nurses, preferences, and requirements. Leave blank if using manual input.</p>
+        <p class="note"> Leave blank if using manual input.</p>
         <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
         <input type="file" id="nursesFile" accept=".csv">
         <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
@@ -194,7 +199,7 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
 
     <div class="input-section">
         <h2>Manual Input</h2>
-        <p class="note">Enter data for nurses, shift requirements, and preferences. Add multiple entries by clicking the "Add" buttons. </p>
+        <p class="note">Add multiple entries by clicking the "Add" buttons. </p>
 
         <div id="manual-inputs">
             <div id="nurses-input">
@@ -226,7 +231,7 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
 
             <div id="preferences-input">
                 <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1/2/3), date, and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
+                <p class="note">Enter nurse ID, shift (1: Morning, 2: Evening, 3: Night), date, and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
                 <div class="input-line">
                     <label>Preference:</label>
                     <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
@@ -250,26 +255,12 @@ You can enter the inputs in one of two ways: 1) Manual entry: Add each input one
                 <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
             </div>
 
-<div id="sample-outputs" class="input-section">
-    <h2>Sample Output Files</h2>
-    <p>You can also download sample output files (based on the template inputs) to understand the format and compare them with your own results. The outputs include:</p>
-    <ul>
-        <li><strong>A Gantt chart:</strong> showing each nurse’s schedule across the planning horizon.</li>
-        <li><strong>Fairness metrics:</strong> shown on the Gantt chart, including variance in total shifts and variance in weekend shifts per nurse.</li>
-        <li><strong>Nurse-based reports:</strong> total number of each type of shift, full shift calendar, list of colleagues per shift.</li>
-        <li><strong>Shift coverage:</strong> number of nurses assigned to each shift.</li>
-    </ul>
-    <a href="samples/sample_gantt_chart.png" download>Download Sample Gantt Chart (PNG)</a>
-    <a href="samples/sample_fairness_metrics.csv" download>Download Sample Fairness Metrics (CSV)</a>
-    <a href="samples/sample_nurse_reports.csv" download>Download Sample Nurse-Based Reports (CSV)</a>
-    <a href="samples/sample_shift_coverage.csv" download>Download Sample Shift Coverage (CSV)</a>
-</div>
 
 
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
         <p class="note"> </p>
-        <span id="gantt-caption" style="display:block; text-align:center; color:#777; font-size:0.9em; margin-top:5px;">The below Gantt chart visualizing the nurse schedule is based on template inputs. The optimal Gantt chart based on your inputs will be displayed here after generation.</span>
+        <span id="gantt-caption" style="display:block; text-align:center; color:#777; font-size:0.9em; margin-top:5px;">The below Gantt chart is based on template inputs. The optimal Gantt chart based on your inputs will be displayed here after generation.</span>
         <img id="gantt-placeholder" src="templates/placeholder_gantt.png" alt="Gantt Chart Placeholder">
         <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
     </div>
