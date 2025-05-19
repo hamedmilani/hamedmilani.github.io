@@ -233,15 +233,14 @@
 
     <div id="reports">
         <h2>Reports</h2>
+        
         <p id="reports-caption">The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.</p>
         <a id="schedule-placeholder" href="templates/placeholder_schedule.csv" download="placeholder_schedule.csv">Download Sample Optimal Schedule (CSV)</a>
         <a id="stats-placeholder" href="templates/placeholder_stats.csv" download="placeholder_stats.csv">Download Sample Nurse Statistics (CSV)</a>
         <a id="coverage-placeholder" href="templates/placeholder_coverage.csv" download="placeholder_coverage.csv">Download Sample Shift Coverage (CSV)</a>
-        <a id="pdf-placeholder" href="templates/placeholder_nurse_reports.pdf" download="placeholder_nurse_reports.pdf">Download Sample Nurse Reports (PDF)</a>
         <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
         <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
         <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
-        <a id="nurse-reports-pdf" href="#" style="display: none;">Download Nurse Reports (PDF)</a>
     </div>
 
     <div id="gantt-chart">
@@ -552,11 +551,9 @@
             document.getElementById('schedule-placeholder').style.display = 'block';
             document.getElementById('stats-placeholder').style.display = 'block';
             document.getElementById('coverage-placeholder').style.display = 'block';
-            document.getElementById('pdf-placeholder').style.display = 'block';
             document.getElementById('schedule-csv').style.display = 'none';
             document.getElementById('stats-csv').style.display = 'none';
             document.getElementById('coverage-csv').style.display = 'none';
-            document.getElementById('nurse-reports-pdf').style.display = 'none';
             document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
             try {
@@ -595,16 +592,13 @@
                     document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
                     document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
                     document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
-                    document.getElementById('nurse-reports-pdf').href = outputBaseURL + 'nurse_reports.pdf';
                     document.getElementById('schedule-placeholder').style.display = 'none';
                     document.getElementById('stats-placeholder').style.display = 'none';
                     document.getElementById('coverage-placeholder').style.display = 'none';
-                    document.getElementById('pdf-placeholder').style.display = 'none';
                     document.getElementById('schedule-csv').style.display = 'block';
                     document.getElementById('stats-csv').style.display = 'block';
                     document.getElementById('coverage-csv').style.display = 'block';
-                    document.getElementById('nurse-reports-pdf').style.display = 'block';
-                    document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule, statistics, and detailed nurse reports based on your inputs.';
+                    document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
                 }
             } catch (error) {
                 document.getElementById('status').innerText = 'Error: ' + error.message;
