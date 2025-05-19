@@ -187,6 +187,17 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
     </div>
 
 
+            <div class="input-section">
+        <h2>File Upload</h2>
+        <p class="note"> Leave blank if using manual input.</p>
+        <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
+        <input type="file" id="nursesFile" accept=".csv">
+        <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
+        <input type="file" id="preferencesFile" accept=".csv">
+        <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
+        <input type="file" id="requirementsFile" accept=".csv">
+    </div>
+
 
     <div class="input-section">
         <h2>Manual Input</h2>
@@ -234,16 +245,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
         </div>
     </div>
 
-        <div class="input-section">
-        <h2>File Upload</h2>
-        <p class="note"> Leave blank if using manual input.</p>
-        <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
-        <input type="file" id="nursesFile" accept=".csv">
-        <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
-        <input type="file" id="preferencesFile" accept=".csv">
-        <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
-        <input type="file" id="requirementsFile" accept=".csv">
-    </div>
+
 
     <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
     <div id="status"></div>
