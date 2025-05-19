@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Helsa Nurse Scheduling Appilacion</title>
+    <title>Helsa Nurse Scheduling Application</title>
     <style>
         body {
             font-family: sans-serif;
@@ -148,7 +148,7 @@
             display: block;
             margin-top: 10px;
         }
-        #gantt-caption {
+        #gantt-caption, #reports-caption {
             color: #777;
             font-size: 0.9em;
             margin-top: 5px;
@@ -159,37 +159,22 @@
 </head>
 <body>
     <h1>Helsa Nurse Scheduling Application</h1>
-    <p>Nurse scheduling (or shift management) is a long-standing challenge in many hospitals and healthcare systems. While the problem has been widely studied in academia, especially in operations research, there are still very few software tools that are actually used by hospital staff.
-
-        </p>
-    <p>Based on our interviews with nurses from three different cities in Iran, we found that nurse scheduling is still often done manually by one of the volunteer nurses. This process can be time-consuming and inefficient, especially when considering multiple constraints such as department-specific shift requirements, and fairness (based on seniority, weekend and night shifts, and individual preferences).
-This problem is a variation of the classic "assignment problem" in operations research. To address this problem, we develop an integer programming model in Python using the Gurobi optimization library. More technical details are available in the application catalog. 
-        </p>
-       <p> To generate the optimal nurse schedule, the following three sets of inputs are defined: a) Nurse ID/Name/Seniority. b) Preferences of each nurse for each shift (if available). c) Shift requirements (number of nurses needed per shift across the planning horizon).
-You can enter the inputs in one of two ways of file upload and manual entry. You can also combine both methods, manual entries will override any matching entries from the uploaded files.
-
-</p>
-
-    <p>
-        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Upload the completed files and then click "Generate Schedule and Reports".
-    </p>
-
-    <p>
-        You can also download sample output files (generated based on the template inputs) to understand the expected format and compare them with your own results. These sample outputs are provided at the bottom of this page and will be replaced with new output files based on your uploaded inputs after generating the schedule.
-    </p>
+    <p>Nurse scheduling (or shift management) is a long-standing challenge in many hospitals and healthcare systems. While the problem has been widely studied in academia, especially in operations research, there are still very few software tools that are actually used by hospital staff.</p>
+    <p>Based on our interviews with nurses from three different cities in Iran, we found that nurse scheduling is still often done manually by one of the volunteer nurses. This process can be time-consuming and inefficient, especially when considering multiple constraints such as department-specific shift requirements, and fairness (based on seniority, weekend and night shifts, and individual preferences). This problem is a variation of the classic "assignment problem" in operations research. To address this problem, we develop an integer programming model in Python using the Gurobi optimization library. More technical details are available in the application catalog.</p>
+    <p>To generate the optimal nurse schedule, the following three sets of inputs are defined: a) Nurse ID/Name/Seniority. b) Preferences of each nurse for each shift (if available). c) Shift requirements (number of nurses needed per shift across the planning horizon). You can enter the inputs in one of two ways of file upload and manual entry. You can also combine both methods, manual entries will override any matching entries from the uploaded files.</p>
+    <p>If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Upload the completed files and then click "Generate Schedule and Reports".</p>
+    <p>You can also download sample output files (generated based on the template inputs) to understand the expected format and compare them with your own results. These sample outputs are provided in the Reports section below and will be replaced with new output files based on your uploaded inputs after generating the schedule.</p>
 
     <div id="templates" class="input-section">
         <h2>Download Templates</h2>
-
         <a href="templates/nurses_file.csv" download="nurses_file.csv">Download Nurses Template (CSV)</a>
         <a href="templates/preferences_file.csv" download="preferences_file.csv">Download Preferences Template (CSV)</a>
         <a href="templates/requirements_file.csv" download="requirements_file.csv">Download Requirements Template (CSV)</a>
     </div>
 
-
-            <div class="input-section">
+    <div class="input-section">
         <h2>File Upload</h2>
-        <p class="note"> Leave blank if using manual input.</p>
+        <p class="note">Leave blank if using manual input.</p>
         <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
         <input type="file" id="nursesFile" accept=".csv">
         <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
@@ -198,10 +183,8 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
         <input type="file" id="requirementsFile" accept=".csv">
     </div>
 
-
     <div class="input-section">
         <h2>Manual Input</h2>
-
         <div id="manual-inputs">
             <div id="nurses-input">
                 <h3>Nurses Information</h3>
@@ -225,7 +208,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
                     <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
                     <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
+                    <ために type="number" placeholder="Max Req" data-input-type="req_max" min="0">
                 </div>
                 <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
             </div>
@@ -245,30 +228,28 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
         </div>
     </div>
 
-
-
     <button type="button" onclick="generateSchedule()">Generate Schedule and Reports</button>
     <div id="status"></div>
 
-             <div id="reports">
-                <h2>Reports</h2>
-                <p class="note">Download the generated reports in CSV format.</p>
-                <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
-                <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
-                <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
-            </div>
-
-
+    <div id="reports">
+        <h2>Reports</h2>
+        <p class="note">Download the generated reports in CSV format.</p>
+        <span id="reports-caption">The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.</span>
+        <a id="schedule-placeholder" href="templates/placeholder_schedule.csv" download="placeholder_schedule.csv">Download Sample Optimal Schedule (CSV)</a>
+        <a id="stats-placeholder" href="templates/placeholder_stats.csv" download="placeholder_stats.csv">Download Sample Nurse Statistics (CSV)</a>
+        <a id="coverage-placeholder" href="templates/placeholder_coverage.csv" download="placeholder_coverage.csv">Download Sample Shift Coverage (CSV)</a>
+        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
+    </div>
 
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
-        <p class="note"> </p>
+        <p class="note"></p>
         <span id="gantt-caption" style="display:block; text-align:center; color:#777; font-size:0.9em; margin-top:5px;">The below Gantt chart is based on template inputs. The optimal Gantt chart based on your inputs will be displayed here after generating the new schedule.</span>
         <img id="gantt-placeholder" src="templates/placeholder_gantt.png" alt="Gantt Chart Placeholder">
         <img id="gantt-image" style="max-width: 100%; display: none;" alt="Gantt Chart">
     </div>
-
-
 
     <script>
         // Validation
@@ -562,12 +543,18 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
             }
 
             document.getElementById('status').innerText = 'Processing inputs and running optimization...';
+            // Reset Gantt chart
             document.getElementById('gantt-placeholder').style.display = 'block';
             document.getElementById('gantt-image').style.display = 'none';
+            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+            // Reset Reports section
+            document.getElementById('schedule-placeholder').style.display = 'block';
+            document.getElementById('stats-placeholder').style.display = 'block';
+            document.getElementById('coverage-placeholder').style.display = 'block';
             document.getElementById('schedule-csv').style.display = 'none';
             document.getElementById('stats-csv').style.display = 'none';
             document.getElementById('coverage-csv').style.display = 'none';
-            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+            document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
             try {
                 const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
@@ -596,16 +583,22 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                 // If the optimization was successful, display the results
                 if (result.response && result.response.startsWith('Optimization successful')) {
                     const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
-                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
-                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
-                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
+                    // Update Gantt chart
                     document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
                     document.getElementById('gantt-placeholder').style.display = 'none';
                     document.getElementById('gantt-image').style.display = 'block';
+                    document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
+                    // Update Reports section
+                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
+                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
+                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
+                    document.getElementById('schedule-placeholder').style.display = 'none';
+                    document.getElementById('stats-placeholder').style.display = 'none';
+                    document.getElementById('coverage-placeholder').style.display = 'none';
                     document.getElementById('schedule-csv').style.display = 'block';
                     document.getElementById('stats-csv').style.display = 'block';
                     document.getElementById('coverage-csv').style.display = 'block';
-                    document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
+                    document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
                 }
             } catch (error) {
                 document.getElementById('status').innerText = 'Error: ' + error.message;
