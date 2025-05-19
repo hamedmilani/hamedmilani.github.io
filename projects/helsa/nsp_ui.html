@@ -170,6 +170,7 @@
         <a href="templates/nurses_file.csv" download="nurses_file.csv">Download Nurses Template (CSV)</a>
         <a href="templates/requirements_file.csv" download="requirements_file.csv">Download Requirements Template (CSV)</a>
         <a href="templates/preferences_file.csv" download="preferences_file.csv">Download Preferences Template (CSV)</a>
+        
     </div>
 
     <div class="input-section">
@@ -181,6 +182,7 @@
         <input type="file" id="requirementsFile" accept=".csv">
         <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
         <input type="file" id="preferencesFile" accept=".csv">
+        
     </div>
 
     <div class="input-section">
@@ -208,7 +210,7 @@
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
                     <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
                     <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
+                    <ために type="number" placeholder="Max Req" data-input-type="req_max" min="0">
                 </div>
                 <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
             </div>
@@ -232,17 +234,17 @@
     <div id="status"></div>
 
     <div id="reports">
-        <h2>Reports</h2>
-        <p id="reports-caption">The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.</p>
-        <a id="schedule-placeholder" href="templates/placeholder_schedule.csv" download="placeholder_schedule.csv">Download Sample Optimal Schedule (CSV)</a>
-        <a id="stats-placeholder" href="templates/placeholder_stats.csv" download="placeholder_stats.csv">Download Sample Nurse Statistics (CSV)</a>
-        <a id="coverage-placeholder" href="templates/placeholder_coverage.csv" download="placeholder_coverage.csv">Download Sample Shift Coverage (CSV)</a>
-        <a id="pdf-placeholder" href="templates/placeholder_nurse_reports.pdf" download="placeholder_nurse_reports.pdf">Download Sample Nurse Reports (PDF)</a>
-        <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
-        <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
-        <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
-        <a id="nurse-reports-pdf" href="#" style="display: none;">Download Nurse Reports (PDF)</a>
-    </div>
+    <h2>Reports</h2>
+    <p id="reports-caption">The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.</p>
+    <a id="schedule-placeholder" href="templates/placeholder_schedule.csv" download="placeholder_schedule.csv">Download Sample Optimal Schedule (CSV)</a>
+    <a id="stats-placeholder" href="templates/placeholder_stats.csv" download="placeholder_stats.csv">Download Sample Nurse Statistics (CSV)</a>
+    <a id="coverage-placeholder" href="templates/placeholder_coverage.csv" download="placeholder_coverage.csv">Download Sample Shift Coverage (CSV)</a>
+    <a id="pdf-placeholder" href="templates/placeholder_report.pdf" download="placeholder_report.pdf">Download Sample Nurse Report (PDF)</a>
+    <a id="schedule-csv" href="#" style="display: none;">Download Optimal Schedule (CSV)</a>
+    <a id="stats-csv" href="#" style="display: none;">Download Nurse Statistics (CSV)</a>
+    <a id="coverage-csv" href="#" style="display: none;">Download Shift Coverage (CSV)</a>
+    <a id="pdf-report" href="#" style="display: none;">Download Nurse Report (PDF)</a>
+</div>
 
     <div id="gantt-chart">
         <h2>Gantt Chart</h2>
@@ -527,89 +529,89 @@
             };
         }
 
-        // Function to initiate the schedule generation process
-        async function generateSchedule() {
-            const nursesFile = document.getElementById('nursesFile').files[0];
-            const preferencesFile = document.getElementById('preferencesFile').files[0];
-            const requirementsFile = document.getElementById('requirementsFile').files[0];
+// Function to initiate the schedule generation process
+async function generateSchedule() {
+    const nursesFile = document.getElementById('nursesFile').files[0];
+    const preferencesFile = document.getElementById('preferencesFile').files[0];
+    const requirementsFile = document.getElementById('requirementsFile').files[0];
 
-            // Check if at least one input source (file or manual) has data
-            const manualData = manualToCSV();
-            const hasFileInput = nursesFile || preferencesFile || requirementsFile;
-            const hasManualInput = manualData.nurses || manualData.preferences || manualData.requirements;
+    // Check if at least one input source (file or manual) has data
+    const manualData = manualToCSV();
+    const hasFileInput = nursesFile || preferencesFile || requirementsFile;
+    const hasManualInput = manualData.nurses || manualData.preferences || manualData.requirements;
 
-            if (!hasFileInput && !hasManualInput) {
-                document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
-                return;
-            }
+    if (!hasFileInput && !hasManualInput) {
+        document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
+        return;
+    }
 
-            document.getElementById('status').innerText = 'Processing inputs and running optimization...';
-            // Reset Gantt chart
-            document.getElementById('gantt-placeholder').style.display = 'block';
-            document.getElementById('gantt-image').style.display = 'none';
-            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
-            // Reset Reports section
-            document.getElementById('schedule-placeholder').style.display = 'block';
-            document.getElementById('stats-placeholder').style.display = 'block';
-            document.getElementById('coverage-placeholder').style.display = 'block';
-            document.getElementById('pdf-placeholder').style.display = 'block';
-            document.getElementById('schedule-csv').style.display = 'none';
-            document.getElementById('stats-csv').style.display = 'none';
-            document.getElementById('coverage-csv').style.display = 'none';
-            document.getElementById('nurse-reports-pdf').style.display = 'none';
-            document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
+    document.getElementById('status').innerText = 'Processing inputs and running optimization...';
+    // Reset Gantt chart
+    document.getElementById('gantt-placeholder').style.display = 'block';
+    document.getElementById('gantt-image').style.display = 'none';
+    document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+    // Reset Reports section
+    document.getElementById('schedule-placeholder').style.display = 'block';
+    document.getElementById('stats-placeholder').style.display = 'block';
+    document.getElementById('coverage-placeholder').style.display = 'block';
+    document.getElementById('pdf-placeholder').style.display = 'block';
+    document.getElementById('schedule-csv').style.display = 'none';
+    document.getElementById('stats-csv').style.display = 'none';
+    document.getElementById('coverage-csv').style.display = 'none';
+    document.getElementById('pdf-report').style.display = 'none';
+    document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
-            try {
-                const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
+    try {
+        const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
 
-                // Basic validation to ensure all data types are present
-                if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
-                    document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
-                    return;
-                }
-
-                // Prepare the form data to send to the backend
-                const formData = new FormData();
-                formData.append('nurses_file', new Blob([mergedData.nurses], { type: 'text/csv' }), 'nurses.csv');
-                formData.append('preferences_file', new Blob([mergedData.preferences], { type: 'text/csv' }), 'preferences.csv');
-                formData.append('requirements_file', new Blob([mergedData.requirements], { type: 'text/csv' }), 'requirements.csv');
-
-                // Send the data to the backend for optimization
-                const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const result = await response.json();
-                document.getElementById('status').innerText = result.response || result.error || 'An error occurred during processing.';
-
-                // If the optimization was successful, display the results
-                if (result.response && result.response.startsWith('Optimization successful')) {
-                    const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
-                    // Update Gantt chart
-                    document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
-                    document.getElementById('gantt-placeholder').style.display = 'none';
-                    document.getElementById('gantt-image').style.display = 'block';
-                    document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
-                    // Update Reports section
-                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
-                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
-                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
-                    document.getElementById('nurse-reports-pdf').href = outputBaseURL + 'combined_nurse_reports.pdf';
-                    document.getElementById('schedule-placeholder').style.display = 'none';
-                    document.getElementById('stats-placeholder').style.display = 'none';
-                    document.getElementById('coverage-placeholder').style.display = 'none';
-                    document.getElementById('pdf-placeholder').style.display = 'none';
-                    document.getElementById('schedule-csv').style.display = 'block';
-                    document.getElementById('stats-csv').style.display = 'block';
-                    document.getElementById('coverage-csv').style.display = 'block';
-                    document.getElementById('nurse-reports-pdf').style.display = 'block';
-                    document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule, statistics, and nurse reports based on your inputs.';
-                }
-            } catch (error) {
-                document.getElementById('status').innerText = 'Error: ' + error.message;
-            }
+        // Basic validation to ensure all data types are present
+        if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
+            document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
+            return;
         }
+
+        // Prepare the form data to send to the backend
+        const formData = new FormData();
+        formData.append('nurses_file', new Blob([mergedData.nurses], { type: 'text/csv' }), 'nurses.csv');
+        formData.append('preferences_file', new Blob([mergedData.preferences], { type: 'text/csv' }), 'preferences.csv');
+        formData.append('requirements_file', new Blob([mergedData.requirements], { type: 'text/csv' }), 'requirements.csv');
+
+        // Send the data to the backend for optimization
+        const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const result = await response.json();
+        document.getElementById('status').innerText = result.response || result.error || 'An error occurred during processing.';
+
+        // If the optimization was successful, display the results
+        if (result.response && result.response.startsWith('Optimization successful')) {
+            const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
+            // Update Gantt chart
+            document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
+            document.getElementById('gantt-placeholder').style.display = 'none';
+            document.getElementById('gantt-image').style.display = 'block';
+            document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
+            // Update Reports section
+            document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
+            document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
+            document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
+            document.getElementById('pdf-report').href = outputBaseURL + 'combined_nurse_reports.pdf';
+            document.getElementById('schedule-placeholder').style.display = 'none';
+            document.getElementById('stats-placeholder').style.display = 'none';
+            document.getElementById('coverage-placeholder').style.display = 'none';
+            document.getElementById('pdf-placeholder').style.display = 'none';
+            document.getElementById('schedule-csv').style.display = 'block';
+            document.getElementById('stats-csv').style.display = 'block';
+            document.getElementById('coverage-csv').style.display = 'block';
+            document.getElementById('pdf-report').style.display = 'block';
+            document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
+        }
+    } catch (error) {
+        document.getElementById('status').innerText = 'Error: ' + error.message;
+    }
+}
     </script>
 </body>
 </html>
