@@ -171,7 +171,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 </p>
 
     <p>
-        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Upload the completed files and then click "Generate Schedule and Reports".
+        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Note: Nurse type in the nurses template should be 1 (normal) or 2 (senior). Upload the completed files and then click "Generate Schedule and Reports".
     </p>
 
     <p>
@@ -194,12 +194,12 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
         <div id="manual-inputs">
             <div id="nurses-input">
                 <h3>Nurses Information</h3>
-                <p class="note">Enter nurse ID, Name, and Type (0 for normal, 1 for senior).</p>
+                <p class="note">Enter nurse ID, Name, and Type (1 for normal, 2 for senior).</p>
                 <div class="input-line">
                     <label>Nurse Info:</label>
                     <input type="text" placeholder="ID" data-input-type="nurse_id">
                     <input type="text" placeholder="Name" data-input-type="nurse_name">
-                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
+                    <input type="number" placeholder="Type (1/2)" data-input-type="nurse_type" min="1" max="2">
                 </div>
                 <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
             </div>
@@ -301,7 +301,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                 <label>Nurse Info:</label>
                 <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
                 <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
-                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+                <input type="number" placeholder="Type (1/2)" data-input-type="nurse_type" min="1" max="2" readonly>
                 <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
                 <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
             `;
@@ -431,7 +431,8 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
             // Nurses data
             document.querySelectorAll('#nurses-input .entered-item').forEach(line => {
                 const inputs = line.querySelectorAll('input');
-                nurses.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value}`);
+                const nurseType = parseInt(inputs[2].value) - 1; // Convert 1->0, 2->1
+                nurses.push(`${inputs[0].value},${inputs[1].value},${nurseType}`);
             });
 
             // Shift requirements data
@@ -477,7 +478,11 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 
             // Process nurses data
             if (nursesFileContent) {
-                result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim());
+                result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim()).map(line => {
+                    const [id, name, type] = line.split(',');
+                    const convertedType = parseInt(type) - 1; // Convert 1->0, 2->1
+                    return `${id},${name},${convertedType}`;
+                });
             }
             if (manual.nurses) {
                 const manualNurses = manual.nurses.split('\n').slice(1).filter(line => line.trim());
