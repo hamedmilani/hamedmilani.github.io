@@ -171,7 +171,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 </p>
 
     <p>
-        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Note: Nurse type in the nurses template should be 1 (normal) or 2 (senior). Upload the completed files and then click "Generate Schedule and Reports".
+        If you would like to upload your own input files, please use the format provided in the template files available on this page. Download the three input templates, complete them using your own nurse data and requirements, and make sure to keep the header rows and file names unchanged. Note: Nurse type in the nurses and requirements templates should be 1 (normal/all) or 2 (senior). Upload the completed files and then click "Generate Schedule and Reports".
     </p>
 
     <p>
@@ -206,13 +206,13 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 
             <div id="requirements-input">
                 <h3>Shift Requirements</h3>
-                <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses.</p>
+                <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (1 for all, 2 for senior), minimum and maximum required nurses.</p>
                 <div class="input-line">
                     <label>Requirement:</label>
                     <input type="date" placeholder="Start Date" data-input-type="req_start_date">
                     <input type="date" placeholder="End Date" data-input-type="req_end_date">
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
-                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
+                    <input type="number" placeholder="Nurse Type (1/2)" data-input-type="req_nurse_type" min="1" max="2">
                     <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
                     <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
                 </div>
@@ -337,7 +337,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                 <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
                 <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
                 <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
-                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
+                <input type="number" placeholder="Nurse Type (1/2)" data-input-type="req_nurse_type" min="1" max="2" readonly>
                 <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
                 <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
                 <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
@@ -440,7 +440,8 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                 const inputs = line.querySelectorAll('input');
                 const startDate = formatDateToMMDDYYYY(inputs[0].value);
                 const endDate = formatDateToMMDDYYYY(inputs[1].value);
-                requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
+                const nurseType = parseInt(inputs[3].value) - 1; // Convert 1->0, 2->1
+                requirements.push(`${startDate},${endDate},${inputs[2].value},${nurseType},${inputs[4].value},${inputs[5].value}`);
             });
 
             // Preferences data
@@ -489,14 +490,9 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
                 const nurseIds = new Set(result.nurses.map(line => line.split(',')[0]));
                 manualNurses.forEach(line => {
                     const id = line.split(',')[0];
-                    if (!nurseIds.has(id)) {
-                        result.nurses.push(line);
-                        nurseIds.add(id);
-                    } else {
-                        const index = result.nurses.findIndex(l => l.startsWith(id + ','));
-                        if (index !== -1) result.nurses[index] = line;
-                        else result.nurses.push(line);
-                    }
+                    const index = result.nurses.findIndex(l => l.startsWith(id + ','));
+                    if (index !== -1) result.nurses[index] = line;
+                    else result.nurses.push(line);
                 });
             }
 
@@ -522,7 +518,11 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 
             // Process shift requirements data
             if (requirementsFileContent) {
-                result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim());
+                result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim()).map(line => {
+                    const [start_date, end_date, shift_id, nurse_type, min_req, max_req] = line.split(',');
+                    const convertedType = parseInt(nurse_type) - 1; // Convert 1->0, 2->1
+                    return `${start_date},${end_date},${shift_id},${convertedType},${min_req},${max_req}`;
+                });
             }
             if (manual.requirements) {
                 const manualReqs = manual.requirements.split('\n').slice(1).filter(line => line.trim());
@@ -598,7 +598,7 @@ You can enter the inputs in one of two ways of file upload and manual entry. You
 
                 // If the optimization was successful, display the results
                 if (result.response && result.response.startsWith('Optimization successful')) {
-                    const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
+                    const outputBaseURL = 'httpsestrel://hamedmilani.pythonanywhere.com/get_output/';
                     document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
                     document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
                     document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
