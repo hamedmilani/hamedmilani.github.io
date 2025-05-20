@@ -164,12 +164,10 @@
             margin-top: 10px;
         }
         .upload-label {
-    flex-shrink: 0;
-    width: 200px;
-    text-align: left;
-    font-size: 0.9em;
-    font-weight: bold;
-}
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
         #templates {
             margin-top: 20px;
             padding: 15px;
@@ -205,13 +203,13 @@
         /* Ribbon Wrapper and Styling */
 .ribbon-wrapper {
     position: relative;
-    min-width: 100px;
-    max-width: 200px;
-    width: auto;
+    min-width: 100px; /* Keep minimum width for smaller screens */
+    max-width: 200px; /* Set a maximum width to prevent stretching */
+    width: auto; /* Allow natural width based on content */
     box-sizing: border-box;
 }
 .ribbon {
-    background-color: #808080;
+    background-color: #808080; /* Grey to match file input buttons */
     color: white;
     padding: 8px;
     border-radius: 3px;
@@ -219,11 +217,11 @@
     text-align: center;
     font-size: 0.9em;
     transition: background-color 0.3s ease;
-    width: 100%;
+    width: 100%; /* Ensure ribbon takes full width of ribbon-wrapper */
     box-sizing: border-box;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow: ellipsis; /* Truncates long file names with "..." */
 }
 .ribbon:hover {
     background-color: #6b6b6b; /* Darker grey for hover effect */
