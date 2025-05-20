@@ -287,8 +287,8 @@
                 <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses. To define single-day requirements, please set the start and end dates to the same day.</p>
                 <div class="input-line">
                     <label>Requirement:</label>
-                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
+                    <input type="date" placeholder="YYYY-MM-DD" data-input-type="req_start_date">
+                    <input type="date" placeholder="YYYY-MM-DD" data-input-type="req_end_date">
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
                     <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
                     <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
@@ -304,7 +304,7 @@
                     <label>Preference:</label>
                     <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
-                    <input type="date" placeholder="Date" data-input-type="pref_date">
+                    <input type="date" placeholder="YYYY-MM-DD" data-input-type="pref_date">
                     <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
                 </div>
                 <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
@@ -411,8 +411,8 @@
             newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
                 <label>Requirement:</label>
-                <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
-                <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
+                <input type="date" placeholder="YYYY-MM-DD" data-input-type="req_start_date" readonly>
+                <input type="date" placeholder="YYYY-MM-DD" data-input-type="req_end_date" readonly>
                 <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
                 <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
                 <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
@@ -432,7 +432,7 @@
             const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
             const error = validateInputs(inputs, true);
             if (error) {
-                alert(error);
+,                alert(error);
                 return;
             }
             const newInputLine = document.createElement('div');
@@ -441,7 +441,7 @@
                 <label>Preference:</label>
                 <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
                 <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
-                <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
+                <input type="date" placeholder="YYYY-MM-DD" data-input-type="pref_date" readonly>
                 <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
                 <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
                 <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
