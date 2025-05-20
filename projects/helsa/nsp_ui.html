@@ -298,15 +298,24 @@
     </div>
 
     <div class="input-section">
-        <h2>File Upload</h2>
-        <p class="note">Leave blank if using manual input.</p>
-        <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
-        <input type="file" id="nursesFile" accept=".csv">
-        <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
-        <input type="file" id="requirementsFile" accept=".csv">
-        <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
-        <input type="file" id="preferencesFile" accept=".csv">
+    <h2>File Upload</h2>
+    <p class="note">Leave blank if using manual input.</p>
+    <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('nursesFile')">Choose File</div>
+        <input type="file" id="nursesFile" accept=".csv" style="display: none;">
     </div>
+    <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('requirementsFile')">Choose File</div>
+        <input type="file" id="requirementsFile" accept=".csv" style="display: none;">
+    </div>
+    <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('preferencesFile')">Choose File</div>
+        <input type="file" id="preferencesFile" accept=".csv" style="display: none;">
+    </div>
+</div>
 
     <div class="input-section">
         <h2>Manual Input</h2>
@@ -806,6 +815,18 @@
                 document.getElementById('status').innerText = 'Error: ' + error.message;
             }
         }
+
+    function triggerFileInput(inputId) {
+    const fileInput = document.getElementById(inputId);
+    fileInput.click();
+}
+        // Add this to your <script> section
+document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const ribbon = this.parentElement.querySelector('.ribbon');
+        ribbon.textContent = this.files.length > 0 ? this.files[0].name : 'Choose File';
+    });
+});
     </script>
 </body>
 </html>
