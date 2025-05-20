@@ -283,32 +283,43 @@
             </div>
 
             <div id="requirements-input">
-                <h3>Shift Requirements</h3>
-                <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses. To define single-day requirements, please set the start and end dates to the same day.</p>
-                <div class="input-line">
-                    <label>Requirement:</label>
-                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
-                    <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
-                    <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
-                    <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
-                </div>
-                <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
-            </div>
+    <h3>Shift Requirements</h3>
+    <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses. To define single-day requirements, please set the start and end dates to the same day.</p>
+    <div class="input-line">
+        <label>Start Date:</label>
+        <input type="date" data-input-type="req_start_date">
+        <span class="note inline-note">Enter start date (dd/mm/yyyy)</span>
+        <label>End Date:</label>
+        <input type="date" data-input-type="req_end_date">
+        <span class="note inline-note">Enter end date (dd/mm/yyyy)</span>
+        <label>Shift:</label>
+        <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
+        <label>Nurse Type:</label>
+        <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
+        <label>Min Required:</label>
+        <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
+        <label>Max Required:</label>
+        <input type="number" placeholder="Max Req" data-input-type="req_max" min="0">
+    </div>
+    <button type="button" class="add-button" onclick="addRequirementInput()">Add Requirement</button>
+</div>
 
             <div id="preferences-input">
-                <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1: Morning, 2: Evening, 3: Night), date, and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
-                <div class="input-line">
-                    <label>Preference:</label>
-                    <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
-                    <input type="date" placeholder="Date" data-input-type="pref_date">
-                    <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
-                </div>
-                <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
-            </div>
+    <h3>Preferences</h3>
+    <p class="note">Enter nurse ID, shift (1: Morning, 2: Evening, 3: Night), date, and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
+    <div class="input-line">
+        <label>Nurse ID:</label>
+        <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
+        <label>Shift:</label>
+        <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
+        <label>Date:</label>
+        <input type="date" data-input-type="pref_date">
+        <span class="note inline-note">Enter date (dd/mm/yyyy)</span>
+        <label>Preference Level:</label>
+        <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
+    </div>
+    <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
+</div>
         </div>
     </div>
 
