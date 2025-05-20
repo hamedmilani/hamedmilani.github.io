@@ -200,6 +200,37 @@
             display: block;
             text-align: center;
         }
+        /* Ribbon Wrapper and Styling */
+        .ribbon-wrapper {
+            position: relative;
+            flex-grow: 1;
+            min-width: 100px;
+            box-sizing: border-box;
+        }
+        .ribbon {
+            background-color: #007bff;
+            color: white;
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .ribbon:hover {
+            background-color: #0056b3;
+        }
+        .date-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        /* Ensure calendar icon is visible in supported browsers */
+        .date-input::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+        }
         /* Mobile-specific styles */
         @media (max-width: 600px) {
             .input-line {
@@ -230,6 +261,16 @@
             }
             .ribbon-bar h2 {
                 font-size: 1.2em; /* Smaller header on mobile */
+            }
+            .ribbon-wrapper {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .ribbon {
+                width: 100%;
+            }
+            .date-input {
+                width: 100%;
             }
         }
     </style>
@@ -287,8 +328,14 @@
                 <p class="note">Specify start date, end date, shift (1: Morning, 2: Evening, 3: Night), nurse type (0 for all, 1 for senior), minimum and maximum required nurses. To define single-day requirements, please set the start and end dates to the same day.</p>
                 <div class="input-line">
                     <label>Requirement:</label>
-                    <input type="date" placeholder="Start Date" data-input-type="req_start_date">
-                    <input type="date" placeholder="End Date" data-input-type="req_end_date">
+                    <div class="ribbon-wrapper">
+                        <div class="ribbon" onclick="toggleDateInput(this)">Enter Start Date</div>
+                        <input type="date" data-input-type="req_start_date" class="date-input" style="display: none;">
+                    </div>
+                    <div class="ribbon-wrapper">
+                        <div class="ribbon" onclick="toggleDateInput(this)">Enter End Date</div>
+                        <input type="date" data-input-type="req_end_date" class="date-input" style="display: none;">
+                    </div>
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3">
                     <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1">
                     <input type="number" placeholder="Min Req" data-input-type="req_min" min="0">
@@ -304,7 +351,10 @@
                     <label>Preference:</label>
                     <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
                     <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
-                    <input type="date" placeholder="Date" data-input-type="pref_date">
+                    <div class="ribbon-wrapper">
+                        <div class="ribbon" onclick="toggleDateInput(this)">Enter Date</div>
+                        <input type="date" data-input-type="pref_date" class="date-input" style="display: none;">
+                    </div>
                     <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
                 </div>
                 <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
@@ -346,11 +396,22 @@
             ribbon.classList.toggle('expanded');
         }
 
+        // Toggle date input visibility
+        function toggleDateInput(ribbon) {
+            const wrapper = ribbon.parentElement;
+            const input = wrapper.querySelector('.date-input');
+            ribbon.style.display = input.style.display === 'none' ? 'none' : 'block';
+            input.style.display = input.style.display === 'none' ? 'block' : 'none';
+            if (input.style.display === 'block') {
+                input.focus();
+            }
+        }
+
         // Validation
         function validateInputs(inputs, includeDate = false) {
             for (let input of inputs) {
                 if (input.type === 'date' && !includeDate) continue;
-                if (!input.value && input.type !== 'file') return `Field ${input.placeholder} is empty.`;
+                if (!input.value && input.type !== 'file') return `Field ${input.placeholder || input.dataset.inputType} is empty.`;
                 if (input.type === 'number') {
                     const value = parseFloat(input.value);
                     const min = parseFloat(input.min);
@@ -411,8 +472,14 @@
             newInputLine.classList.add('input-line', 'entered-item');
             newInputLine.innerHTML = `
                 <label>Requirement:</label>
-                <input type="date" placeholder="Start Date" data-input-type="req_start_date" readonly>
-                <input type="date" placeholder="End Date" data-input-type="req_end_date" readonly>
+                <div class="ribbon-wrapper">
+                    <div class="ribbon" onclick="toggleDateInput(this)">Enter Start Date</div>
+                    <input type="date" data-input-type="req_start_date" class="date-input" style="display: none;" readonly>
+                </div>
+                <div class="ribbon-wrapper">
+                    <div class="ribbon" onclick="toggleDateInput(this)">Enter End Date</div>
+                    <input type="date" data-input-type="req_end_date" class="date-input" style="display: none;" readonly>
+                </div>
                 <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
                 <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
                 <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
@@ -422,8 +489,19 @@
             `;
             requirementsInput.appendChild(newInputLine);
             const newInputs = newInputLine.querySelectorAll('input');
-            newInputs.forEach((input, i) => input.value = inputs[i].value);
+            newInputs[0].value = inputs[0].value; // Start Date
+            newInputs[1].value = inputs[1].value; // End Date
+            newInputs[2].value = inputs[2].value; // Shift
+            newInputs[3].value = inputs[3].value; // Nurse Type
+            newInputs[4].value = inputs[4].value; // Min Req
+            newInputs[5].value = inputs[5].value; // Max Req
             inputs.forEach(input => input.value = '');
+            // Reset ribbons to visible and hide date inputs
+            const wrappers = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('.ribbon-wrapper');
+            wrappers.forEach(wrapper => {
+                wrapper.querySelector('.ribbon').style.display = 'block';
+                wrapper.querySelector('.date-input').style.display = 'none';
+            });
         }
 
         // Add preference input
@@ -441,15 +519,25 @@
                 <label>Preference:</label>
                 <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
                 <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
-                <input type="date" placeholder="Date" data-input-type="pref_date" readonly>
+                <div class="ribbon-wrapper">
+                    <div class="ribbon" onclick="toggleDateInput(this)">Enter Date</div>
+                    <input type="date" data-input-type="pref_date" class="date-input" style="display: none;" readonly>
+                </div>
                 <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
                 <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
                 <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
             `;
             preferencesInput.appendChild(newInputLine);
             const newInputs = newInputLine.querySelectorAll('input');
-            newInputs.forEach((input, i) => input.value = inputs[i].value);
+            newInputs[0].value = inputs[0].value; // Nurse ID
+            newInputs[1].value = inputs[1].value; // Shift
+            newInputs[2].value = inputs[2].value; // Date
+            newInputs[3].value = inputs[3].value; // Preference Level
             inputs.forEach(input => input.value = '');
+            // Reset ribbon to visible and hide date input
+            const wrapper = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelector('.ribbon-wrapper');
+            wrapper.querySelector('.ribbon').style.display = 'block';
+            wrapper.querySelector('.date-input').style.display = 'none';
         }
 
         // Edit input
@@ -457,6 +545,11 @@
             const inputLine = button.parentElement;
             const inputs = inputLine.querySelectorAll('input');
             inputs.forEach(input => input.removeAttribute('readonly'));
+            // Show date inputs and hide ribbons when editing
+            inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
+                wrapper.querySelector('.ribbon').style.display = 'none';
+                wrapper.querySelector('.date-input').style.display = 'block';
+            });
             button.textContent = 'Save';
             button.onclick = () => saveInput(button);
         }
@@ -483,6 +576,11 @@
                 }
             }
             inputs.forEach(input => input.setAttribute('readonly', 'true'));
+            // Show ribbons and hide date inputs after saving
+            inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
+                wrapper.querySelector('.ribbon').style.display = 'block';
+                wrapper.querySelector('.date-input').style.display = 'none';
+            });
             button.textContent = 'Edit';
             button.onclick = () => editInput(button);
         }
