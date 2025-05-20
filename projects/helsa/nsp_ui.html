@@ -597,29 +597,39 @@ async function generateSchedule() {
     }
 
     document.getElementById('status').innerText = 'Processing inputs and running optimization...';
-    // Reset Gantt chart
-    document.getElementById('gantt-placeholder').style.display = 'block';
-    document.getElementById('gantt-image').style.display = 'none';
+    // Reset Gantt chart display
+    document.getElementById('gantt-placeholder').style.display = 'block'; // This is the image placeholder
+    document.getElementById('gantt-image').style.display = 'none'; // This is for the generated image
     document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
-    // Reset Reports section
-    document.getElementById('schedule-placeholder').style.display = 'block';
-    document.getElementById('stats-placeholder').style.display = 'block';
-    document.getElementById('coverage-placeholder').style.display = 'block';
-    document.getElementById('pdf-placeholder').style.display = 'block';
-    document.getElementById('gantt_file-placeholder').style.display = 'block';
+
+    // Reset Reports section: Hide all sample links and show generated links later if successful
+    document.getElementById('schedule-placeholder').style.display = 'none'; // Hide sample
+    document.getElementById('stats-placeholder').style.display = 'none';     // Hide sample
+    document.getElementById('coverage-placeholder').style.display = 'none';  // Hide sample
+    document.getElementById('pdf-placeholder').style.display = 'none';       // Hide sample
+    document.getElementById('gantt_file-placeholder').style.display = 'none'; // <--- ADD THIS LINE TO HIDE THE SAMPLE GANTT DOWNLOAD LINK
+
     document.getElementById('schedule-csv').style.display = 'none';
     document.getElementById('stats-csv').style.display = 'none';
     document.getElementById('coverage-csv').style.display = 'none';
     document.getElementById('pdf-report').style.display = 'none';
     document.getElementById('gantt-report').style.display = 'none';
-    document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
+
+    document.getElementById('reports-caption').innerText = 'Generating schedule...'; // Update caption during processing
 
     try {
         const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
 
         // Basic validation to ensure all data types are present
         if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
-            document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
+            document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data (Nurses, Requirements, Preferences).';
+            // Re-show sample links if input is incomplete, or handle this logic based on your UX
+            document.getElementById('schedule-placeholder').style.display = 'block';
+            document.getElementById('stats-placeholder').style.display = 'block';
+            document.getElementById('coverage-placeholder').style.display = 'block';
+            document.getElementById('pdf-placeholder').style.display = 'block';
+            document.getElementById('gantt_file-placeholder').style.display = 'block';
+            document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
             return;
         }
 
@@ -640,31 +650,55 @@ async function generateSchedule() {
 
         // If the optimization was successful, display the results
         if (result.response && result.response.startsWith('Optimization successful')) {
-            const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
-            // Update Gantt chart
-            document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
+            // Hide sample Gantt chart image and show the new one
             document.getElementById('gantt-placeholder').style.display = 'none';
+            document.getElementById('gantt-image').src = result.gantt_chart_url;
             document.getElementById('gantt-image').style.display = 'block';
-            document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
-            // Update Reports section
-            document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
-            document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
-            document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
-            document.getElementById('pdf-report').href = outputBaseURL + 'combined_nurse_reports.pdf';
-            document.getElementById('gantt-report').href = outputBaseURL + 'schedule_gantt.png';
-            document.getElementById('schedule-placeholder').style.display = 'none';
-            document.getElementById('stats-placeholder').style.display = 'none';
-            document.getElementById('coverage-placeholder').style.display = 'none';
-            document.getElementById('pdf-placeholder').style.display = 'none';
-            document.getElementById('gantt-placeholder').style.display = 'none';
+            document.getElementById('gantt-caption').innerText = 'The optimal Gantt chart based on your inputs is displayed above.';
+
+            // Show generated report links
+            document.getElementById('schedule-csv').href = result.optimal_schedule_csv_url;
             document.getElementById('schedule-csv').style.display = 'block';
+            document.getElementById('stats-csv').href = result.nurse_statistics_csv_url;
             document.getElementById('stats-csv').style.display = 'block';
+            document.getElementById('coverage-csv').href = result.shift_coverage_csv_url;
             document.getElementById('coverage-csv').style.display = 'block';
+            document.getElementById('pdf-report').href = result.nurse_report_pdf_url;
             document.getElementById('pdf-report').style.display = 'block';
+            document.getElementById('gantt-report').href = result.gantt_chart_url; // Use the same URL for the download link
             document.getElementById('gantt-report').style.display = 'block';
-            document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
+
+            document.getElementById('reports-caption').innerText = 'The optimal reports based on your inputs are available below.';
+        } else {
+            // If optimization fails, revert to showing sample links or appropriate message
+            document.getElementById('gantt-placeholder').style.display = 'block';
+            document.getElementById('gantt-image').style.display = 'none';
+            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+
+            document.getElementById('schedule-placeholder').style.display = 'block';
+            document.getElementById('stats-placeholder').style.display = 'block';
+            document.getElementById('coverage-placeholder').style.display = 'block';
+            document.getElementById('pdf-placeholder').style.display = 'block';
+            document.getElementById('gantt_file-placeholder').style.display = 'block'; // Re-show sample if failed
+            document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
         }
+
     } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('status').innerText = 'Failed to connect to the server or process the request.';
+        // Revert to showing sample links if an error occurs
+        document.getElementById('gantt-placeholder').style.display = 'block';
+        document.getElementById('gantt-image').style.display = 'none';
+        document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+
+        document.getElementById('schedule-placeholder').style.display = 'block';
+        document.getElementById('stats-placeholder').style.display = 'block';
+        document.getElementById('coverage-placeholder').style.display = 'block';
+        document.getElementById('pdf-placeholder').style.display = 'block';
+        document.getElementById('gantt_file-placeholder').style.display = 'block'; // Re-show sample if error
+        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
+    }
+} catch (error) {
         document.getElementById('status').innerText = 'Error: ' + error.message;
     }
 }
