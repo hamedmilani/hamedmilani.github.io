@@ -737,6 +737,25 @@
             };
         }
 
+        // Helper function to trigger file download
+        async function triggerDownload(url, filename) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                console.error('Download failed:', error);
+                document.getElementById('status').innerText = 'Error downloading file: ' + error.message;
+            }
+        }
+
         // Function to initiate the schedule generation process
         async function generateSchedule() {
             const nursesFile = document.getElementById('nursesFile').files[0];
@@ -807,8 +826,19 @@
                     document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
                     document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
                     document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
-                    document.getElementById('pdf-report').href = outputBaseURL + 'combined_nurse_reports.pdf';
-                    document.getElementById('gantt-png').href = outputBaseURL + 'schedule_gantt.png';
+                    // Set up click handlers for PDF and PNG to trigger downloads
+                    const pdfLink = document.getElementById('pdf-report');
+                    const ganttLink = document.getElementById('gantt-png');
+                    pdfLink.href = '#'; // Prevent default navigation
+                    ganttLink.href = '#'; // Prevent default navigation
+                    pdfLink.onclick = (e) => {
+                        e.preventDefault();
+                        triggerDownload(outputBaseURL + 'combined_nurse_reports.pdf', 'combined_nurse_reports.pdf');
+                    };
+                    ganttLink.onclick = (e) => {
+                        e.preventDefault();
+                        triggerDownload(outputBaseURL + 'schedule_gantt.png', 'schedule_gantt.png');
+                    };
                     document.getElementById('schedule-placeholder').style.display = 'none';
                     document.getElementById('stats-placeholder').style.display = 'none';
                     document.getElementById('coverage-placeholder').style.display = 'none';
