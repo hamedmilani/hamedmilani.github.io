@@ -279,39 +279,6 @@
                 width: 100%;
             }
         }
-        .upload-line {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-}
-
-.upload-label {
-    margin-right: 10px;
-    margin-bottom: 0;
-    width: auto;
-    flex-shrink: 0;
-}
-
-/* Adjust ribbon-wrapper for this context */
-.upload-line .ribbon-wrapper {
-    flex-grow: 1;
-    max-width: 200px;
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    .upload-line {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .upload-line .ribbon-wrapper {
-        max-width: 100%;
-        width: 100%;
-        margin-top: 5px;
-    }
-}
     </style>
 </head>
 <body>
@@ -339,26 +306,20 @@
     <div class="input-section">
     <h2>File Upload</h2>
     <p class="note">Leave blank if using manual input.</p>
-    <div class="upload-line">
-        <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
-        <div class="ribbon-wrapper">
-            <div class="ribbon" onclick="triggerFileInput('nursesFile')">Choose File</div>
-            <input type="file" id="nursesFile" accept=".csv" style="display: none;">
-        </div>
+    <label for="nursesFile" class="upload-label">Upload Nurses Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('nursesFile')">Choose File</div>
+        <input type="file" id="nursesFile" accept=".csv" style="display: none;">
     </div>
-    <div class="upload-line">
-        <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
-        <div class="ribbon-wrapper">
-            <div class="ribbon" onclick="triggerFileInput('requirementsFile')">Choose File</div>
-            <input type="file" id="requirementsFile" accept=".csv" style="display: none;">
-        </div>
+    <label for="requirementsFile" class="upload-label">Upload Requirements Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('requirementsFile')">Choose File</div>
+        <input type="file" id="requirementsFile" accept=".csv" style="display: none;">
     </div>
-    <div class="upload-line">
-        <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
-        <div class="ribbon-wrapper">
-            <div class="ribbon" onclick="triggerFileInput('preferencesFile')">Choose File</div>
-            <input type="file" id="preferencesFile" accept=".csv" style="display: none;">
-        </div>
+    <label for="preferencesFile" class="upload-label">Upload Preferences Data (CSV):</label>
+    <div class="ribbon-wrapper">
+        <div class="ribbon" onclick="triggerFileInput('preferencesFile')">Choose File</div>
+        <input type="file" id="preferencesFile" accept=".csv" style="display: none;">
     </div>
 </div>
 
