@@ -8,6 +8,7 @@
         body {
             font-family: sans-serif;
             margin: 20px;
+            overflow-x: hidden; /* Prevent horizontal overflow */
         }
         h1, h2 {
             color: #333;
@@ -42,7 +43,7 @@
             border-top: none;
             border-radius: 0 0 5px 5px;
             background-color: #f9f9f9;
-            text-align: justify; /* Justified text */
+            text-align: justify;
         }
         .explanation-content.show {
             display: block;
@@ -55,17 +56,21 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            width: 100%;
+            box-sizing: border-box;
         }
         .input-line {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
             align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
         .input-line label {
             flex-shrink: 0;
-            width: 150px;
+            width: 120px; /* Reduced width for better mobile fit */
             text-align: left;
+            font-size: 0.9em;
         }
         .input-line input[type="text"],
         .input-line input[type="number"],
@@ -75,6 +80,8 @@
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 3px;
+            min-width: 100px; /* Ensure inputs don't shrink too much */
+            box-sizing: border-box;
         }
         button {
             padding: 10px 15px;
@@ -193,6 +200,38 @@
             display: block;
             text-align: center;
         }
+        /* Mobile-specific styles */
+        @media (max-width: 600px) {
+            .input-line {
+                flex-direction: column; /* Stack inputs vertically */
+                align-items: stretch;
+            }
+            .input-line label {
+                width: 100%; /* Full width for labels */
+                text-align: left;
+                margin-bottom: 5px;
+            }
+            .input-line input[type="text"],
+            .input-line input[type="number"],
+            .input-line input[type="date"],
+            .input-line input[type="file"] {
+                width: 100%; /* Full width for inputs */
+                min-width: 0;
+            }
+            .action-button {
+                margin-top: 5px;
+                width: auto; /* Ensure buttons don't stretch too wide */
+            }
+            .input-section {
+                padding: 10px; /* Reduced padding for smaller screens */
+            }
+            body {
+                margin: 10px; /* Reduced margin for mobile */
+            }
+            .ribbon-bar h2 {
+                font-size: 1.2em; /* Smaller header on mobile */
+            }
+        }
     </style>
 </head>
 <body>
@@ -200,7 +239,8 @@
 
     <div class="ribbon-bar" onclick="toggleExplanation()">
         <h2>General Information</h2>
-        <span class="arrow">&#9658;</span> </div>
+        <span class="arrow">►</span>
+    </div>
     <div id="general-info-content" class="explanation-content">
         <p>Nurse scheduling (or shift management) is a long-standing challenge in many hospitals and healthcare systems. While the problem has been widely studied in academia, especially in operations research, there are still few software tools that are actually used by hospital staff.</p>
         <p>Based on our interviews with nurses from three different hospitals in Iran, we found that nurse scheduling is still often done manually by one of the volunteer nurses. This process can be time-consuming and inefficient, especially when considering multiple constraints such as department-specific shift requirements, and fairness (based on seniority, weekend and night shifts, and individual preferences). This problem is a variation of the classic "assignment problem" in operations research. To address this problem, we develop an integer programming model in Python using the Gurobi optimization library. More technical details are available in the application catalog.</p>
