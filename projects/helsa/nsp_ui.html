@@ -285,7 +285,7 @@
     <h1>Helsa Nurse Scheduling Application</h1>
 
     <div class="ribbon-bar" onclick="toggleExplanation()">
-        <h2>General Information</h2>
+        <b>General Information</b>
         <span class="arrow">►</span>
     </div>
     <div id="general-info-content" class="explanation-content">
@@ -554,7 +554,9 @@
             const wrapper = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelector('.ribbon-wrapper');
             wrapper.querySelector('.ribbon').style.display = 'block';
             wrapper.querySelector('.ribbon').textContent = 'Enter Date';
-            wrapper.querySelector('.date-input').style.display = 'none';
+            wrapper
+
+.querySelector('.date-input').style.display = 'none';
         }
 
         // Edit input
@@ -605,7 +607,7 @@
         }
 
         // Delete input
-        function deleteInput(button) {
+        function deleteInput feitas(button) {
             button.parentElement.remove();
         }
 
@@ -758,6 +760,7 @@
 
         // Function to initiate the schedule generation process
         async function generateSchedule() {
+            // Retrieve the latest file inputs
             const nursesFile = document.getElementById('nursesFile').files[0];
             const preferencesFile = document.getElementById('preferencesFile').files[0];
             const requirementsFile = document.getElementById('requirementsFile').files[0];
@@ -791,6 +794,7 @@
             document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
             try {
+                // Always merge the latest inputs
                 const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
 
                 // Basic validation to ensure all data types are present
@@ -818,14 +822,14 @@
                 if (result.response && result.response.startsWith('Optimization successful')) {
                     const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
                     // Update Gantt chart
-                    document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png';
+                    document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png?' + new Date().getTime();
                     document.getElementById('gantt-placeholder').style.display = 'none';
                     document.getElementById('gantt-image').style.display = 'block';
                     document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
                     // Update Reports section
-                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv';
-                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv';
-                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv';
+                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv?' + new Date().getTime();
+                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv?' + new Date().getTime();
+                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv?' + new Date().getTime();
                     // Set up click handlers for PDF and PNG to trigger downloads
                     const pdfLink = document.getElementById('pdf-report');
                     const ganttLink = document.getElementById('gantt-png');
@@ -833,11 +837,11 @@
                     ganttLink.href = '#'; // Prevent default navigation
                     pdfLink.onclick = (e) => {
                         e.preventDefault();
-                        triggerDownload(outputBaseURL + 'combined_nurse_reports.pdf', 'combined_nurse_reports.pdf');
+                        triggerDownload(outputBaseURL + 'combined_nurse_reports.pdf?' + new Date().getTime(), 'combined_nurse_reports.pdf');
                     };
                     ganttLink.onclick = (e) => {
                         e.preventDefault();
-                        triggerDownload(outputBaseURL + 'schedule_gantt.png', 'schedule_gantt.png');
+                        triggerDownload(outputBaseURL + 'schedule_gantt.png?' + new Date().getTime(), 'schedule_gantt.png');
                     };
                     document.getElementById('schedule-placeholder').style.display = 'none';
                     document.getElementById('stats-placeholder').style.display = 'none';
