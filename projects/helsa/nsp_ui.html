@@ -404,75 +404,183 @@
     </div>
 
     <script>
-        function toggleExplanation() {
-            const content = document.getElementById('general-info-content');
-            const ribbon = document.querySelector('.ribbon-bar');
-            content.classList.toggle('show');
-            ribbon.classList.toggle('expanded');
-        }
+    function toggleExplanation() {
+        const content = document.getElementById('general-info-content');
+        const ribbon = document.querySelector('.ribbon-bar');
+        content.classList.toggle('show');
+        ribbon.classList.toggle('expanded');
+    }
 
-        // Toggle date input visibility
-        function toggleDateInput(ribbon) {
-            const wrapper = ribbon.parentElement;
-            const input = wrapper.querySelector('.date-input');
-            ribbon.style.display = input.style.display === 'none' ? 'none' : 'block';
-            input.style.display = input.style.display === 'none' ? 'block' : 'none';
-            if (input.style.display === 'block') {
-                input.focus();
-            }
+    // Toggle date input visibility
+    function toggleDateInput(ribbon) {
+        const wrapper = ribbon.parentElement;
+        const input = wrapper.querySelector('.date-input');
+        ribbon.style.display = input.style.display === 'none' ? 'none' : 'block';
+        input.style.display = input.style.display === 'none' ? 'block' : 'none';
+        if (input.style.display === 'block') {
+            input.focus();
         }
+    }
 
-        // Validation
-        function validateInputs(inputs, includeDate = false) {
-            for (let input of inputs) {
-                if (input.type === 'date' && !includeDate) continue;
-                if (!input.value && input.type !== 'file') return `Field ${input.placeholder || input.dataset.inputType} is empty.`;
-                if (input.type === 'number') {
-                    const value = parseFloat(input.value);
-                    const min = parseFloat(input.min);
-                    const max = parseFloat(input.max);
-                    if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
-                        return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
-                    }
+    // Validation
+    function validateInputs(inputs, includeDate = false) {
+        for (let input of inputs) {
+            if (input.type === 'date' && !includeDate) continue;
+            if (!input.value && input.type !== 'file') return `Field ${input.placeholder || input.dataset.inputType} is empty.`;
+            if (input.type === 'number') {
+                const value = parseFloat(input.value);
+                const min = parseFloat(input.min);
+                const max = parseFloat(input.max);
+                if (isNaN(value) || (input.min && value < min) || (input.max && value > max)) {
+                    return `Field ${input.placeholder} must be between ${input.min} and ${input.max}.`;
                 }
             }
-            return null;
         }
+        return null;
+    }
 
-        // Add nurse input
-        function addNurseInput() {
-            const nursesInput = document.getElementById('nurses-input');
-            const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs);
-            if (error) {
-                alert(error);
-                return;
-            }
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Nurse Info:</label>
-                <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
-                <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
-                <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            nursesInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            newInputs.forEach((input, i) => input.value = inputs[i].value);
-            inputs.forEach(input => input.value = '');
+    // Add nurse input
+    function addNurseInput() {
+        const nursesInput = document.getElementById('nurses-input');
+        const inputs = nursesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs);
+        if (error) {
+            alert(error);
+            return;
         }
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Nurse Info:</label>
+            <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
+            <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
+            <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        nursesInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        newInputs.forEach((input, i) => input.value = inputs[i].value);
+        inputs.forEach(input => input.value = '');
+    }
 
-        // Add requirement input
-        function addRequirementInput() {
-            const requirementsInput = document.getElementById('requirements-input');
-            const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
-            }
+    // Add requirement input
+    function addRequirementInput() {
+        const requirementsInput = document.getElementById('requirements-input');
+        const inputs = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        const startDate = new Date(inputs[0].value);
+        const endDate = new Date(inputs[1].value);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert('Please enter valid dates for Start Date and End Date.');
+            return;
+        }
+        if (startDate > endDate) {
+            alert('End Date must be on or after Start Date.');
+            return;
+        }
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Requirement:</label>
+            <div class="ribbon-wrapper">
+                <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[0].value)}</div>
+                <input type="date" data-input-type="req_start_date" class="date-input" style="display: none;" readonly>
+            </div>
+            <div class="ribbon-wrapper">
+                <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[1].value)}</div>
+                <input type="date" data-input-type="req_end_date" class="date-input" style="display: none;" readonly>
+            </div>
+            <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
+            <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
+            <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
+            <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        requirementsInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        newInputs[0].value = inputs[0].value; // Start Date
+        newInputs[1].value = inputs[1].value; // End Date
+        newInputs[2].value = inputs[2].value; // Shift
+        newInputs[3].value = inputs[3].value; // Nurse Type
+        newInputs[4].value = inputs[4].value; // Min Req
+        newInputs[5].value = inputs[5].value; // Max Req
+        inputs.forEach(input => input.value = '');
+        // Reset ribbons to visible and hide date inputs
+        const wrappers = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('.ribbon-wrapper');
+        wrappers.forEach(wrapper => {
+            wrapper.querySelector('.ribbon').style.display = 'block';
+            wrapper.querySelector('.ribbon').textContent = wrapper.querySelector('.date-input').dataset.inputType.includes('start') ? 'Enter Start Date' : 'Enter End Date';
+            wrapper.querySelector('.date-input').style.display = 'none';
+        });
+    }
+
+    // Add preference input
+    function addPreferenceInput() {
+        const preferencesInput = document.getElementById('preferences-input');
+        const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        const newInputLine = document.createElement('div');
+        newInputLine.classList.add('input-line', 'entered-item');
+        newInputLine.innerHTML = `
+            <label>Preference:</label>
+            <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
+            <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
+            <div class="ribbon-wrapper">
+                <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[2].value)}</div>
+                <input type="date" data-input-type="pref_date" class="date-input" style="display: none;" readonly>
+            </div>
+            <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
+            <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
+            <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
+        `;
+        preferencesInput.appendChild(newInputLine);
+        const newInputs = newInputLine.querySelectorAll('input');
+        newInputs[0].value = inputs[0].value; // Nurse ID
+        newInputs[1].value = inputs[1].value; // Shift
+        newInputs[2].value = inputs[2].value; // Date
+        newInputs[3].value = inputs[3].value; // Preference Level
+        inputs.forEach(input => input.value = '');
+        // Reset ribbon to visible and hide date input
+        const wrapper = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelector('.ribbon-wrapper');
+        wrapper.querySelector('.ribbon').style.display = 'block';
+        wrapper.querySelector('.ribbon').textContent = 'Enter Date';
+        wrapper.querySelector('.date-input').style.display = 'none';
+    }
+
+    // Edit input
+    function editInput(button) {
+        const inputLine = button.parentElement;
+        const inputs = inputLine.querySelectorAll('input');
+        inputs.forEach(input => input.removeAttribute('readonly'));
+        // Show date inputs and hide ribbons when editing
+        inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
+            wrapper.querySelector('.ribbon').style.display = 'none';
+            wrapper.querySelector('.date-input').style.display = 'block';
+        });
+        button.textContent = 'Save';
+        button.onclick = () => saveInput(button);
+    }
+
+    // Save input
+    function saveInput(button) {
+        const inputLine = button.parentElement;
+        const inputs = inputLine.querySelectorAll('input');
+        const error = validateInputs(inputs, true);
+        if (error) {
+            alert(error);
+            return;
+        }
+        if (inputs[0].dataset.inputType === 'req_start_date') {
             const startDate = new Date(inputs[0].value);
             const endDate = new Date(inputs[1].value);
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -483,403 +591,293 @@
                 alert('End Date must be on or after Start Date.');
                 return;
             }
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Requirement:</label>
-                <div class="ribbon-wrapper">
-                    <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[0].value)}</div>
-                    <input type="date" data-input-type="req_start_date" class="date-input" style="display: none;" readonly>
-                </div>
-                <div class="ribbon-wrapper">
-                    <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[1].value)}</div>
-                    <input type="date" data-input-type="req_end_date" class="date-input" style="display: none;" readonly>
-                </div>
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="req_shift" min="1" max="3" readonly>
-                <input type="number" placeholder="Nurse Type (0/1)" data-input-type="req_nurse_type" min="0" max="1" readonly>
-                <input type="number" placeholder="Min Req" data-input-type="req_min" min="0" readonly>
-                <input type="number" placeholder="Max Req" data-input-type="req_max" min="0" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            requirementsInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            newInputs[0].value = inputs[0].value; // Start Date
-            newInputs[1].value = inputs[1].value; // End Date
-            newInputs[2].value = inputs[2].value; // Shift
-            newInputs[3].value = inputs[3].value; // Nurse Type
-            newInputs[4].value = inputs[4].value; // Min Req
-            newInputs[5].value = inputs[5].value; // Max Req
-            inputs.forEach(input => input.value = '');
-            // Reset ribbons to visible and hide date inputs
-            const wrappers = requirementsInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('.ribbon-wrapper');
-            wrappers.forEach(wrapper => {
-                wrapper.querySelector('.ribbon').style.display = 'block';
-                wrapper.querySelector('.ribbon').textContent = wrapper.querySelector('.date-input').dataset.inputType.includes('start') ? 'Enter Start Date' : 'Enter End Date';
-                wrapper.querySelector('.date-input').style.display = 'none';
-            });
         }
-
-        // Add preference input
-        function addPreferenceInput() {
-            const preferencesInput = document.getElementById('preferences-input');
-            const inputs = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
-            }
-            const newInputLine = document.createElement('div');
-            newInputLine.classList.add('input-line', 'entered-item');
-            newInputLine.innerHTML = `
-                <label>Preference:</label>
-                <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
-                <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
-                <div class="ribbon-wrapper">
-                    <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[2].value)}</div>
-                    <input type="date" data-input-type="pref_date" class="date-input" style="display: none;" readonly>
-                </div>
-                <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
-                <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
-                <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
-            `;
-            preferencesInput.appendChild(newInputLine);
-            const newInputs = newInputLine.querySelectorAll('input');
-            newInputs[0].value = inputs[0].value; // Nurse ID
-            newInputs[1].value = inputs[1].value; // Shift
-            newInputs[2].value = inputs[2].value; // Date
-            newInputs[3].value = inputs[3].value; // Preference Level
-            inputs.forEach(input => input.value = '');
-            // Reset ribbon to visible and hide date input
-            const wrapper = preferencesInput.querySelector('.input-line:not(.entered-item)').querySelector('.ribbon-wrapper');
+        inputs.forEach(input => input.setAttribute('readonly', 'true'));
+        // Show ribbons and update their text with selected dates
+        inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
+            const dateInput = wrapper.querySelector('.date-input');
+            wrapper.querySelector('.ribbon').textContent = dateInput.value ? formatDateToMMDDYYYY(dateInput.value) : (dateInput.dataset.inputType.includes('start') ? 'Enter Start Date' : 'Enter End Date');
             wrapper.querySelector('.ribbon').style.display = 'block';
-            wrapper.querySelector('.ribbon').textContent = 'Enter Date';
-            wrapper
+            dateInput.style.display = 'none';
+        });
+        button.textContent = 'Edit';
+        button.onclick = () => editInput(button);
+    }
 
-.querySelector('.date-input').style.display = 'none';
+    // Delete input
+    function deleteInput(button) {
+        button.parentElement.remove();
+    }
+
+    // Helper function to convert ISO-8601 date (YYYY-MM-DD) to MM/DD/YYYY
+    function formatDateToMMDDYYYY(dateStr) {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${month}/${day}/${year}`;
+    }
+
+    // Convert manual inputs to CSV format
+    function manualToCSV() {
+        const nurses = [];
+        const requirements = [];
+        const preferences = [];
+
+        // Nurses data
+        document.querySelectorAll('#nurses-input .entered-item').forEach(line => {
+            const inputs = line.querySelectorAll('input');
+            nurses.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value}`);
+        });
+
+        // Shift requirements data
+        document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
+            const inputs = line.querySelectorAll('input');
+            const startDate = formatDateToMMDDYYYY(inputs[0].value);
+            const endDate = formatDateToMMDDYYYY(inputs[1].value);
+            requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
+        });
+
+        // Preferences data
+        document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
+            const inputs = line.querySelectorAll('input');
+            const date = formatDateToMMDDYYYY(inputs[2].value);
+            preferences.push(`${inputs[0].value},${inputs[1].value},${date},${inputs[3].value}`);
+        });
+
+        return {
+            nurses: nurses.length ? 'ID,name,type\n' + nurses.join('\n') : '',
+            requirements: requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + requirements.join('\n') : '',
+            preferences: preferences.length ? 'nurse_id,shift_id,date,preference\n' + preferences.join('\n') : ''
+        };
+    }
+
+    // Merge data from uploaded files and manual inputs
+    async function mergeInputs(nursesFile, preferencesFile, requirementsFile) {
+        const manual = manualToCSV();
+        const result = { nurses: [], preferences: [], requirements: [] };
+
+        // Function to read the content of a file
+        const readFile = (file) => new Promise((resolve) => {
+            if (!file) return resolve('');
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result.trim());
+            reader.readAsText(file);
+        });
+
+        const [nursesFileContent, preferencesFileContent, requirementsFileContent] = await Promise.all([
+            readFile(nursesFile),
+            readFile(preferencesFile),
+            readFile(requirementsFile)
+        ]);
+
+        // Process nurses data
+        if (nursesFileContent) {
+            result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim());
         }
-
-        // Edit input
-        function editInput(button) {
-            const inputLine = button.parentElement;
-            const inputs = inputLine.querySelectorAll('input');
-            inputs.forEach(input => input.removeAttribute('readonly'));
-            // Show date inputs and hide ribbons when editing
-            inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
-                wrapper.querySelector('.ribbon').style.display = 'none';
-                wrapper.querySelector('.date-input').style.display = 'block';
-            });
-            button.textContent = 'Save';
-            button.onclick = () => saveInput(button);
-        }
-
-        // Save input
-        function saveInput(button) {
-            const inputLine = button.parentElement;
-            const inputs = inputLine.querySelectorAll('input');
-            const error = validateInputs(inputs, true);
-            if (error) {
-                alert(error);
-                return;
-            }
-            if (inputs[0].dataset.inputType === 'req_start_date') {
-                const startDate = new Date(inputs[0].value);
-                const endDate = new Date(inputs[1].value);
-                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                    alert('Please enter valid dates for Start Date and End Date.');
-                    return;
+        if (manual.nurses) {
+            const manualNurses = manual.nurses.split('\n').slice(1).filter(line => line.trim());
+            const nurseIds = new Set(result.nurses.map(line => line.split(',')[0]));
+            manualNurses.forEach(line => {
+                const id = line.split(',')[0];
+                if (!nurseIds.has(id)) {
+                    result.nurses.push(line);
+                    nurseIds.add(id);
+                } else {
+                    const index = result.nurses.findIndex(l => l.startsWith(id + ','));
+                    if (index !== -1) result.nurses[index] = line;
+                    else result.nurses.push(line);
                 }
-                if (startDate > endDate) {
-                    alert('End Date must be on or after Start Date.');
-                    return;
+            });
+        }
+
+        // Process preferences data
+        if (preferencesFileContent) {
+            result.preferences = preferencesFileContent.split('\n').slice(1).filter(line => line.trim());
+        }
+        if (manual.preferences) {
+            const manualPrefs = manual.preferences.split('\n').slice(1).filter(line => line.trim());
+            const prefKeys = new Set(result.preferences.map(line => line.split(',').slice(0, 3).join(',')));
+            manualPrefs.forEach(line => {
+                const key = line.split(',').slice(0, 3).join(',');
+                if (!prefKeys.has(key)) {
+                    result.preferences.push(line);
+                    prefKeys.add(key);
+                } else {
+                    const index = result.preferences.findIndex(l => l.startsWith(key + ','));
+                    if (index !== -1) result.preferences[index] = line;
+                    else result.preferences.push(line);
                 }
-            }
-            inputs.forEach(input => input.setAttribute('readonly', 'true'));
-            // Show ribbons and update their text with selected dates
-            inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
-                const dateInput = wrapper.querySelector('.date-input');
-                wrapper.querySelector('.ribbon').textContent = dateInput.value ? formatDateToMMDDYYYY(dateInput.value) : (dateInput.dataset.inputType.includes('start') ? 'Enter Start Date' : 'Enter End Date');
-                wrapper.querySelector('.ribbon').style.display = 'block';
-                dateInput.style.display = 'none';
             });
-            button.textContent = 'Edit';
-            button.onclick = () => editInput(button);
         }
 
-        // Delete input
-        function deleteInput feitas(button) {
-            button.parentElement.remove();
+        // Process shift requirements data
+        if (requirementsFileContent) {
+            result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim());
         }
-
-        // Helper function to convert ISO-8601 date (YYYY-MM-DD) to MM/DD/YYYY
-        function formatDateToMMDDYYYY(dateStr) {
-            if (!dateStr) return '';
-            const [year, month, day] = dateStr.split('-');
-            return `${month}/${day}/${year}`;
-        }
-
-        // Convert manual inputs to CSV format
-        function manualToCSV() {
-            const nurses = [];
-            const requirements = [];
-            const preferences = [];
-
-            // Nurses data
-            document.querySelectorAll('#nurses-input .entered-item').forEach(line => {
-                const inputs = line.querySelectorAll('input');
-                nurses.push(`${inputs[0].value},${inputs[1].value},${inputs[2].value}`);
+        if (manual.requirements) {
+            const manualReqs = manual.requirements.split('\n').slice(1).filter(line => line.trim());
+            const reqKeys = new Set(result.requirements.map(line => line.split(',').slice(0, 4).join(',')));
+            manualReqs.forEach(line => {
+                const key = line.split(',').slice(0, 4).join(',');
+                if (!reqKeys.has(key)) {
+                    result.requirements.push(line);
+                    reqKeys.add(key);
+                } else {
+                    const index = result.requirements.findIndex(l => l.startsWith(key + ','));
+                    if (index !== -1) result.requirements[index] = line;
+                    else result.requirements.push(line);
+                }
             });
-
-            // Shift requirements data
-            document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
-                const inputs = line.querySelectorAll('input');
-                const startDate = formatDateToMMDDYYYY(inputs[0].value);
-                const endDate = formatDateToMMDDYYYY(inputs[1].value);
-                requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
-            });
-
-            // Preferences data
-            document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
-                const inputs = line.querySelectorAll('input');
-                const date = formatDateToMMDDYYYY(inputs[2].value);
-                preferences.push(`${inputs[0].value},${inputs[1].value},${date},${inputs[3].value}`);
-            });
-
-            return {
-                nurses: nurses.length ? 'ID,name,type\n' + nurses.join('\n') : '',
-                requirements: requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + requirements.join('\n') : '',
-                preferences: preferences.length ? 'nurse_id,shift_id,date,preference\n' + preferences.join('\n') : ''
-            };
         }
 
-        // Merge data from uploaded files and manual inputs
-        async function mergeInputs(nursesFile, preferencesFile, requirementsFile) {
-            const manual = manualToCSV();
-            const result = { nurses: [], preferences: [], requirements: [] };
+        // Convert the merged data back to CSV strings
+        return {
+            nurses: result.nurses.length ? 'ID,name,type\n' + result.nurses.join('\n') : '',
+            preferences: result.preferences.length ? 'nurse_id,shift_id,date,preference\n' + result.preferences.join('\n') : '',
+            requirements: result.requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + result.requirements.join('\n') : ''
+        };
+    }
 
-            // Function to read the content of a file
-            const readFile = (file) => new Promise((resolve) => {
-                if (!file) return resolve('');
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result.trim());
-                reader.readAsText(file);
-            });
+    // Helper function to trigger file download
+    async function triggerDownload(url, filename) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Download failed:', error);
+            document.getElementById('status').innerText = 'Error downloading file: ' + error.message;
+        }
+    }
 
-            const [nursesFileContent, preferencesFileContent, requirementsFileContent] = await Promise.all([
-                readFile(nursesFile),
-                readFile(preferencesFile),
-                readFile(requirementsFile)
-            ]);
+    // Function to initiate the schedule generation process
+    async function generateSchedule() {
+        // Retrieve the latest file inputs
+        const nursesFile = document.getElementById('nursesFile').files[0];
+        const preferencesFile = document.getElementById('preferencesFile').files[0];
+        const requirementsFile = document.getElementById('requirementsFile').files[0];
 
-            // Process nurses data
-            if (nursesFileContent) {
-                result.nurses = nursesFileContent.split('\n').slice(1).filter(line => line.trim());
-            }
-            if (manual.nurses) {
-                const manualNurses = manual.nurses.split('\n').slice(1).filter(line => line.trim());
-                const nurseIds = new Set(result.nurses.map(line => line.split(',')[0]));
-                manualNurses.forEach(line => {
-                    const id = line.split(',')[0];
-                    if (!nurseIds.has(id)) {
-                        result.nurses.push(line);
-                        nurseIds.add(id);
-                    } else {
-                        const index = result.nurses.findIndex(l => l.startsWith(id + ','));
-                        if (index !== -1) result.nurses[index] = line;
-                        else result.nurses.push(line);
-                    }
-                });
-            }
+        // Check if at least one input source (file or manual) has data
+        const manualData = manualToCSV();
+        const hasFileInput = nursesFile || preferencesFile || requirementsFile;
+        const hasManualInput = manualData.nurses || manualData.preferences || manualData.requirements;
 
-            // Process preferences data
-            if (preferencesFileContent) {
-                result.preferences = preferencesFileContent.split('\n').slice(1).filter(line => line.trim());
-            }
-            if (manual.preferences) {
-                const manualPrefs = manual.preferences.split('\n').slice(1).filter(line => line.trim());
-                const prefKeys = new Set(result.preferences.map(line => line.split(',').slice(0, 3).join(',')));
-                manualPrefs.forEach(line => {
-                    const key = line.split(',').slice(0, 3).join(',');
-                    if (!prefKeys.has(key)) {
-                        result.preferences.push(line);
-                        prefKeys.add(key);
-                    } else {
-                        const index = result.preferences.findIndex(l => l.startsWith(key + ','));
-                        if (index !== -1) result.preferences[index] = line;
-                        else result.preferences.push(line);
-                    }
-                });
-            }
-
-            // Process shift requirements data
-            if (requirementsFileContent) {
-                result.requirements = requirementsFileContent.split('\n').slice(1).filter(line => line.trim());
-            }
-            if (manual.requirements) {
-                const manualReqs = manual.requirements.split('\n').slice(1).filter(line => line.trim());
-                const reqKeys = new Set(result.requirements.map(line => line.split(',').slice(0, 4).join(',')));
-                manualReqs.forEach(line => {
-                    const key = line.split(',').slice(0, 4).join(',');
-                    if (!reqKeys.has(key)) {
-                        result.requirements.push(line);
-                        reqKeys.add(key);
-                    } else {
-                        const index = result.requirements.findIndex(l => l.startsWith(key + ','));
-                        if (index !== -1) result.requirements[index] = line;
-                        else result.requirements.push(line);
-                    }
-                });
-            }
-
-            // Convert the merged data back to CSV strings
-            return {
-                nurses: result.nurses.length ? 'ID,name,type\n' + result.nurses.join('\n') : '',
-                preferences: result.preferences.length ? 'nurse_id,shift_id,date,preference\n' + result.preferences.join('\n') : '',
-                requirements: result.requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + result.requirements.join('\n') : ''
-            };
+        if (!hasFileInput && !hasManualInput) {
+            document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
+            return;
         }
 
-        // Helper function to trigger file download
-        async function triggerDownload(url, filename) {
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const blobUrl = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(blobUrl);
-            } catch (error) {
-                console.error('Download failed:', error);
-                document.getElementById('status').innerText = 'Error downloading file: ' + error.message;
-            }
-        }
+        document.getElementById('status').innerText = 'Processing inputs and running optimization...';
+        // Reset Gantt chart
+        document.getElementById('gantt-placeholder').style.display = 'block';
+        document.getElementById('gantt-image').style.display = 'none';
+        document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
+        // Reset Reports section
+        document.getElementById('schedule-placeholder').style.display = 'block';
+        document.getElementById('stats-placeholder').style.display = 'block';
+        document.getElementById('coverage-placeholder').style.display = 'block';
+        document.getElementById('pdf-placeholder').style.display = 'block';
+        document.getElementById('gantt-placeholder-link').style.display = 'block';
+        document.getElementById('schedule-csv').style.display = 'none';
+        document.getElementById('stats-csv').style.display = 'none';
+        document.getElementById('coverage-csv').style.display = 'none';
+        document.getElementById('pdf-report').style.display = 'none';
+        document.getElementById('gantt-png').style.display = 'none';
+        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
-        // Function to initiate the schedule generation process
-        async function generateSchedule() {
-            // Retrieve the latest file inputs
-            const nursesFile = document.getElementById('nursesFile').files[0];
-            const preferencesFile = document.getElementById('preferencesFile').files[0];
-            const requirementsFile = document.getElementById('requirementsFile').files[0];
+        try {
+            // Always merge the latest inputs
+            const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
 
-            // Check if at least one input source (file or manual) has data
-            const manualData = manualToCSV();
-            const hasFileInput = nursesFile || preferencesFile || requirementsFile;
-            const hasManualInput = manualData.nurses || manualData.preferences || manualData.requirements;
-
-            if (!hasFileInput && !hasManualInput) {
-                document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
+            // Basic validation to ensure all data types are present
+            if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
+                document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
                 return;
             }
 
-            document.getElementById('status').innerText = 'Processing inputs and running optimization...';
-            // Reset Gantt chart
-            document.getElementById('gantt-placeholder').style.display = 'block';
-            document.getElementById('gantt-image').style.display = 'none';
-            document.getElementById('gantt-caption').innerText = 'The below Gantt chart is based on template inputs.';
-            // Reset Reports section
-            document.getElementById('schedule-placeholder').style.display = 'block';
-            document.getElementById('stats-placeholder').style.display = 'block';
-            document.getElementById('coverage-placeholder').style.display = 'block';
-            document.getElementById('pdf-placeholder').style.display = 'block';
-            document.getElementById('gantt-placeholder-link').style.display = 'block';
-            document.getElementById('schedule-csv').style.display = 'none';
-            document.getElementById('stats-csv').style.display = 'none';
-            document.getElementById('coverage-csv').style.display = 'none';
-            document.getElementById('pdf-report').style.display = 'none';
-            document.getElementById('gantt-png').style.display = 'none';
-            document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
+            // Prepare the form data to send to the backend
+            const formData = new FormData();
+            formData.append('nurses_file', new Blob([mergedData.nurses], { type: 'text/csv' }), 'nurses.csv');
+            formData.append('preferences_file', new Blob([mergedData.preferences], { type: 'text/csv' }), 'preferences.csv');
+            formData.append('requirements_file', new Blob([mergedData.requirements], { type: 'text/csv' }), 'requirements.csv');
 
-            try {
-                // Always merge the latest inputs
-                const mergedData = await mergeInputs(nursesFile, preferencesFile, requirementsFile);
+            // Send the data to the backend for optimization
+            const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
+                method: 'POST',
+                body: formData,
+            });
 
-                // Basic validation to ensure all data types are present
-                if (!mergedData.nurses || !mergedData.preferences || !mergedData.requirements) {
-                    document.getElementById('status').innerText = 'Incomplete input data. Please provide all required data.';
-                    return;
-                }
+            const result = await response.json();
+            document.getElementById('status').innerText = result.response || result.error || 'An error occurred during processing.';
 
-                // Prepare the form data to send to the backend
-                const formData = new FormData();
-                formData.append('nurses_file', new Blob([mergedData.nurses], { type: 'text/csv' }), 'nurses.csv');
-                formData.append('preferences_file', new Blob([mergedData.preferences], { type: 'text/csv' }), 'preferences.csv');
-                formData.append('requirements_file', new Blob([mergedData.requirements], { type: 'text/csv' }), 'requirements.csv');
-
-                // Send the data to the backend for optimization
-                const response = await fetch('https://hamedmilani.pythonanywhere.com/upload_and_run', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                const result = await response.json();
-                document.getElementById('status').innerText = result.response || result.error || 'An error occurred during processing.';
-
-                // If the optimization was successful, display the results
-                if (result.response && result.response.startsWith('Optimization successful')) {
-                    const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
-                    // Update Gantt chart
-                    document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png?' + new Date().getTime();
-                    document.getElementById('gantt-placeholder').style.display = 'none';
-                    document.getElementById('gantt-image').style.display = 'block';
-                    document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
-                    // Update Reports section
-                    document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv?' + new Date().getTime();
-                    document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv?' + new Date().getTime();
-                    document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv?' + new Date().getTime();
-                    // Set up click handlers for PDF and PNG to trigger downloads
-                    const pdfLink = document.getElementById('pdf-report');
-                    const ganttLink = document.getElementById('gantt-png');
-                    pdfLink.href = '#'; // Prevent default navigation
-                    ganttLink.href = '#'; // Prevent default navigation
-                    pdfLink.onclick = (e) => {
-                        e.preventDefault();
-                        triggerDownload(outputBaseURL + 'combined_nurse_reports.pdf?' + new Date().getTime(), 'combined_nurse_reports.pdf');
-                    };
-                    ganttLink.onclick = (e) => {
-                        e.preventDefault();
-                        triggerDownload(outputBaseURL + 'schedule_gantt.png?' + new Date().getTime(), 'schedule_gantt.png');
-                    };
-                    document.getElementById('schedule-placeholder').style.display = 'none';
-                    document.getElementById('stats-placeholder').style.display = 'none';
-                    document.getElementById('coverage-placeholder').style.display = 'none';
-                    document.getElementById('pdf-placeholder').style.display = 'none';
-                    document.getElementById('gantt-placeholder-link').style.display = 'none';
-                    document.getElementById('schedule-csv').style.display = 'block';
-                    document.getElementById('stats-csv').style.display = 'block';
-                    document.getElementById('coverage-csv').style.display = 'block';
-                    document.getElementById('pdf-report').style.display = 'block';
-                    document.getElementById('gantt-png').style.display = 'block';
-                    document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
-                }
-            } catch (error) {
-                document.getElementById('status').innerText = 'Error: ' + error.message;
+            // If the optimization was successful, display the results
+            if (result.response && result.response.startsWith('Optimization successful')) {
+                const outputBaseURL = 'https://hamedmilani.pythonanywhere.com/get_output/';
+                // Update Gantt chart
+                document.getElementById('gantt-image').src = outputBaseURL + 'schedule_gantt.png?' + new Date().getTime();
+                document.getElementById('gantt-placeholder').style.display = 'none';
+                document.getElementById('gantt-image').style.display = 'block';
+                document.getElementById('gantt-caption').innerText = 'The below Gantt chart visualizing the optimal nurse schedule is based on your inputs.';
+                // Update Reports section
+                document.getElementById('schedule-csv').href = outputBaseURL + 'optimal_schedule.csv?' + new Date().getTime();
+                document.getElementById('stats-csv').href = outputBaseURL + 'nurse_stats.csv?' + new Date().getTime();
+                document.getElementById('coverage-csv').href = outputBaseURL + 'shift_coverage.csv?' + new Date().getTime();
+                // Set up click handlers for PDF and PNG to trigger downloads
+                const pdfLink = document.getElementById('pdf-report');
+                const ganttLink = document.getElementById('gantt-png');
+                pdfLink.href = '#'; // Prevent default navigation
+                ganttLink.href = '#'; // Prevent default navigation
+                pdfLink.onclick = (e) => {
+                    e.preventDefault();
+                    triggerDownload(outputBaseURL + 'combined_nurse_reports.pdf?' + new Date().getTime(), 'combined_nurse_reports.pdf');
+                };
+                ganttLink.onclick = (e) => {
+                    e.preventDefault();
+                    triggerDownload(outputBaseURL + 'schedule_gantt.png?' + new Date().getTime(), 'schedule_gantt.png');
+                };
+                document.getElementById('schedule-placeholder').style.display = 'none';
+                document.getElementById('stats-placeholder').style.display = 'none';
+                document.getElementById('coverage-placeholder').style.display = 'none';
+                document.getElementById('pdf-placeholder').style.display = 'none';
+                document.getElementById('gantt-placeholder-link').style.display = 'none';
+                document.getElementById('schedule-csv').style.display = 'block';
+                document.getElementById('stats-csv').style.display = 'block';
+                document.getElementById('coverage-csv').style.display = 'block';
+                document.getElementById('pdf-report').style.display = 'block';
+                document.getElementById('gantt-png').style.display = 'block';
+                document.getElementById('reports-caption').innerText = 'The below reports contain the optimal nurse schedule and statistics based on your inputs.';
             }
+        } catch (error) {
+            document.getElementById('status').innerText = 'Error: ' + error.message;
         }
+    }
 
-        function triggerFileInput(inputId) {
-            const fileInput = document.getElementById(inputId);
-            fileInput.click();
-        }
+    function triggerFileInput(inputId) {
+        const fileInput = document.getElementById(inputId);
+        fileInput.click();
+    }
 
-        // Update ribbon text for file inputs
-        document.querySelectorAll('input[type="file"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const ribbon = this.parentElement.querySelector('.ribbon');
-                ribbon.textContent = this.files.length > 0 ? this.files[0].name : 'Choose File';
-            });
+    // Update ribbon text for file inputs
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const ribbon = this.parentElement.querySelector('.ribbon');
+            ribbon.textContent = this.files.length > 0 ? this.files[0].name : 'Choose File';
         });
+    });
 
-        // Update ribbon text when a date is selected
-        document.querySelectorAll('.date-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const ribbon = this.parentElement.querySelector('.ribbon');
-                ribbon.textContent = this.value ? formatDateToMMDDYYYY(this.value) : (this.dataset.inputType.includes('start') ? 'Enter Start Date' : this.dataset.inputType.includes('end') ? 'Enter End Date' : 'Enter Date');
-            });
+    // Update ribbon text when a date is selected
+    document.querySelectorAll('.date-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const ribbon = this.parentElement.querySelector('.ribbon');
+            ribbon.textContent = this.value ? formatDateToMMDDYYYY(this.value) : (this.dataset.inputType.includes('start') ? 'Enter Start Date' : this.dataset.inputType.includes('end') ? 'Enter End Date' : 'Enter Date');
         });
-    </script>
+    });
+</script>
 </body>
 </html>
