@@ -328,12 +328,12 @@
         <div id="manual-inputs">
             <div id="nurses-input">
                 <h3>Nurses Information</h3>
-                <p class="note">Enter nurse ID, Name, and Type (0 for normal, 1 for senior).</p>
+                <p class="note">Enter nurse ID, Name, and Type (1 for normal, 2 for senior).</p>
                 <div class="input-line">
                     <label>Nurse Info:</label>
                     <input type="text" placeholder="ID" data-input-type="nurse_id">
                     <input type="text" placeholder="Name" data-input-type="nurse_name">
-                    <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1">
+                    <input type="number" placeholder="Type (1/2)" data-input-type="nurse_type" min="1" max="2">
                 </div>
                 <button type="button" class="add-button" onclick="addNurseInput()">Add Nurse</button>
             </div>
@@ -454,7 +454,7 @@
             <label>Nurse Info:</label>
             <input type="text" placeholder="ID" data-input-type="nurse_id" readonly>
             <input type="text" placeholder="Name" data-input-type="nurse_name" readonly>
-            <input type="number" placeholder="Type (0/1)" data-input-type="nurse_type" min="0" max="1" readonly>
+            <input type="number" placeholder="Type (1/2)" data-input-type="nurse_type" min="1" max="2" readonly>
             <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
             <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
         `;
