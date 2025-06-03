@@ -1,4 +1,4 @@
-Nurse ID,Nurse Name,"type (0 for all, 1 for senior)"
+Nurse ID,Nurse Name,"type (1 for normal, 2 for senior)"
 1001,Nika,2
 1002,Sarina,1
 1003,Hannaneh,1
