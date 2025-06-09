@@ -361,15 +361,15 @@
 
             <div id="preferences-input">
                 <h3>Preferences</h3>
-                <p class="note">Enter nurse ID, shift (1: Morning, 2: Evening, 3: Night), date, and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
+                <p class="note">Enter nurse ID, date, shift (1: Morning, 2: Evening, 3: Night), and preference level (0–10). A preference level of 0 means unavailable; 1–10 indicates preference (10 is most preferred).</p>
                 <div class="input-line">
                     <label>Preference:</label>
                     <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id">
-                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
                     <div class="ribbon-wrapper">
                         <div class="ribbon" onclick="toggleDateInput(this)">Enter Date</div>
                         <input type="date" data-input-type="pref_date" class="date-input" style="display: none;">
                     </div>
+                    <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3">
                     <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10">
                 </div>
                 <button type="button" class="add-button" onclick="addPreferenceInput()">Add Preference</button>
@@ -534,11 +534,11 @@
         newInputLine.innerHTML = `
             <label>Preference:</label>
             <input type="text" placeholder="Nurse ID" data-input-type="pref_nurse_id" readonly>
-            <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
             <div class="ribbon-wrapper">
-                <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[2].value)}</div>
+                <div class="ribbon" onclick="toggleDateInput(this)">${formatDateToMMDDYYYY(inputs[1].value)}</div>
                 <input type="date" data-input-type="pref_date" class="date-input" style="display: none;" readonly>
             </div>
+            <input type="number" placeholder="Shift (1/2/3)" data-input-type="pref_shift" min="1" max="3" readonly>
             <input type="number" placeholder="Preference Level (0-10)" data-input-type="pref_level" min="0" max="10" readonly>
             <button type="button" class="action-button edit-button" onclick="editInput(this)">Edit</button>
             <button type="button" class="action-button delete-button" onclick="deleteInput(this)">Delete</button>
@@ -546,8 +546,8 @@
         preferencesInput.appendChild(newInputLine);
         const newInputs = newInputLine.querySelectorAll('input');
         newInputs[0].value = inputs[0].value; // Nurse ID
-        newInputs[1].value = inputs[1].value; // Shift
-        newInputs[2].value = inputs[2].value; // Date
+        newInputs[1].value = inputs[1].value; // Date
+        newInputs[2].value = inputs[2].value; // Shift
         newInputs[3].value = inputs[3].value; // Preference Level
         inputs.forEach(input => input.value = '');
         // Reset ribbon to visible and hide date input
@@ -583,22 +583,26 @@
         if (inputs[0].dataset.inputType === 'req_start_date') {
             const startDate = new Date(inputs[0].value);
             const endDate = new Date(inputs[1].value);
-            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                alert('Please enter valid dates for Start Date and End Date.');
+            if (isNaN(startDate)) {
+                alert("Invalid start date entered");
+                return;
+            }
+            if (isNaN(endDate)) {
+                alert("Invalid end date entered");
                 return;
             }
             if (startDate > endDate) {
                 alert('End Date must be on or after Start Date.');
                 return;
             }
-        }
-        inputs.forEach(input => input.setAttribute('readonly', 'true'));
+        inputs.forEach(input => input.setAttribute('readonly', ''));
         // Show ribbons and update their text with selected dates
         inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
             const dateInput = wrapper.querySelector('.date-input');
-            wrapper.querySelector('.ribbon').textContent = dateInput.value ? formatDateToMMDDYYYY(dateInput.value) : (dateInput.dataset.inputType.includes('start') ? 'Enter Start Date' : 'Enter End Date');
-            wrapper.querySelector('.ribbon').style.display = 'block';
-            dateInput.style.display = 'none';
+            wrapper.querySelector('.ribbon').value = wrapper.querySelector('.date-input').value;
+            wrapper.querySelector('.ribbon').textContent = dateInput.value ? formatDateToMMDDYYYY(dateInput.value) : (dateInput.dataset.inputType.includes('start') ? 'start_date' : 'end_date');
+            wrapper.querySelector('.display').style.display = 'none';
+            wrapper.querySelector('.hidden').style.display = 'none';
         });
         button.textContent = 'Edit';
         button.onclick = () => editInput(button);
@@ -631,22 +635,22 @@
         // Shift requirements data
         document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
             const inputs = line.querySelectorAll('input');
-            const startDate = formatDateToMMDDYYYY(inputs[0].value);
-            const endDate = formatDateToMMDDYYYY(inputs[1].value);
+            const startDate = formatDateToMMDD(inputs[0].value);
+            const endDate = formatDateToMMDD(inputs[1].value);
             requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
         });
 
         // Preferences data
         document.querySelectorAll('#preferences-input .entered-item').forEach(line => {
             const inputs = line.querySelectorAll('input');
-            const date = formatDateToMMDDYYYY(inputs[2].value);
-            preferences.push(`${inputs[0].value},${inputs[1].value},${date},${inputs[3].value}`);
+            const date = formatDateToMMDDYYYY(inputs[1].value);
+            preferences.push(`${inputs[0].value},${date},${inputs[2].value},${inputs[3].value}`);
         });
 
         return {
             nurses: nurses.length ? 'ID,name,type\n' + nurses.join('\n') : '',
             requirements: requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + requirements.join('\n') : '',
-            preferences: preferences.length ? 'nurse_id,shift_id,date,preference\n' + preferences.join('\n') : ''
+            preferences: preferences.length ? 'nurse_id,date,shift_id,preference\n' + preferences.join('\n') : ''
         };
     }
 
@@ -732,7 +736,7 @@
         // Convert the merged data back to CSV strings
         return {
             nurses: result.nurses.length ? 'ID,name,type\n' + result.nurses.join('\n') : '',
-            preferences: result.preferences.length ? 'nurse_id,shift_id,date,preference\n' + result.preferences.join('\n') : '',
+            preferences: result.preferences.length ? 'nurse_id,date,shift_id,preference\n' + result.preferences.join('\n') : '',
             requirements: result.requirements.length ? 'start_date,end_date,shift_id,nurse_type,min_req,max_req\n' + result.requirements.join('\n') : ''
         };
     }
@@ -771,8 +775,6 @@
         if (!hasFileInput && !hasManualInput) {
             document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
             return;
-        }
-
         document.getElementById('status').innerText = 'Processing inputs and running optimization...';
         // Reset Gantt chart
         document.getElementById('gantt-placeholder').style.display = 'block';
@@ -789,7 +791,7 @@
         document.getElementById('coverage-csv').style.display = 'none';
         document.getElementById('pdf-report').style.display = 'none';
         document.getElementById('gantt-png').style.display = 'none';
-        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
+        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs.' The optimal reports based on your inputs will be available here after generating the new schedule.';
 
         try {
             // Always merge the latest inputs
@@ -856,8 +858,6 @@
         } catch (error) {
             document.getElementById('status').innerText = 'Error: ' + error.message;
         }
-    }
-
     function triggerFileInput(inputId) {
         const fileInput = document.getElementById(inputId);
         fileInput.click();
@@ -867,7 +867,7 @@
     document.querySelectorAll('input[type="file"]').forEach(input => {
         input.addEventListener('change', function() {
             const ribbon = this.parentElement.querySelector('.ribbon');
-            ribbon.textContent = this.files.length > 0 ? this.files[0].name : 'Choose File';
+            ribbon.textContent = this.files.length > 0 ? parseInt(this.files[0].name) : 'Choose File';
         });
     });
 
