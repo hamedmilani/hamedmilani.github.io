@@ -595,14 +595,14 @@
                 alert('End Date must be on or after Start Date.');
                 return;
             }
+        }
         inputs.forEach(input => input.setAttribute('readonly', ''));
         // Show ribbons and update their text with selected dates
         inputLine.querySelectorAll('.ribbon-wrapper').forEach(wrapper => {
             const dateInput = wrapper.querySelector('.date-input');
-            wrapper.querySelector('.ribbon').value = wrapper.querySelector('.date-input').value;
             wrapper.querySelector('.ribbon').textContent = dateInput.value ? formatDateToMMDDYYYY(dateInput.value) : (dateInput.dataset.inputType.includes('start') ? 'start_date' : 'end_date');
-            wrapper.querySelector('.display').style.display = 'none';
-            wrapper.querySelector('.hidden').style.display = 'none';
+            wrapper.querySelector('.ribbon').style.display = 'block';
+            wrapper.querySelector('.date-input').style.display = 'none';
         });
         button.textContent = 'Edit';
         button.onclick = () => editInput(button);
@@ -635,8 +635,8 @@
         // Shift requirements data
         document.querySelectorAll('#requirements-input .entered-item').forEach(line => {
             const inputs = line.querySelectorAll('input');
-            const startDate = formatDateToMMDD(inputs[0].value);
-            const endDate = formatDateToMMDD(inputs[1].value);
+            const startDate = formatDateToMMDDYYYY(inputs[0].value);
+            const endDate = formatDateToMMDDYYYY(inputs[1].value);
             requirements.push(`${startDate},${endDate},${inputs[2].value},${inputs[3].value},${inputs[4].value},${inputs[5].value}`);
         });
 
@@ -775,6 +775,8 @@
         if (!hasFileInput && !hasManualInput) {
             document.getElementById('status').innerText = 'Please provide at least one input (file or manual).';
             return;
+        }
+
         document.getElementById('status').innerText = 'Processing inputs and running optimization...';
         // Reset Gantt chart
         document.getElementById('gantt-placeholder').style.display = 'block';
@@ -791,7 +793,7 @@
         document.getElementById('coverage-csv').style.display = 'none';
         document.getElementById('pdf-report').style.display = 'none';
         document.getElementById('gantt-png').style.display = 'none';
-        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs.' The optimal reports based on your inputs will be available here after generating the new schedule.';
+        document.getElementById('reports-caption').innerText = 'The below reports are sample outputs based on template inputs. The optimal reports based on your inputs will be available here after generating the new schedule.';
 
         try {
             // Always merge the latest inputs
@@ -858,6 +860,8 @@
         } catch (error) {
             document.getElementById('status').innerText = 'Error: ' + error.message;
         }
+    }
+
     function triggerFileInput(inputId) {
         const fileInput = document.getElementById(inputId);
         fileInput.click();
@@ -867,7 +871,7 @@
     document.querySelectorAll('input[type="file"]').forEach(input => {
         input.addEventListener('change', function() {
             const ribbon = this.parentElement.querySelector('.ribbon');
-            ribbon.textContent = this.files.length > 0 ? parseInt(this.files[0].name) : 'Choose File';
+            ribbon.textContent = this.files.length > 0 ? this.files[0].name : 'Choose File';
         });
     });
 
