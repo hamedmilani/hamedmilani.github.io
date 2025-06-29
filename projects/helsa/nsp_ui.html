@@ -25,6 +25,12 @@
             justify-content: space-between;
             align-items: center;
         }
+        .ribbon-bar.download {
+            background-color: #28a745; /* Green for download ribbon */
+        }
+        .ribbon-bar.download:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
         .ribbon-bar h2 {
             color: white;
             margin: 0;
@@ -296,6 +302,11 @@
         <p>You can also download sample output files (generated based on the template inputs) to understand the expected format and compare them with your own results. These sample outputs are provided in the Reports section below and will be replaced with new output files based on your uploaded inputs after generating the schedule.</p>
     </div>
 
+    <div class="ribbon-bar download" onclick="downloadUserManual()">
+        <b>User Manual</b>
+        <span class="arrow">⤵</span>
+    </div>
+
     <div id="templates" class="input-section">
         <h2>Download Templates</h2>
         <a href="templates/nurses_file.csv" download="nurses_file.csv">Download Nurses Template (CSV)</a>
@@ -409,6 +420,18 @@
         const ribbon = document.querySelector('.ribbon-bar');
         content.classList.toggle('show');
         ribbon.classList.toggle('expanded');
+    }
+
+    // Function to trigger user manual download
+    async function downloadUserManual() {
+        const url = 'templates/user_manual.pdf';
+        const filename = 'user_manual.pdf';
+        try {
+            await triggerDownload(url, filename);
+            document.getElementById('status').innerText = 'User Manual download started.';
+        } catch (error) {
+            document.getElementById('status').innerText = 'Error downloading User Manual: ' + error.message;
+        }
     }
 
     // Toggle date input visibility
