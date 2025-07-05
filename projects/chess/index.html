@@ -2,105 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multiplayer Chess</title>
+  <title>Local Chess</title>
 
-  <!-- Socket.IO client (required for multiplayer) -->
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
-  <!-- chess.js (game rules engine) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
-
-  <!-- chessboard.js (board UI) -->
+  <!-- chessboard.js -->
   <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.css" />
 
+  <!-- chess.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       text-align: center;
       padding-top: 20px;
     }
-
     #board {
       width: 400px;
-      margin: 20px auto;
-    }
-
-    input {
-      padding: 5px;
-      margin: 5px;
-    }
-
-    button {
-      padding: 5px 10px;
-      margin-top: 5px;
-    }
-
-    #gameStatus {
-      margin-top: 10px;
-      font-weight: bold;
+      margin: auto;
     }
   </style>
 </head>
 <body>
-  <h2>Multiplayer Chess</h2>
 
-  <div>
-    <button onclick="createGame()">Create New Game</button><br><br>
-
-    <input id="roomId" placeholder="Enter Game Code" />
-    <input id="playerName" placeholder="Enter Your Name" />
-    <button onclick="joinGame()">Join Game</button>
-
-    <p id="gameStatus"></p>
-  </div>
-
+  <h2>Local 2-Player Chess</h2>
   <div id="board"></div>
+  <p id="status"></p>
 
   <script>
-    const socket = io("https://continuous-exuberant-stetson.glitch.me"); // ✅ Your Glitch backend
-    const board = Chessboard('board', {
-      draggable: true,
-      dropOffBoard: 'snapback',
-      position: 'start',
-      onDrop: onDrop
-    });
+    const boardElement = document.getElementById("board");
+    const statusElement = document.getElementById("status");
 
     const game = new Chess();
-    let roomId;
 
-    function createGame() {
-      const code = Math.random().toString(36).substring(2, 8);
-      document.getElementById("roomId").value = code;
-      document.getElementById("gameStatus").textContent = `Created game room: ${code}`;
-    }
+    const board = Chessboard('board', {
+      draggable: true,
+      position: 'start',
+      onDragStart: (source, piece, position, orientation) => {
+        if (game.game_over()) return false;
+        // don't pick up pieces if it's not that side to move
+        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+          return false;
+        }
+      },
+      onDrop: (source, target) => {
+        const move = game.move({
+          from: source,
+          to: target,
+          promotion: 'q'
+        });
 
-    function joinGame() {
-      roomId = document.getElementById("roomId").value.trim();
-      const name = document.getElementById("playerName").value.trim() || "Player";
-      if (!roomId) {
-        alert("Please enter a game code.");
-        return;
+        if (move === null) return 'snapback';
+
+        updateStatus();
+      },
+      onSnapEnd: () => {
+        board.position(game.fen());
       }
-      socket.emit("joinRoom", { roomId, playerName: name });
-      document.getElementById("gameStatus").textContent = `Joined room: ${roomId}`;
-    }
-
-    function onDrop(source, target) {
-      const move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q'
-      });
-      if (move === null) return 'snapback';
-      socket.emit("move", { roomId, move });
-    }
-
-    socket.on("opponentMove", (move) => {
-      game.move(move);
-      board.position(game.fen());
     });
+
+    function updateStatus() {
+      let status = '';
+
+      if (game.in_checkmate()) {
+        status = 'Checkmate! ' + (game.turn() === 'w' ? 'Black' : 'White') + ' wins.';
+      } else if (game.in_draw()) {
+        status = 'Draw!';
+      } else {
+        status = (game.turn() === 'w' ? 'White' : 'Black') + ' to move';
+        if (game.in_check()) {
+          status += ' — Check!';
+        }
+      }
+
+      statusElement.textContent = status;
+    }
+
+    updateStatus();
   </script>
 </body>
 </html>
