@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Chess Game</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+    #board {
+      margin: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 600px;
+    }
+    .status {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+    .timers {
+      display: flex;
+      justify-content: space-between;
+      width: 400px;
+      margin: 10px 0;
+    }
+    .timer {
+      font-size: 16px;
+    }
+    .highlight-check .square-55d63 {
+      background-color: red !important;
+    }
+    button, input, select {
+      margin: 5px;
+      padding: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Simple Chess</h1>
+    <div>
+      <label>White Player: <input id="whiteName" type="text" placeholder="Player 1"></label>
+      <label>Black Player: <input id="blackName" type="text" placeholder="Player 2"></label>
+    </div>
+    <div>
+      <label>Time Control: 
+        <select id="timeControl">
+          <option value="none">No Time Control</option>
+          <option value="10min">10 Minutes</option>
+        </select>
+      </label>
+      <label>Color Selection: 
+        <select id="colorSelection">
+          <option value="random">Random</option>
+          <option value="manual">Manual (White starts)</option>
+        </select>
+      </label>
+    </div>
+    <div>
+      <button onclick="startGame()">Start New Game</button>
+      <button onclick="generateLink()">Generate Game Link</button>
+      <input id="gameCode" type="text" placeholder="Enter Game Code">
+      <button onclick="joinGame()">Join Game</button>
+    </div>
+    <div class="status" id="status">Enter names and start a game!</div>
+    <div class="timers">
+      <div class="timer" id="whiteTimer">White: 10:00</div>
+      <div class="timer" id="blackTimer">Black: 10:00</div>
+    </div>
+    <div id="board" style="width: 400px"></div>
+  </div>
+
+  <audio id="moveSound" src="https://freesound.org/data/previews/512/512614_5674468-lq.mp3"></audio>
+  <audio id="captureSound" src="https://freesound.org/data/previews/512/512615_5674468-lq.mp3"></audio>
+  <audio id="checkSound" src="https://freesound.org/data/previews/512/512616_5674468-lq.mp3"></audio>
+  <audio id="mateSound" src="https://freesound.org/data/previews/512/512617_5674468-lq.mp3"></audio>
+
+  <script>
+    let board, game, whiteTime, blackTime, timerInterval, currentPlayer;
+    const boardConfig = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd,
+      moveSpeed: 'fast',
+      snapbackSpeed: 500,
+      snapSpeed: 150
+    };
+
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function startGame() {
+      const whiteName = document.getElementById('whiteName').value || 'Player 1';
+      const blackName = document.getElementById('blackName').value || 'Player 2';
+      const timeControl = document.getElementById('timeControl').value;
+      const colorSelection = document.getElementById('colorSelection').value;
+
+      game = new Chess();
+      board = Chessboard('board', boardConfig);
+      whiteTime = timeControl === '10min' ? 600 : null;
+      blackTime = timeControl === '10min' ? 600 : null;
+      currentPlayer = colorSelection === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : 'w';
+      document.getElementById('status').innerText = `${whiteName} (White) vs ${blackName} (Black). ${currentPlayer === 'w' ? whiteName : blackName}'s turn.`;
+      updateTimers();
+      startTimer();
+    }
+
+    function joinGame() {
+      const gameCode = document.getElementById('gameCode').value;
+      if (!gameCode) return;
+      const params = new URLSearchParams(gameCode.split('?')[1] || '');
+      const fen = params.get('fen') || 'start';
+      const turn = params.get('turn') || 'w';
+      const whiteName = params.get('white') || 'Player 1';
+      const blackName = params.get('black') || 'Player 2';
+      const timeControl = params.get('time') || 'none';
+      whiteTime = timeControl === '10min' ? 600 : null;
+      blackTime = timeControl === '10min' ? 600 : null;
+      game = new Chess(fen === 'start' ? undefined : fen);
+      board = Chessboard('board', { ...boardConfig, position: fen });
+      currentPlayer = turn;
+      document.getElementById('whiteName').value = whiteName;
+      document.getElementById('blackName').value = blackName;
+      document.getElementById('timeControl').value = timeControl;
+      document.getElementById('status').innerText = `${whiteName} (White) vs ${blackName} (Black). ${turn === 'w' ? whiteName : blackName}'s turn.`;
+      updateTimers();
+      startTimer();
+    }
+
+    function generateLink() {
+      const gameCode = generateUUID();
+      const fen = game.fen();
+      const whiteName = document.getElementById('whiteName').value || 'Player 1';
+      const blackName = document.getElementById('blackName').value || 'Player 2';
+      const timeControl = document.getElementById('timeControl').value;
+      const url = `${window.location.href}?game=${gameCode}&fen=${encodeURIComponent(fen)}&turn=${game.turn()}&white=${encodeURIComponent(whiteName)}&black=${encodeURIComponent(blackName)}&time=${timeControl}`;
+      document.getElementById('gameCode').value = url;
+      alert('Share this link: ' + url);
+    }
+
+    function onDragStart(source, piece, position, orientation) {
+      if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) || 
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+    }
+
+    function onDrop(source, target) {
+      const move = game.move({ from: source, to: target, promotion: 'q' });
+      if (move === null) return 'snapback';
+      const isCapture = move.captured;
+      const isCheck = game.in_check();
+      const isCheckmate = game.in_checkmate();
+      if (isCheckmate) {
+        document.getElementById('mateSound').play();
+        document.getElementById('board').classList.add('highlight-check');
+        document.getElementById('status').innerText = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
+        stopTimer();
+      } else if (isCheck) {
+        document.getElementById('checkSound').play();
+        document.getElementById('status').innerText = `Check! ${game.turn() === 'w' ? document.getElementById('blackName').value : document.getElementById('whiteName').value}'s turn.`;
+      } else if (isCapture) {
+        document.getElementById('captureSound').play();
+        document.getElementById('status').innerText = `${game.turn() === 'w' ? document.getElementById('blackName').value : document.getElementById('whiteName').value}'s turn.`;
+      } else {
+        document.getElementById('moveSound').play();
+        document.getElementById('status').innerText = `${game.turn() === 'w' ? document.getElementById('blackName').value : document.getElementById('whiteName').value}'s turn.`;
+      }
+      if (game.in_draw()) {
+        document.getElementById('status').innerText = 'Game drawn!';
+        stopTimer();
+      }
+      currentPlayer = game.turn();
+      updateTimers();
+    }
+
+    function onSnapEnd() {
+      board.position(game.fen());
+    }
+
+    function updateTimers() {
+      if (whiteTime !== null) {
+        const whiteMinutes = Math.floor(whiteTime / 60);
+        const whiteSeconds = Math.floor(whiteTime % 60);
+        const blackMinutes = Math.floor(blackTime / 60);
+        const blackSeconds = Math.floor(blackTime % 60);
+        document.getElementById('whiteTimer').innerText = `White: ${whiteMinutes}:${whiteSeconds < 10 ? '0' : ''}${whiteSeconds}`;
+        document.getElementById('blackTimer').innerText = `Black: ${blackMinutes}:${blackSeconds < 10 ? '0' : ''}${blackSeconds}`;
+        if (whiteTime <= 0) {
+          document.getElementById('status').innerText = 'Black wins on time!';
+          stopTimer();
+        } else if (blackTime <= 0) {
+          document.getElementById('status').innerText = 'White wins on time!';
+          stopTimer();
+        }
+      } else {
+        document.getElementById('whiteTimer').innerText = 'White: No Timer';
+        document.getElementById('blackTimer').innerText = 'Black: No Timer';
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      if (whiteTime !== null) {
+        timerInterval = setInterval(() => {
+          if (currentPlayer === 'w') whiteTime--;
+          else blackTime--;
+          updateTimers();
+        }, 1000);
+      }
+    }
+
+    function stopTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    // Highlight possible moves
+    function onMouseoverSquare(square, piece) {
+      const moves = game.moves({ square: square, verbose: true });
+      if (moves.length === 0) return;
+      greySquare(square);
+      for (let i = 0; i < moves.length; i++) {
+        greySquare(moves[i].to);
+      }
+    }
+
+    function onMouseoutSquare(square, piece) {
+      removeGreySquares();
+    }
+
+    function greySquare(square) {
+      const $square = $(`#board .square-${square}`);
+      let background = '#a9a9a9';
+      if ($square.hasClass('black-3c85d')) background = '#696969';
+      $square.css('background', background);
+    }
+
+    function removeGreySquares() {
+      $('#board .square-55d63').css('background', '');
+    }
+
+    boardConfig.onMouseoverSquare = onMouseoverSquare;
+    boardConfig.onMouseoutSquare = onMouseoutSquare;
+
+    // Load game from URL if present
+    if (window.location.search) {
+      joinGame();
+    }
+  </script>
+</body>
+</html>
