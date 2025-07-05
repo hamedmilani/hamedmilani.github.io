@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Simple Chess Game</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.css" />
-  <style>
-    #board { width: 400px; margin: 20px auto; }
-  </style>
-</head>
 <body>
   <h2>Multiplayer Chess</h2>
-  <input id="roomId" placeholder="Enter Game Code" />
-  <input id="playerName" placeholder="Enter Your Name" />
-  <button onclick="joinGame()">Join Game</button>
-  <div id="board"></div>
+
+  <div style="text-align: center;">
+    <button onclick="createGame()">Create New Game</button><br><br>
+
+    <input id="roomId" placeholder="Enter Game Code" />
+    <input id="playerName" placeholder="Enter Your Name" />
+    <button onclick="joinGame()">Join Game</button>
+
+    <p id="gameStatus" style="margin-top: 10px; font-weight: bold;"></p>
+  </div>
+
+  <div id="board" style="margin-top: 20px;"></div>
 
   <script>
     const socket = io("https://continuous-exuberant-stetson.glitch.me");
@@ -28,10 +24,21 @@
     const game = new Chess();
     let roomId;
 
+    function createGame() {
+      const code = Math.random().toString(36).substring(2, 8);
+      document.getElementById("roomId").value = code;
+      document.getElementById("gameStatus").textContent = `Created game room: ${code}`;
+    }
+
     function joinGame() {
-      roomId = document.getElementById("roomId").value;
-      const name = document.getElementById("playerName").value;
-      socket.emit("joinRoom", { roomId, playerName: name || "Player" });
+      roomId = document.getElementById("roomId").value.trim();
+      const name = document.getElementById("playerName").value.trim() || "Player";
+      if (!roomId) {
+        alert("Please enter a game code.");
+        return;
+      }
+      socket.emit("joinRoom", { roomId, playerName: name });
+      document.getElementById("gameStatus").textContent = `Joined room: ${roomId}`;
     }
 
     function onDrop(source, target) {
@@ -50,4 +57,3 @@
     });
   </script>
 </body>
-</html>
