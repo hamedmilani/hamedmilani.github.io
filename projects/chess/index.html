@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two-Player Chess</title>
+    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         body {
@@ -60,19 +63,21 @@
 
         .light {
             background-color: #f0d9b5; /* Light square color */
+            /* Removed 'color' property from here */
         }
 
         .dark {
             background-color: #b58863; /* Dark square color */
+            /* Removed 'color' property from here */
         }
 
-        /* Piece Colors */
+        /* Dedicated classes for piece colors */
         .piece-white {
-            color: #f0d9b5; /* Light color for white pieces */
+            color: #f8f8f8; /* Very light color for white pieces */
         }
 
         .piece-black {
-            color: #4a4a4a; /* Darker color for black pieces */
+            color: #2c2c2c; /* Very dark color for black pieces */
         }
 
         .selected {
@@ -132,7 +137,8 @@
         <h1 class="text-3xl font-bold text-blue-400 mb-4">Two-Player Chess</h1>
         <div id="status" class="status-display text-lg font-semibold text-center text-gray-100">White to move</div>
         <div id="chessboard" class="chessboard">
-            </div>
+            <!-- Chess squares will be dynamically generated here -->
+        </div>
         <button id="resetButton" class="reset-button">Reset Game</button>
     </div>
 
@@ -140,7 +146,7 @@
         // Initialize Firebase variables (will be populated by the Canvas environment)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
 
         // Chess board and game state
         let board = [];
@@ -222,7 +228,7 @@
                     const piece = board[r][c];
                     if (piece) {
                         square.textContent = PIECES[piece];
-                        // Apply specific piece color classes: light for white, dark for black
+                        // Apply specific piece color classes
                         const pieceColorClass = piece[0] === 'w' ? 'piece-white' : 'piece-black';
                         square.classList.add(pieceColorClass);
                     }
@@ -544,16 +550,13 @@
         }
 
         function checkGameStatus() {
-            // Determine the color whose turn it is now (i.e., the player who *needs to move*)
             const playerWhoseTurnItIs = currentPlayer;
-            const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white'; // The player who made the last move
+            const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white';
 
             const isPlayerWhoseTurnItIsInCheck = isKingInCheck(board, playerWhoseTurnItIs);
 
-            // Check if the current player (who needs to move) is in check
             if (isPlayerWhoseTurnItIsInCheck) {
                 playSound('check');
-                // Check for checkmate
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
@@ -572,7 +575,6 @@
                     isGameOver = true;
                     playSound('mate');
                     updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
-                    // Highlight the king in red
                     const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
                     const kingPosition = findKing(board, kingPieceInCheck);
                     if (kingPosition) {
@@ -587,7 +589,6 @@
                     updateStatus(`${capitalize(playerWhoseTurnItIs)} is in check! ${capitalize(playerWhoseTurnItIs)} to move.`);
                 }
             } else {
-                // Check for stalemate (no legal moves for the current player, but not in check)
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
@@ -626,7 +627,6 @@
 
         // --- Initial Setup ---
         window.onload = function() {
-            // Start the animation/game loop on window load.
             initializeBoard();
         };
 
