@@ -157,77 +157,74 @@
 
         // Initialize Tone.js for sounds
 // Replace the moveSound initialization with a wooden pluck-like sound
-        // Move sound: Wooden chess move sound
-        const moveSound = new Tone.MembraneSynth({
-            pitchDecay: 0.05,
-            octaves: 1,
-            oscillator: {
-                type: "square"
-            },
-            envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                sustain: 0.01,
-                release: 0.2,
-                attackCurve: "exponential"
-            }
-        }).toDestination();
+const moveSound = new Tone.MembraneSynth({
+    pitchDecay: 0.005,
+    octaves: 3,
+    envelope: {
+        attack: 0.01,
+        decay: 0.3,
+        sustain: 0,
+        release: 0.2
+    }
+}).toDestination();
 
-        // Capture sound: Sharper wooden capture sound
-        const captureSound = new Tone.MembraneSynth({
-            pitchDecay: 0.1,
-            octaves: 3,
-            oscillator: {
-                type: "sawtooth"
-            },
-            envelope: {
-                attack: 0.001,
-                decay: 0.3,
-                sustain: 0.01,
-                release: 0.3,
-                attackCurve: "exponential"
-            }
-        }).toDestination();
+// Replace the captureSound with a sharper, metallic strike
+const captureSound = new Tone.MetalSynth({
+    frequency: 400,
+    envelope: {
+        attack: 0.001,
+        decay: 0.2,
+        release: 0.1
+    },
+    harmonicity: 5.1,
+    modulationIndex: 32,
+    resonance: 4000,
+    octaves: 1.5
+}).toDestination();
 
-        // Check sound: Short error beep
-        const checkSound = new Tone.Synth({
-            oscillator: {
-                type: "square"
-            },
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0.01,
-                release: 0.1
-            }
-        }).toDestination();
+// Replace the checkSound with a subtle error beep
+const checkSound = new Tone.Synth({
+    oscillator: { type: 'sine' },
+    envelope: {
+        attack: 0.005,
+        decay: 0.15,
+        sustain: 0,
+        release: 0.1
+    }
+}).toDestination();
 
-        // Mate sound: Two descending error tones
-        const mateSound = new Tone.PolySynth(Tone.Synth).toDestination();
+// Replace mateSound with a more dramatic error chord (two notes)
+const mateSound = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'triangle' },
+    envelope: {
+        attack: 0.01,
+        decay: 0.4,
+        sustain: 0,
+        release: 0.3
+    }
+}).toDestination();
 
 // In the playSound function, change the notes to these:
 
-        function playSound(type) {
-            // Ensure audio context is running before playing sounds
-            if (Tone.context.state !== 'running') {
-                Tone.start();
-            }
-
-            switch (type) {
-                case 'move':
-                    moveSound.triggerAttackRelease("C5", "16n");
-                    break;
-                case 'capture':
-                    captureSound.triggerAttackRelease("C3", "8n");
-                    break;
-                case 'check':
-                    checkSound.triggerAttackRelease("A5", "16n");
-                    break;
-                case 'mate':
-                    mateSound.triggerAttackRelease(["E5", "C5"], "8n");
-                    break;
-            }
-        }
+function playSound(type) {
+    if (Tone.context.state !== 'running') {
+        Tone.start();
+    }
+    switch (type) {
+        case 'move':
+            moveSound.triggerAttackRelease("C3", "32n"); // softer, lower wooden tap
+            break;
+        case 'capture':
+            captureSound.triggerAttackRelease("G4", "16n"); // sharper metallic strike
+            break;
+        case 'check':
+            checkSound.triggerAttackRelease("A4", "8n"); // subtle error beep
+            break;
+        case 'mate':
+            mateSound.triggerAttackRelease(["C4", "E4"], "4n"); // dramatic two-note chord
+            break;
+    }
+}
 
 
         // --- Game Initialization ---
