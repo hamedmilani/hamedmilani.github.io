@@ -156,11 +156,11 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound (using a soft wooden click sound)
-        const moveSound = new Tone.Player("https://freesound.org/data/previews/171/171104_71257-lq.mp3").toDestination();
+        // Move sound (reverted to a simple PluckSynth for a louder, default pluck sound)
+        const moveSound = new Tone.PluckSynth().toDestination(); 
 
-        // Capture sound (using a sharper piece placement sound)
-        const captureSound = new Tone.Player("https://freesound.org/data/previews/243/243020_1838974-lq.mp3").toDestination();
+        // Capture sound (reverted to a simple MembraneSynth for a louder, default kick-like sound)
+        const captureSound = new Tone.MembraneSynth().toDestination();
 
         // Check sound (unchanged, user liked this one)
         const checkSound = new Tone.Synth().toDestination(); 
@@ -177,10 +177,10 @@
 
             switch (type) {
                 case 'move':
-                    moveSound.start(); // Play click sound for move
+                    moveSound.triggerAttackRelease("C4", "8n"); // Default pluck sound
                     break;
                 case 'capture':
-                    captureSound.start(); // Play sharper sound for capture
+                    captureSound.triggerAttackRelease("C2", "16n"); // Default membrane synth sound
                     break;
                 case 'check':
                     checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
@@ -291,7 +291,7 @@
 
             // If a piece is already selected
             if (selectedPiece) {
-                // Check if the clicked square is Général du roi
+                // Check if the clicked square is a valid possible move
                 const moveIndex = possibleMoves.findIndex(move => move[0] === row && move[1] === col);
                 if (moveIndex !== -1) {
                     // Valid move: make the move
@@ -511,6 +511,7 @@
             }
             return moves;
         }
+
 
         // Function to get all legal moves (considers king safety)
         function getLegalMoves(startRow, startCol, piece) {
