@@ -18,7 +18,7 @@
   <div id="board"></div>
 
   <script>
-    const socket = io();
+    const socket = io("https://continuous-exuberant-stetson.glitch.me");
     const board = Chessboard('board', {
       draggable: true,
       dropOffBoard: 'snapback',
