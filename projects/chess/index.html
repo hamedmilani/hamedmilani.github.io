@@ -156,51 +156,26 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound: Wooden click/thud
-        const moveSound = new Tone.Sampler({
-            urls: {
-                "C4": "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/casio/kick.mp3", // Placeholder for a woody kick sound
-            },
-            onload: () => {
-                // console.log("Move sound loaded");
-            }
-        }).toDestination();
+        // Using Tone.Buffer and Tone.Player for wooden sounds
+        let moveSoundPlayer;
+        let captureSoundPlayer;
 
-        // Capture sound: Sharper, more impactful click
-        const captureSound = new Tone.Sampler({
-            urls: {
-                "C4": "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/casio/snare.mp3", // Placeholder for a sharp snare sound
-            },
-            onload: () => {
-                // console.log("Capture sound loaded");
-            }
-        }).toDestination();
+        // Load sounds once
+        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-thud-1.mp3", (buffer) => {
+            moveSoundPlayer = new Tone.Player(buffer).toDestination();
+            moveSoundPlayer.volume.value = -10; // Adjust volume as needed
+        });
 
-        // Check sound: A distinct error or alert sound
-        const checkSound = new Tone.Synth({
-            envelope: {
-                attack: 0.01,
-                decay: 0.2,
-                sustain: 0.1,
-                release: 0.5,
-            },
-            oscillator: {
-                type: "sine"
-            }
-        }).toDestination();
+        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-clack-1.mp3", (buffer) => {
+            captureSoundPlayer = new Tone.Player(buffer).toDestination();
+            captureSoundPlayer.volume.value = -8; // Adjust volume as needed
+        });
 
-        // Mate sound: A more definitive, perhaps lower-pitched error/game over sound
-        const mateSound = new Tone.Synth({
-            envelope: {
-                attack: 0.01,
-                decay: 0.4,
-                sustain: 0.1,
-                release: 0.8,
-            },
-            oscillator: {
-                type: "sawtooth"
-            }
-        }).toDestination();
+        // Check sound (unchanged)
+        const checkSound = new Tone.Synth().toDestination(); 
+
+        // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
+        const mateSound = new Tone.PolySynth().toDestination(); 
 
         // Function to play sounds
         function playSound(type) {
@@ -211,20 +186,28 @@
 
             switch (type) {
                 case 'move':
-                    // Trigger a low-pitched, short sound for wooden feel
-                    moveSound.triggerAttackRelease("C2", "8n");
+                    if (moveSoundPlayer && moveSoundPlayer.loaded) {
+                        moveSoundPlayer.start();
+                    } else {
+                        console.warn("Move sound not loaded yet or player not initialized.");
+                    }
                     break;
                 case 'capture':
-                    // Trigger a sharper, slightly higher-pitched sound
-                    captureSound.triggerAttackRelease("G3", "8n");
+                    if (captureSoundPlayer && captureSoundPlayer.loaded) {
+                        captureSoundPlayer.start();
+                    } else {
+                        console.warn("Capture sound not loaded yet or player not initialized.");
+                    }
                     break;
                 case 'check':
-                    // A warning sound for check
-                    checkSound.triggerAttackRelease("C5", "8n");
+                    checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
                     break;
                 case 'mate':
-                    // A more serious, lower-pitched sound for mate
-                    mateSound.triggerAttackRelease("C3", "4n");
+                    // "dan dannn" effect with two notes
+                    mateSound.triggerAttackRelease("C4", "8n"); // First note "dan"
+                    setTimeout(() => {
+                        mateSound.triggerAttackRelease("G4", "4n"); // Second note "dannn"
+                    }, 150); // Delay of 150 milliseconds
                     break;
             }
         }
