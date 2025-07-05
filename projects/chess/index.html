@@ -156,26 +156,64 @@
         };
 
         // Initialize Tone.js for sounds
-        // Using Tone.Buffer and Tone.Player for wooden sounds
-        let moveSoundPlayer;
-        let captureSoundPlayer;
+        // Move sound: A wooden, soft click sound
+        const moveSound = new Tone.MembraneSynth({
+            pitchDecay: 0.05,
+            octaves: 2,
+            oscillator: {
+                type: 'sine'
+            },
+            envelope: {
+                attack: 0.001,
+                decay: 0.2,
+                sustain: 0.01,
+                release: 0.3
+            }
+        }).toDestination();
 
-        // Load sounds once
-        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-thud-1.mp3", (buffer) => {
-            moveSoundPlayer = new Tone.Player(buffer).toDestination();
-            moveSoundPlayer.volume.value = -10; // Adjust volume as needed
-        });
+        // Capture sound: A sharper, more aggressive wooden clack
+        const captureSound = new Tone.MembraneSynth({
+            pitchDecay: 0.02,
+            octaves: 4,
+            oscillator: {
+                type: 'square'
+            },
+            envelope: {
+                attack: 0.001,
+                decay: 0.1,
+                sustain: 0.01,
+                release: 0.2
+            }
+        }).toDestination();
 
-        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-clack-1.mp3", (buffer) => {
-            captureSoundPlayer = new Tone.Player(buffer).toDestination();
-            captureSoundPlayer.volume.value = -8; // Adjust volume as needed
-        });
+        // Check sound: A tense, high-pitched tone for check
+        const checkSound = new Tone.Synth({
+            oscillator: {
+                type: 'triangle'
+            },
+            envelope: {
+                attack: 0.01,
+                decay: 0.2,
+                sustain: 0.1,
+                release: 0.5
+            }
+        }).toDestination();
 
-        // Check sound (unchanged)
-        const checkSound = new Tone.Synth().toDestination(); 
-
-        // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
-        const mateSound = new Tone.PolySynth().toDestination(); 
+        // Mate sound: A dramatic, resonant chord for checkmate
+        const mateSound = new Tone.PolySynth({
+            voice: Tone.Synth,
+            options: {
+                oscillator: {
+                    type: toString('sine')
+                },
+                envelope: {
+                    attack: 0.02,
+                    decay: 0.3,
+                    sustain: 0.1,
+                    release: 0.8
+                }
+            }
+        }).toDestination();
 
         // Function to play sounds
         function playSound(type) {
@@ -186,28 +224,17 @@
 
             switch (type) {
                 case 'move':
-                    if (moveSoundPlayer && moveSoundPlayer.loaded) {
-                        moveSoundPlayer.start();
-                    } else {
-                        console.warn("Move sound not loaded yet or player not initialized.");
-                    }
+                    moveSound.triggerAttackRelease("G3", "16n"); // Soft wooden click
                     break;
                 case 'capture':
-                    if (captureSoundPlayer && captureSoundPlayer.loaded) {
-                        captureSoundPlayer.start();
-                    } else {
-                        console.warn("Capture sound not loaded yet or player not initialized.");
-                    }
+                    captureSound.triggerAttackRelease("C3", "8n"); // Sharper wooden clack
                     break;
                 case 'check':
-                    checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
+                    checkSound.triggerAttackRelease("A4", "8n"); // Tense high-pitched tone
                     break;
                 case 'mate':
-                    // "dan dannn" effect with two notes
-                    mateSound.triggerAttackRelease("C4", "8n"); // First note "dan"
-                    setTimeout(() => {
-                        mateSound.triggerAttackRelease("G4", "4n"); // Second note "dannn"
-                    }, 150); // Delay of 150 milliseconds
+                    // Dramatic chord for checkmate
+                    mateSound.triggerAttackRelease(["C3", "E3", "G3"], "4n");
                     break;
             }
         }
@@ -358,7 +385,7 @@
                     // Double move from start
                     if (((color === 'w' && row === 6) || (color === 'b' && row === 1)) &&
                         !board[row + direction][col] && board[row + 2 * direction] && !board[row + 2 * direction][col]) {
-                        moves.push([row + 2 * direction, col]);
+                        moves.push([row + 2 direction, col]);
                     }
                     // Captures
                     if (board[row + direction]) { // Ensure row exists
@@ -528,7 +555,6 @@
             }
             return moves;
         }
-
 
         // Function to get all legal moves (considers king safety)
         function getLegalMoves(startRow, startCol, piece) {
