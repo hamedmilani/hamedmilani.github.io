@@ -156,13 +156,13 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound (reverted to a simple PluckSynth for a louder, default pluck sound)
-        const moveSound = new Tone.PluckSynth().toDestination(); 
+        // Move sound (using a soft wooden click sound)
+        const moveSound = new Tone.Player("https://freesound.org/data/previews/171/171104_71257-lq.mp3").toDestination();
 
-        // Capture sound (reverted to a simple MembraneSynth for a louder, default kick-like sound)
-        const captureSound = new Tone.MembraneSynth().toDestination();
+        // Capture sound (using a sharper piece placement sound)
+        const captureSound = new Tone.Player("https://freesound.org/data/previews/243/243020_1838974-lq.mp3").toDestination();
 
-        // Check sound (unchanged, user liked this one)
+        // Check sound (using a synthesized tone)
         const checkSound = new Tone.Synth().toDestination(); 
 
         // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
@@ -177,10 +177,26 @@
 
             switch (type) {
                 case 'move':
-                    moveSound.triggerAttackRelease("C4", "8n"); // Default pluck sound
+                    // Check if the player is loaded before starting
+                    if (moveSound.loaded) {
+                        moveSound.start();
+                    } else {
+                        // Optionally, try to load and then play if not loaded (for robustness)
+                        moveSound.load("https://freesound.org/data/previews/171/171104_71257-lq.mp3").then(() => {
+                            moveSound.start();
+                        });
+                    }
                     break;
                 case 'capture':
-                    captureSound.triggerAttackRelease("C2", "16n"); // Default membrane synth sound
+                    // Check if the player is loaded before starting
+                    if (captureSound.loaded) {
+                        captureSound.start();
+                    } else {
+                        // Optionally, try to load and then play if not loaded (for robustness)
+                        captureSound.load("https://freesound.org/data/previews/243/243020_1838974-lq.mp3").then(() => {
+                            captureSound.start();
+                        });
+                    }
                     break;
                 case 'check':
                     checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
