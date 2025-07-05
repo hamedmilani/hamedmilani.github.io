@@ -156,13 +156,33 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound (using a soft wooden click sound)
-        const moveSound = new Tone.Player("https://freesound.org/data/previews/171/171104_71257-lq.mp3").toDestination();
+        // Move sound: A crisp pluck sound
+        const moveSound = new Tone.PluckSynth({
+            attackNoise: 1, // Makes the attack sharper
+            dampening: 4000, // Controls the decay
+            resonance: 0.7, // Adds a bit of body
+            octaves: 0.5,
+            envelope: {
+                attack: 0.005,
+                decay: 0.1,
+                sustain: 0,
+                release: 0.05
+            }
+        }).toDestination();
 
-        // Capture sound (using a sharper piece placement sound)
-        const captureSound = new Tone.Player("https://freesound.org/data/previews/243/243020_1838974-lq.mp3").toDestination();
+        // Capture sound: A punchier, percussive sound
+        const captureSound = new Tone.MembraneSynth({
+            pitchDecay: 0.02,
+            octaves: 8,
+            envelope: {
+                attack: 0.001,
+                decay: 0.4,
+                sustain: 0.01,
+                release: 0.2
+            }
+        }).toDestination();
 
-        // Check sound (using a synthesized tone)
+        // Check sound (unchanged, user liked this one)
         const checkSound = new Tone.Synth().toDestination(); 
 
         // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
@@ -177,26 +197,10 @@
 
             switch (type) {
                 case 'move':
-                    // Check if the player is loaded before starting
-                    if (moveSound.loaded) {
-                        moveSound.start();
-                    } else {
-                        // Optionally, try to load and then play if not loaded (for robustness)
-                        moveSound.load("https://freesound.org/data/previews/171/171104_71257-lq.mp3").then(() => {
-                            moveSound.start();
-                        });
-                    }
+                    moveSound.triggerAttackRelease("C4", "16n"); // Short, sharp note
                     break;
                 case 'capture':
-                    // Check if the player is loaded before starting
-                    if (captureSound.loaded) {
-                        captureSound.start();
-                    } else {
-                        // Optionally, try to load and then play if not loaded (for robustness)
-                        captureSound.load("https://freesound.org/data/previews/243/243020_1838974-lq.mp3").then(() => {
-                            captureSound.start();
-                        });
-                    }
+                    captureSound.triggerAttackRelease("C2", "8n"); // Deeper, more impactful note
                     break;
                 case 'check':
                     checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
