@@ -156,22 +156,33 @@
         };
 
         // Initialize Tone.js for sounds
-        // Using Tone.Buffer and Tone.Player for wooden sounds
-        let moveSoundPlayer;
-        let captureSoundPlayer;
+        // Move sound: A crisp pluck sound
+        const moveSound = new Tone.PluckSynth({
+            attackNoise: 1, // Makes the attack sharper
+            dampening: 4000, // Controls the decay
+            resonance: 0.7, // Adds a bit of body
+            octaves: 0.5,
+            envelope: {
+                attack: 0.005,
+                decay: 0.1,
+                sustain: 0,
+                release: 0.05
+            }
+        }).toDestination();
 
-        // Load sounds once
-        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-thud-1.mp3", (buffer) => {
-            moveSoundPlayer = new Tone.Player(buffer).toDestination();
-            moveSoundPlayer.volume.value = -10; // Adjust volume as needed
-        });
+        // Capture sound: A punchier, percussive sound
+        const captureSound = new Tone.MembraneSynth({
+            pitchDecay: 0.02,
+            octaves: 8,
+            envelope: {
+                attack: 0.001,
+                decay: 0.4,
+                sustain: 0.01,
+                release: 0.2
+            }
+        }).toDestination();
 
-        Tone.Buffer.load("https://www.soundjay.com/misc/sounds/wooden-clack-1.mp3", (buffer) => {
-            captureSoundPlayer = new Tone.Player(buffer).toDestination();
-            captureSoundPlayer.volume.value = -8; // Adjust volume as needed
-        });
-
-        // Check sound (unchanged)
+        // Check sound (unchanged, user liked this one)
         const checkSound = new Tone.Synth().toDestination(); 
 
         // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
@@ -186,18 +197,10 @@
 
             switch (type) {
                 case 'move':
-                    if (moveSoundPlayer && moveSoundPlayer.loaded) {
-                        moveSoundPlayer.start();
-                    } else {
-                        console.warn("Move sound not loaded yet or player not initialized.");
-                    }
+                    moveSound.triggerAttackRelease("C4", "16n"); // Short, sharp note
                     break;
                 case 'capture':
-                    if (captureSoundPlayer && captureSoundPlayer.loaded) {
-                        captureSoundPlayer.start();
-                    } else {
-                        console.warn("Capture sound not loaded yet or player not initialized.");
-                    }
+                    captureSound.triggerAttackRelease("C2", "8n"); // Deeper, more impactful note
                     break;
                 case 'check':
                     checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
