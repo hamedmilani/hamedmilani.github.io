@@ -1,26 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiplayer Chess</title>
+
+  <!-- Socket.IO client (required for multiplayer) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- chess.js (game rules engine) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
+
+  <!-- chessboard.js (board UI) -->
+  <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.css" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 20px;
+    }
+
+    #board {
+      width: 400px;
+      margin: 20px auto;
+    }
+
+    input {
+      padding: 5px;
+      margin: 5px;
+    }
+
+    button {
+      padding: 5px 10px;
+      margin-top: 5px;
+    }
+
+    #gameStatus {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
 <body>
   <h2>Multiplayer Chess</h2>
 
-  <div style="text-align: center;">
+  <div>
     <button onclick="createGame()">Create New Game</button><br><br>
 
     <input id="roomId" placeholder="Enter Game Code" />
     <input id="playerName" placeholder="Enter Your Name" />
     <button onclick="joinGame()">Join Game</button>
 
-    <p id="gameStatus" style="margin-top: 10px; font-weight: bold;"></p>
+    <p id="gameStatus"></p>
   </div>
 
-  <div id="board" style="margin-top: 20px;"></div>
+  <div id="board"></div>
 
   <script>
-    const socket = io("https://continuous-exuberant-stetson.glitch.me");
+    const socket = io("https://continuous-exuberant-stetson.glitch.me"); // ✅ Your Glitch backend
     const board = Chessboard('board', {
       draggable: true,
       dropOffBoard: 'snapback',
       position: 'start',
       onDrop: onDrop
     });
+
     const game = new Chess();
     let roomId;
 
@@ -57,3 +103,4 @@
     });
   </script>
 </body>
+</html>
