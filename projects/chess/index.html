@@ -179,6 +179,10 @@
             border-radius: 0; /* Square border for capture */
         }
 
+        .king-in-check {
+            background-color: #FFA500 !important; /* Orange for king in check */
+        }
+
         .king-in-checkmate {
             background-color: #ef4444 !important; /* Red for king in checkmate */
         }
@@ -867,10 +871,44 @@
             const playerWhoseTurnItIs = currentPlayer;
             const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white';
 
+            // --- Clear previous king highlights for both kings ---
+            const whiteKingPos = findKing(board, 'wk');
+            const blackKingPos = findKing(board, 'bk');
+
+            const allKingSquares = [];
+            if (whiteKingPos) {
+                allKingSquares.push(document.querySelector(`.square[data-row="${whiteKingPos[0]}"][data-col="${whiteKingPos[1]}"]`));
+            }
+            if (blackKingPos) {
+                allKingSquares.push(document.querySelector(`.square[data-row="${blackKingPos[0]}"][data-col="${blackKingPos[1]}"]`));
+            }
+
+            allKingSquares.forEach(square => {
+                if (square) {
+                    square.classList.remove('king-in-check', 'king-in-checkmate');
+                }
+            });
+            // --- End clear previous king highlights ---
+
+
             const isPlayerWhoseTurnItIsInCheck = isKingInCheck(board, playerWhoseTurnItIs);
+            const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
+            const kingPosition = findKing(board, kingPieceInCheck); // Get current player's king position
 
             if (isPlayerWhoseTurnItIsInCheck) {
                 playSound('check');
+                // Apply orange highlight for check
+                if (kingPosition) {
+                    const [kingR, kingC] = kingPosition;
+                    const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
+                    boardsToHighlight.forEach(boardElem => {
+                        const kingSquare = boardElem.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
+                        if (kingSquare) {
+                            kingSquare.classList.add('king-in-check'); // Apply orange for check
+                        }
+                    });
+                }
+
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
@@ -885,21 +923,22 @@
                     if (hasLegalMoves) break;
                 }
 
+
                 if (!hasLegalMoves) {
                     isGameOver = true;
                     stopTimer();
                     playSound('mate');
                     updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
-                    const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
-                    const kingPosition = findKing(board, kingPieceInCheck);
+                    
+                    // For checkmate, remove orange and apply red
                     if (kingPosition) {
                         const [kingR, kingC] = kingPosition;
-                        // Highlight king on both boards if double view
                         const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
                         boardsToHighlight.forEach(boardElem => {
                             const kingSquare = boardElem.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
                             if (kingSquare) {
-                                kingSquare.classList.add('king-in-checkmate');
+                                kingSquare.classList.remove('king-in-check'); // Remove orange
+                                kingSquare.classList.add('king-in-checkmate'); // Add red for checkmate
                             }
                         });
                     }
