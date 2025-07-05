@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two-Player Chess</title>
-    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         body {
@@ -63,12 +60,19 @@
 
         .light {
             background-color: #f0d9b5; /* Light square color */
-            color: #b58863; /* Dark piece color on light squares */
         }
 
         .dark {
             background-color: #b58863; /* Dark square color */
-            color: #f0d9b5; /* Light piece color on dark squares */
+        }
+
+        /* Piece Colors */
+        .piece-white {
+            color: #f0d9b5; /* Light color for white pieces */
+        }
+
+        .piece-black {
+            color: #4a4a4a; /* Darker color for black pieces */
         }
 
         .selected {
@@ -128,8 +132,7 @@
         <h1 class="text-3xl font-bold text-blue-400 mb-4">Two-Player Chess</h1>
         <div id="status" class="status-display text-lg font-semibold text-center text-gray-100">White to move</div>
         <div id="chessboard" class="chessboard">
-            <!-- Chess squares will be dynamically generated here -->
-        </div>
+            </div>
         <button id="resetButton" class="reset-button">Reset Game</button>
     </div>
 
@@ -219,9 +222,9 @@
                     const piece = board[r][c];
                     if (piece) {
                         square.textContent = PIECES[piece];
-                        // Apply color based on piece type
-                        const pieceColor = piece[0] === 'w' ? 'text-gray-900' : 'text-gray-100';
-                        square.classList.add(pieceColor);
+                        // Apply specific piece color classes: light for white, dark for black
+                        const pieceColorClass = piece[0] === 'w' ? 'piece-white' : 'piece-black';
+                        square.classList.add(pieceColorClass);
                     }
 
                     // Add click listener to each square
@@ -321,15 +324,17 @@
                     }
                     // Double move from start
                     if (((color === 'w' && row === 6) || (color === 'b' && row === 1)) &&
-                        !board[row + direction][col] && !board[row + 2 * direction][col]) {
+                        !board[row + direction][col] && board[row + 2 * direction] && !board[row + 2 * direction][col]) {
                         moves.push([row + 2 * direction, col]);
                     }
                     // Captures
-                    if (board[row + direction] && board[row + direction][col - 1] && board[row + direction][col - 1][0] !== color) {
-                        moves.push([row + direction, col - 1]);
-                    }
-                    if (board[row + direction] && board[row + direction][col + 1] && board[row + direction][col + 1][0] !== color) {
-                        moves.push([row + direction, col + 1]);
+                    if (board[row + direction]) { // Ensure row exists
+                        if (col - 1 >= 0 && board[row + direction][col - 1] && board[row + direction][col - 1][0] !== color) {
+                            moves.push([row + direction, col - 1]);
+                        }
+                        if (col + 1 < 8 && board[row + direction][col + 1] && board[row + direction][col + 1][0] !== color) {
+                            moves.push([row + direction, col + 1]);
+                        }
                     }
                     break;
                 case 'r': // Rook
@@ -448,11 +453,13 @@
                 case 'p': // Pawn
                     const direction = (color === 'w') ? -1 : 1;
                     // Only consider captures for check detection
-                    if (currentBoard[row + direction] && currentBoard[row + direction][col - 1] && currentBoard[row + direction][col - 1][0] !== color) {
-                        moves.push([row + direction, col - 1]);
-                    }
-                    if (currentBoard[row + direction] && currentBoard[row + direction][col + 1] && currentBoard[row + direction][col + 1][0] !== color) {
-                        moves.push([row + direction, col + 1]);
+                    if (currentBoard[row + direction]) {
+                        if (col - 1 >= 0 && currentBoard[row + direction][col - 1] && currentBoard[row + direction][col - 1][0] !== color) {
+                            moves.push([row + direction, col - 1]);
+                        }
+                        if (col + 1 < 8 && currentBoard[row + direction][col + 1] && currentBoard[row + direction][col + 1][0] !== color) {
+                            moves.push([row + direction, col + 1]);
+                        }
                     }
                     break;
                 case 'r': // Rook
@@ -537,21 +544,21 @@
         }
 
         function checkGameStatus() {
-            const opponentColor = currentPlayer;
-            const kingPiece = opponentColor === 'white' ? 'wk' : 'bk';
-            const kingPos = findKing(board, kingPiece);
+            // Determine the color whose turn it is now (i.e., the player who *needs to move*)
+            const playerWhoseTurnItIs = currentPlayer;
+            const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white'; // The player who made the last move
 
-            const isCurrentPlayerInCheck = isKingInCheck(board, opponentColor);
+            const isPlayerWhoseTurnItIsInCheck = isKingInCheck(board, playerWhoseTurnItIs);
 
-            // Check if current player (who just moved) put opponent in check
-            if (isCurrentPlayerInCheck) {
+            // Check if the current player (who needs to move) is in check
+            if (isPlayerWhoseTurnItIsInCheck) {
                 playSound('check');
                 // Check for checkmate
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
                         const piece = board[r][c];
-                        if (piece && piece[0] === opponentColor[0]) {
+                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
                             if (getLegalMoves(r, c, piece).length > 0) {
                                 hasLegalMoves = true;
                                 break;
@@ -564,24 +571,28 @@
                 if (!hasLegalMoves) {
                     isGameOver = true;
                     playSound('mate');
-                    updateStatus(`${capitalize(opponentColor)} is checkmated! ${capitalize(currentPlayer)} wins!`);
+                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
                     // Highlight the king in red
-                    const [kingR, kingC] = kingPos;
-                    const kingSquare = document.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
-                    if (kingSquare) {
-                        kingSquare.classList.add('king-in-checkmate');
+                    const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
+                    const kingPosition = findKing(board, kingPieceInCheck);
+                    if (kingPosition) {
+                        const [kingR, kingC] = kingPosition;
+                        const kingSquare = document.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
+                        if (kingSquare) {
+                            kingSquare.classList.add('king-in-checkmate');
+                        }
                     }
                     return;
                 } else {
-                    updateStatus(`${capitalize(opponentColor)} is in check! ${capitalize(currentPlayer)} to move.`);
+                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is in check! ${capitalize(playerWhoseTurnItIs)} to move.`);
                 }
             } else {
-                // Check for stalemate (no legal moves, but not in check)
+                // Check for stalemate (no legal moves for the current player, but not in check)
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
                     for (let c = 0; c < 8; c++) {
                         const piece = board[r][c];
-                        if (piece && piece[0] === opponentColor[0]) {
+                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
                             if (getLegalMoves(r, c, piece).length > 0) {
                                 hasLegalMoves = true;
                                 break;
@@ -597,7 +608,7 @@
                     return;
                 }
 
-                updateStatus(`${capitalize(currentPlayer)} to move`);
+                updateStatus(`${capitalize(playerWhoseTurnItIs)} to move`);
             }
         }
 
