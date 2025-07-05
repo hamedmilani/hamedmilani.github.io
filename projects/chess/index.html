@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two-Player Chess</title>
-    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Tone.js for sound effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
         body {
@@ -63,12 +60,10 @@
 
         .light {
             background-color: #f0d9b5; /* Light square color */
-            /* Removed 'color' property from here */
         }
 
         .dark {
             background-color: #b58863; /* Dark square color */
-            /* Removed 'color' property from here */
         }
 
         /* Dedicated classes for piece colors */
@@ -137,8 +132,7 @@
         <h1 class="text-3xl font-bold text-blue-400 mb-4">Two-Player Chess</h1>
         <div id="status" class="status-display text-lg font-semibold text-center text-gray-100">White to move</div>
         <div id="chessboard" class="chessboard">
-            <!-- Chess squares will be dynamically generated here -->
-        </div>
+            </div>
         <button id="resetButton" class="reset-button">Reset Game</button>
     </div>
 
@@ -162,25 +156,59 @@
         };
 
         // Initialize Tone.js for sounds
-        const moveSynth = new Tone.PluckSynth().toDestination();
-        const captureSynth = new Tone.MembraneSynth().toDestination();
-        const checkSynth = new Tone.Synth().toDestination();
-        const mateSynth = new Tone.PolySynth().toDestination();
+        // Move sound (now uses properties of the old capture sound)
+        const moveSound = new Tone.MembraneSynth({
+            octaves: 2,
+            pitchDecay: 0.05,
+            envelope: {
+                attack: 0.001,
+                decay: 0.1,
+                sustain: 0,
+                release: 0.05
+            }
+        }).toDestination(); 
+
+        // New capture sound (slightly different MembraneSynth)
+        const captureSound = new Tone.MembraneSynth({
+            octaves: 3,
+            pitchDecay: 0.08,
+            envelope: {
+                attack: 0.001,
+                decay: 0.2,
+                sustain: 0,
+                release: 0.1
+            }
+        }).toDestination();
+
+        // Check sound (unchanged)
+        const checkSound = new Tone.Synth().toDestination(); 
+
+        // Mate sound (for sequencing two notes)
+        const mateSound = new Tone.PolySynth().toDestination(); 
 
         // Function to play sounds
         function playSound(type) {
+            // Ensure audio context is running before playing sounds
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+
             switch (type) {
                 case 'move':
-                    moveSynth.triggerAttackRelease("C4", "8n");
+                    moveSound.triggerAttackRelease("C2", "16n"); // Old capture sound parameters
                     break;
                 case 'capture':
-                    captureSynth.triggerAttackRelease("C2", "16n");
+                    captureSound.triggerAttackRelease("G1", "8n"); // New distinct capture sound
                     break;
                 case 'check':
-                    checkSynth.triggerAttackRelease("G4", "8n");
+                    checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
                     break;
                 case 'mate':
-                    mateSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n");
+                    // "dan dannn" effect
+                    mateSound.triggerAttackRelease("C4", "8n"); // First note "dan"
+                    setTimeout(() => {
+                        mateSound.triggerAttackRelease("G4", "4n"); // Second note "dannn"
+                    }, 150); // Delay of 150 milliseconds
                     break;
             }
         }
@@ -627,6 +655,13 @@
 
         // --- Initial Setup ---
         window.onload = function() {
+            // Start Tone.js audio context on first user interaction
+            document.documentElement.addEventListener('mousedown', () => {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+            }, { once: true }); // Only run once
+
             initializeBoard();
         };
 
