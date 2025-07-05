@@ -156,62 +156,49 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound: A wooden, soft click sound
-        const moveSound = new Tone.MembraneSynth({
-            pitchDecay: 0.05,
-            octaves: 2,
-            oscillator: {
-                type: 'sine'
+        // Move sound: Wooden click/thud
+        const moveSound = new Tone.Sampler({
+            urls: {
+                "C4": "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/casio/kick.mp3", // Placeholder for a woody kick sound
             },
-            envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                sustain: 0.01,
-                release: 0.3
+            onload: () => {
+                // console.log("Move sound loaded");
             }
         }).toDestination();
 
-        // Capture sound: A sharper, more aggressive wooden clack
-        const captureSound = new Tone.MembraneSynth({
-            pitchDecay: 0.02,
-            octaves: 4,
-            oscillator: {
-                type: 'square'
+        // Capture sound: Sharper, more impactful click
+        const captureSound = new Tone.Sampler({
+            urls: {
+                "C4": "https://cdn.jsdelivr.net/gh/Tonejs/Tone.js/examples/audio/casio/snare.mp3", // Placeholder for a sharp snare sound
             },
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0.01,
-                release: 0.2
+            onload: () => {
+                // console.log("Capture sound loaded");
             }
         }).toDestination();
 
-        // Check sound: A tense, high-pitched tone for check
+        // Check sound: A distinct error or alert sound
         const checkSound = new Tone.Synth({
-            oscillator: {
-                type: 'triangle'
-            },
             envelope: {
                 attack: 0.01,
                 decay: 0.2,
                 sustain: 0.1,
-                release: 0.5
+                release: 0.5,
+            },
+            oscillator: {
+                type: "sine"
             }
         }).toDestination();
 
-        // Mate sound: A dramatic, resonant chord for checkmate
-        const mateSound = new Tone.PolySynth({
-            voice: Tone.Synth,
-            options: {
-                oscillator: {
-                    type: toString('sine')
-                },
-                envelope: {
-                    attack: 0.02,
-                    decay: 0.3,
-                    sustain: 0.1,
-                    release: 0.8
-                }
+        // Mate sound: A more definitive, perhaps lower-pitched error/game over sound
+        const mateSound = new Tone.Synth({
+            envelope: {
+                attack: 0.01,
+                decay: 0.4,
+                sustain: 0.1,
+                release: 0.8,
+            },
+            oscillator: {
+                type: "sawtooth"
             }
         }).toDestination();
 
@@ -224,17 +211,20 @@
 
             switch (type) {
                 case 'move':
-                    moveSound.triggerAttackRelease("G3", "16n"); // Soft wooden click
+                    // Trigger a low-pitched, short sound for wooden feel
+                    moveSound.triggerAttackRelease("C2", "8n");
                     break;
                 case 'capture':
-                    captureSound.triggerAttackRelease("C3", "8n"); // Sharper wooden clack
+                    // Trigger a sharper, slightly higher-pitched sound
+                    captureSound.triggerAttackRelease("G3", "8n");
                     break;
                 case 'check':
-                    checkSound.triggerAttackRelease("A4", "8n"); // Tense high-pitched tone
+                    // A warning sound for check
+                    checkSound.triggerAttackRelease("C5", "8n");
                     break;
                 case 'mate':
-                    // Dramatic chord for checkmate
-                    mateSound.triggerAttackRelease(["C3", "E3", "G3"], "4n");
+                    // A more serious, lower-pitched sound for mate
+                    mateSound.triggerAttackRelease("C3", "4n");
                     break;
             }
         }
@@ -385,7 +375,7 @@
                     // Double move from start
                     if (((color === 'w' && row === 6) || (color === 'b' && row === 1)) &&
                         !board[row + direction][col] && board[row + 2 * direction] && !board[row + 2 * direction][col]) {
-                        moves.push([row + 2 direction, col]);
+                        moves.push([row + 2 * direction, col]);
                     }
                     // Captures
                     if (board[row + direction]) { // Ensure row exists
@@ -555,6 +545,7 @@
             }
             return moves;
         }
+
 
         // Function to get all legal moves (considers king safety)
         function getLegalMoves(startRow, startCol, piece) {
