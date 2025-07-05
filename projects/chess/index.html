@@ -19,6 +19,7 @@
             min-height: 100vh;
             padding: 0; /* Remove padding from body to use on container */
             box-sizing: border-box;
+            margin: 0; /* Ensure no default margins */
         }
 
         .game-container {
@@ -28,10 +29,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 95%; /* Maximize width */
-            max-width: 1200px; /* Cap overall width */
-            min-height: 95vh; /* Take up most of the viewport height */
-            margin: 2.5vh auto; /* Center vertically with some margin */
+            width: 100%; /* Full width */
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* No margins */
             overflow: hidden; /* Ensure rounded corners on children */
         }
 
@@ -82,8 +82,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center; /* Center content vertically */
-            padding: 1.5rem;
+            padding: 1rem;
             width: 100%;
+            overflow: auto; /* Allow scrolling if content overflows */
         }
 
         .board-wrapper {
@@ -92,9 +93,9 @@
             justify-content: center;
             align-items: center; /* Center boards vertically in the wrapper */
             width: 100%;
-            flex-grow: 1; /* Allow boards to take available space */
-            padding-top: 1rem; /* Space above boards */
-            padding-bottom: 1rem;
+            height: 100%; /* Take full height of game-content */
+            padding: 1rem; /* Adjusted padding */
+            box-sizing: border-box;
         }
 
         .chessboard {
@@ -102,18 +103,28 @@
             grid-template-columns: repeat(8, minmax(0, 1fr));
             grid-template-rows: repeat(8, minmax(0, 1fr));
             width: 100%;
-            height: auto; /* Allow height to adjust with width */
+            height: 100%;
+            max-width: 100%; /* Remove fixed max-width for single board */
+            max-height: 100%; /* Ensure it fits within container */
             aspect-ratio: 1 / 1; /* Keep it square */
             border: 2px solid #4a5568; /* Board border */
             border-radius: 0.5rem;
             overflow: hidden; /* Ensures rounded corners on squares */
             transition: transform 0.3s ease-in-out; /* For rotation effect */
-            max-width: 600px; /* Max size for a single board */
         }
 
         /* Styles for double board setup */
         .double-board-container .chessboard {
             max-width: 48%; /* Each board takes slightly less than half to allow for gap */
+            max-height: 100%; /* Ensure it fits within container */
+        }
+
+        /* Ensure single board takes maximum space */
+        .board-wrapper:not(.double-board-container) .chessboard {
+            width: 100%;
+            height: 100%;
+            max-width: calc(100vw - 2rem); /* Account for padding */
+            max-height: calc(100vh - 200px); /* Account for header, status, timers, and buttons */
         }
 
         .rotated-board {
@@ -123,14 +134,13 @@
             transform: rotate(180deg); /* Rotate pieces back */
         }
 
-
         .square {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem; /* Piece size */
+            font-size: clamp(1.5rem, 5vw, 2.5rem); /* Responsive piece size */
             cursor: pointer;
             user-select: none; /* Prevent text selection */
             transition: background-color 0.2s ease;
@@ -195,7 +205,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 500px; /* Align with single board max-width */
+            max-width: 500px; /* Align with board width for smaller screens */
             padding: 0 10px;
             margin-bottom: 1rem;
         }
@@ -225,9 +235,48 @@
         .hidden-game-content {
             display: none;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                border-radius: 0; /* Remove rounded corners on small screens */
+            }
+
+            .game-header {
+                padding: 0.75rem;
+                border-radius: 0;
+            }
+
+            .game-content {
+                padding: 0.5rem;
+            }
+
+            .board-wrapper {
+                padding: 0.5rem;
+            }
+
+            .board-wrapper:not(.double-board-container) .chessboard {
+                max-width: calc(100vw - 1rem); /* Adjust for smaller padding */
+                max-height: calc(100vh - 180px); /* Adjust for smaller header/buttons */
+            }
+
+            .double-board-container {
+                flex-direction: column; /* Stack boards vertically on small screens */
+                gap: 10px;
+            }
+
+            .double-board-container .chessboard {
+                max-width: calc(100vw - 1rem); /* Full width for each board */
+                max-height: calc((100vh - 200px) / 2); /* Split height for two boards */
+            }
+
+            .square {
+                font-size: clamp(1rem, 4vw, 2rem); /* Smaller pieces on mobile */
+            }
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-5 bg-gray-900 text-gray-200">
+<body class="flex flex-col items-center justify-center min-h-screen p-0 bg-gray-900 text-gray-200">
     <div class="game-container">
         <div class="game-header">
             <h1 class="text-3xl font-bold text-blue-400">Simple Online Chess Board</h1>
@@ -245,7 +294,7 @@
                     <label for="viewSingle">Single Board</label>
                     <input type="radio" id="viewDouble" name="boardView" value="double">
                     <label for="viewDouble">Double Board</label>
-                </div>
+        </div>
             </div>
         </div>
 
@@ -441,7 +490,6 @@
 
             // Get selected board view
             boardView = document.querySelector('input[name="boardView"]:checked').value;
-
 
             board = [
                 ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
@@ -810,7 +858,6 @@
             return moves;
         }
 
-
         // Function to get all legal moves (considers king safety)
         function getLegalMoves(startRow, startCol, piece) {
             const pseudoLegalMoves = getPseudoLegalMoves(startRow, startCol, piece);
@@ -973,7 +1020,6 @@
             mainGameContent.classList.add('hidden-game-content');
             // Do NOT call initializeBoard here, it's called by startGameButton
         };
-
     </script>
 </body>
 </html>
