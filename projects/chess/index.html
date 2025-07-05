@@ -31,7 +31,14 @@
             align-items: center;
             gap: 1.5rem;
             max-width: 90%; /* Responsive width */
-            width: 600px; /* Max width for larger screens */
+            width: 700px; /* Increased max width for double board */
+        }
+
+        .board-wrapper {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
         }
 
         .chessboard {
@@ -39,12 +46,27 @@
             grid-template-columns: repeat(8, minmax(0, 1fr));
             grid-template-rows: repeat(8, minmax(0, 1fr));
             width: 100%; /* Make board responsive */
-            max-width: 500px; /* Max width for the board itself */
+            max-width: 300px; /* Max width for the board itself */
             aspect-ratio: 1 / 1; /* Keep it square */
             border: 2px solid #4a5568; /* Board border */
             border-radius: 0.5rem;
             overflow: hidden; /* Ensures rounded corners on squares */
+            transition: transform 0.3s ease-in-out; /* For rotation effect */
         }
+
+        /* Styles for double board setup */
+        .double-board-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .rotated-board {
+            transform: rotate(180deg);
+        }
+        .rotated-board .square {
+            transform: rotate(180deg); /* Rotate pieces back */
+        }
+
 
         .square {
             width: 100%;
@@ -112,6 +134,35 @@
             min-height: 2rem; /* To prevent layout shift */
         }
 
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #a7f3d0;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .control-group input[type="radio"] {
+            margin-right: 0.25rem;
+        }
+
         .reset-button {
             background-color: #4299e1; /* Blue */
             color: white;
@@ -128,11 +179,36 @@
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-5 bg-gray-900 text-gray-200">
-    <div class="game-container bg-gray-800 rounded-2xl p-6 shadow-xl flex flex-col items-center gap-6 max-w-lg w-full">
+    <div class="game-container bg-gray-800 rounded-2xl p-6 shadow-xl flex flex-col items-center gap-6 w-full">
         <h1 class="text-3xl font-bold text-blue-400 mb-4">Two-Player Chess</h1>
-        <div id="status" class="status-display text-lg font-semibold text-center text-gray-100">White to move</div>
-        <div id="chessboard" class="chessboard">
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Time Control:</label>
+                <input type="radio" id="timeControl10Min" name="timeControl" value="10min" checked>
+                <label for="timeControl10Min">10 Mins</label>
+                <input type="radio" id="timeControlNoControl" name="timeControl" value="nocontrol">
+                <label for="timeControlNoControl">No Control</label>
             </div>
+            <div class="control-group">
+                <label>Board View:</label>
+                <input type="radio" id="viewSingle" name="boardView" value="single" checked>
+                <label for="viewSingle">Single Board</label>
+                <input type="radio" id="viewDouble" name="boardView" value="double">
+                <label for="viewDouble">Double Board</label>
+            </div>
+        </div>
+
+        <div id="status" class="status-display text-lg font-semibold text-center text-gray-100">White to move</div>
+
+        <div class="timer-display-container flex justify-between w-full max-w-lg px-4">
+            <div id="whiteTimeDisplay" class="timer-display">10:00</div>
+            <div id="blackTimeDisplay" class="timer-display">10:00</div>
+        </div>
+        
+        <div id="boardContainer" class="board-wrapper">
+            </div>
+
         <button id="resetButton" class="reset-button">Reset Game</button>
     </div>
 
@@ -149,6 +225,13 @@
         let possibleMoves = [];
         let isGameOver = false;
 
+        // Timer variables
+        let whiteTime = 10 * 60; // 10 minutes in seconds
+        let blackTime = 10 * 60;
+        let timerInterval;
+        let timeControlEnabled = true;
+        let boardView = 'single'; // 'single' or 'double'
+
         // Piece Unicode characters
         const PIECES = {
             'wp': '♙', 'wr': '♖', 'wn': '♘', 'wb': '♗', 'wq': '♕', 'wk': '♔',
@@ -156,76 +239,112 @@
         };
 
         // Initialize Tone.js for sounds
-// Replace the moveSound initialization with a wooden pluck-like sound
-const moveSound = new Tone.MembraneSynth({
-    pitchDecay: 0.005,
-    octaves: 3,
-    envelope: {
-        attack: 0.01,
-        decay: 0.3,
-        sustain: 0,
-        release: 0.2
-    }
-}).toDestination();
+        const moveSound = new Tone.MembraneSynth({
+            pitchDecay: 0.005,
+            octaves: 3,
+            envelope: {
+                attack: 0.01,
+                decay: 0.3,
+                sustain: 0,
+                release: 0.2
+            }
+        }).toDestination();
 
-// Replace the captureSound with a sharper, metallic strike
-const captureSound = new Tone.MetalSynth({
-    frequency: 400,
-    envelope: {
-        attack: 0.001,
-        decay: 0.2,
-        release: 0.1
-    },
-    harmonicity: 5.1,
-    modulationIndex: 32,
-    resonance: 4000,
-    octaves: 1.5
-}).toDestination();
+        const captureSound = new Tone.MetalSynth({
+            frequency: 400,
+            envelope: {
+                attack: 0.001,
+                decay: 0.2,
+                release: 0.1
+            },
+            harmonicity: 5.1,
+            modulationIndex: 32,
+            resonance: 4000,
+            octaves: 1.5
+        }).toDestination();
 
-// Replace the checkSound with a subtle error beep
-const checkSound = new Tone.Synth({
-    oscillator: { type: 'sine' },
-    envelope: {
-        attack: 0.005,
-        decay: 0.15,
-        sustain: 0,
-        release: 0.1
-    }
-}).toDestination();
+        const checkSound = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: {
+                attack: 0.005,
+                decay: 0.15,
+                sustain: 0,
+                release: 0.1
+            }
+        }).toDestination();
 
-// Replace mateSound with a more dramatic error chord (two notes)
-const mateSound = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: 'triangle' },
-    envelope: {
-        attack: 0.01,
-        decay: 0.4,
-        sustain: 0,
-        release: 0.3
-    }
-}).toDestination();
+        const mateSound = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'triangle' },
+            envelope: {
+                attack: 0.01,
+                decay: 0.4,
+                sustain: 0,
+                release: 0.3
+            }
+        }).toDestination();
 
-// In the playSound function, change the notes to these:
+        function playSound(type) {
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            switch (type) {
+                case 'move':
+                    moveSound.triggerAttackRelease("C3", "32n"); // softer, lower wooden tap
+                    break;
+                case 'capture':
+                    captureSound.triggerAttackRelease("G4", "16n"); // sharper metallic strike
+                    break;
+                case 'check':
+                    checkSound.triggerAttackRelease("A4", "8n"); // subtle error beep
+                    break;
+                case 'mate':
+                    mateSound.triggerAttackRelease(["C4", "E4"], "4n"); // dramatic two-note chord
+                    break;
+            }
+        }
 
-function playSound(type) {
-    if (Tone.context.state !== 'running') {
-        Tone.start();
-    }
-    switch (type) {
-        case 'move':
-            moveSound.triggerAttackRelease("C3", "32n"); // softer, lower wooden tap
-            break;
-        case 'capture':
-            captureSound.triggerAttackRelease("G4", "16n"); // sharper metallic strike
-            break;
-        case 'check':
-            checkSound.triggerAttackRelease("A4", "8n"); // subtle error beep
-            break;
-        case 'mate':
-            mateSound.triggerAttackRelease(["C4", "E4"], "4n"); // dramatic two-note chord
-            break;
-    }
-}
+        // --- Timer Functions ---
+        function startTimer() {
+            stopTimer(); // Clear any existing timer
+            if (!timeControlEnabled) {
+                document.getElementById('whiteTimeDisplay').textContent = '--:--';
+                document.getElementById('blackTimeDisplay').textContent = '--:--';
+                return;
+            }
 
+            timerInterval = setInterval(() => {
+                if (currentPlayer === 'white') {
+                    whiteTime--;
+                } else {
+                    blackTime--;
+                }
+
+                updateTimers();
+
+                if (whiteTime <= 0 || blackTime <= 0) {
+                    stopTimer();
+                    isGameOver = true;
+                    const winner = whiteTime <= 0 ? 'Black' : 'White';
+                    updateStatus(`${winner} wins by timeout!`);
+                    playSound('mate');
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateTimers() {
+            document.getElementById('whiteTimeDisplay').textContent = formatTime(whiteTime);
+            document.getElementById('blackTimeDisplay').textContent = formatTime(blackTime);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
 
         // --- Game Initialization ---
         function initializeBoard() {
@@ -233,6 +352,23 @@ function playSound(type) {
             currentPlayer = 'white';
             selectedPiece = null;
             possibleMoves = [];
+
+            // Get selected time control
+            const selectedTimeControl = document.querySelector('input[name="timeControl"]:checked').value;
+            timeControlEnabled = (selectedTimeControl === '10min');
+            
+            if (timeControlEnabled) {
+                whiteTime = 10 * 60;
+                blackTime = 10 * 60;
+            } else {
+                whiteTime = 0; // Or a very large number, but 0 indicates 'no control' for display
+                blackTime = 0;
+            }
+            updateTimers(); // Display initial times or '--:--'
+
+            // Get selected board view
+            boardView = document.querySelector('input[name="boardView"]:checked').value;
+
 
             board = [
                 ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
@@ -246,18 +382,63 @@ function playSound(type) {
             ];
             updateStatus(`${capitalize(currentPlayer)} to move`);
             drawBoard();
+            if (timeControlEnabled) {
+                startTimer();
+            } else {
+                stopTimer(); // Ensure timer is stopped if 'No Control' is selected
+            }
         }
 
         // --- Board Drawing ---
         function drawBoard() {
-            const chessboardDiv = document.getElementById('chessboard');
-            chessboardDiv.innerHTML = ''; // Clear existing board
+            const boardContainer = document.getElementById('boardContainer');
+            boardContainer.innerHTML = ''; // Clear existing boards
+
+            if (boardView === 'single') {
+                const chessboardDiv = createChessboardElement('chessboard-single', false);
+                boardContainer.appendChild(chessboardDiv);
+                renderBoard(chessboardDiv, board, false);
+            } else { // double board
+                const whiteChessboardDiv = createChessboardElement('chessboard-white', false);
+                const blackChessboardDiv = createChessboardElement('chessboard-black', true); // Rotated for black
+                
+                boardContainer.classList.add('double-board-container'); // Add flex container styling
+                boardContainer.appendChild(whiteChessboardDiv);
+                boardContainer.appendChild(blackChessboardDiv);
+
+                renderBoard(whiteChessboardDiv, board, false);
+                renderBoard(blackChessboardDiv, board, true);
+            }
+        }
+
+        function createChessboardElement(id, isRotated) {
+            const div = document.createElement('div');
+            div.id = id;
+            div.classList.add('chessboard');
+            if (isRotated) {
+                div.classList.add('rotated-board');
+            }
+            return div;
+        }
+
+        function renderBoard(targetDiv, currentBoard, isRotated) {
+            targetDiv.innerHTML = ''; // Clear existing board in the target div
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const square = document.createElement('div');
                     square.classList.add('square');
-                    square.dataset.row = r;
+
+                    let displayRow = r;
+                    let displayCol = c;
+
+                    // Adjust for rotated view if necessary
+                    if (isRotated) {
+                        displayRow = 7 - r;
+                        displayCol = 7 - c;
+                    }
+
+                    square.dataset.row = r; // Keep original row/col for logic
                     square.dataset.col = c;
 
                     // Alternate square colors
@@ -267,10 +448,9 @@ function playSound(type) {
                         square.classList.add('dark');
                     }
 
-                    const piece = board[r][c];
+                    const piece = currentBoard[r][c];
                     if (piece) {
                         square.textContent = PIECES[piece];
-                        // Apply specific piece color classes
                         const pieceColorClass = piece[0] === 'w' ? 'piece-white' : 'piece-black';
                         square.classList.add(pieceColorClass);
                     }
@@ -278,38 +458,52 @@ function playSound(type) {
                     // Add click listener to each square
                     square.addEventListener('click', handleSquareClick);
 
-                    chessboardDiv.appendChild(square);
+                    targetDiv.appendChild(square);
                 }
             }
 
             // Apply highlights if any
             if (selectedPiece) {
                 const { row, col } = selectedPiece;
-                const selectedSquare = document.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
-                if (selectedSquare) {
-                    selectedSquare.classList.add('selected');
-                }
+                // Highlight on both boards if double view, otherwise just the single one
+                const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
+                
+                boardsToHighlight.forEach(boardElem => {
+                    const selectedSquare = boardElem.querySelector(`.square[data-row="${row}"][data-col="${col}"]`);
+                    if (selectedSquare) {
+                        selectedSquare.classList.add('selected');
+                    }
+                });
             }
+
             possibleMoves.forEach(move => {
                 const [r, c] = move;
-                const targetSquare = document.querySelector(`.square[data-row="${r}"][data-col="${c}"]`);
-                if (targetSquare) {
-                    targetSquare.classList.add('possible-move');
-                    if (board[r][c]) { // If there's a piece, it's a capture move
-                        targetSquare.classList.add('capture');
+                const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
+                
+                boardsToHighlight.forEach(boardElem => {
+                    const targetSquare = boardElem.querySelector(`.square[data-row="${r}"][data-col="${c}"]`);
+                    if (targetSquare) {
+                        targetSquare.classList.add('possible-move');
+                        if (currentBoard[r][c]) { // If there's a piece, it's a capture move
+                            targetSquare.classList.add('capture');
+                        }
                     }
-                }
+                });
             });
 
             // Highlight king if in check
             const kingColor = currentPlayer === 'white' ? 'wk' : 'bk';
-            const kingPosition = findKing(board, kingColor);
-            if (kingPosition && isKingInCheck(board, currentPlayer)) {
+            const kingPosition = findKing(currentBoard, kingColor);
+            if (kingPosition && isKingInCheck(currentBoard, currentPlayer)) {
                 const [kingR, kingC] = kingPosition;
-                const kingSquare = document.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
-                if (kingSquare) {
-                    kingSquare.classList.add('king-in-checkmate'); // Using this class for check too
-                }
+                const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
+
+                boardsToHighlight.forEach(boardElem => {
+                    const kingSquare = boardElem.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
+                    if (kingSquare) {
+                        kingSquare.classList.add('king-in-checkmate');
+                    }
+                });
             }
         }
 
@@ -586,6 +780,12 @@ function playSound(type) {
 
             // Switch turns
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+            
+            // Restart timer for the new player
+            if (timeControlEnabled) {
+                stopTimer();
+                startTimer();
+            }
 
             // Check game status after move
             checkGameStatus();
@@ -615,16 +815,21 @@ function playSound(type) {
 
                 if (!hasLegalMoves) {
                     isGameOver = true;
+                    stopTimer();
                     playSound('mate');
                     updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
                     const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
                     const kingPosition = findKing(board, kingPieceInCheck);
                     if (kingPosition) {
                         const [kingR, kingC] = kingPosition;
-                        const kingSquare = document.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
-                        if (kingSquare) {
-                            kingSquare.classList.add('king-in-checkmate');
-                        }
+                        // Highlight king on both boards if double view
+                        const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
+                        boardsToHighlight.forEach(boardElem => {
+                            const kingSquare = boardElem.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
+                            if (kingSquare) {
+                                kingSquare.classList.add('king-in-checkmate');
+                            }
+                        });
                     }
                     return;
                 } else {
@@ -647,6 +852,7 @@ function playSound(type) {
 
                 if (!hasLegalMoves) {
                     isGameOver = true;
+                    stopTimer();
                     updateStatus(`Stalemate! It's a draw.`);
                     return;
                 }
@@ -664,8 +870,16 @@ function playSound(type) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
-        // --- Reset Button ---
+        // --- Event Listeners for Controls ---
         document.getElementById('resetButton').addEventListener('click', initializeBoard);
+
+        document.querySelectorAll('input[name="timeControl"]').forEach(radio => {
+            radio.addEventListener('change', initializeBoard); // Re-initialize when time control changes
+        });
+
+        document.querySelectorAll('input[name="boardView"]').forEach(radio => {
+            radio.addEventListener('change', initializeBoard); // Re-initialize when board view changes
+        });
 
         // --- Initial Setup ---
         window.onload = function() {
