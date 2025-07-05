@@ -59,14 +59,14 @@
   <div id="board"></div>
 
   <script>
-    const socket = io("https://continuous-exuberant-stetson.glitch.me"); // ✅ Your Glitch backend
+  window.onload = function () {
+    const socket = io("https://continuous-exuberant-stetson.glitch.me");
     const board = Chessboard('board', {
       draggable: true,
       dropOffBoard: 'snapback',
       position: 'start',
       onDrop: onDrop
     });
-
     const game = new Chess();
     let roomId;
 
@@ -101,6 +101,12 @@
       game.move(move);
       board.position(game.fen());
     });
-  </script>
+
+    // expose functions to HTML
+    window.createGame = createGame;
+    window.joinGame = joinGame;
+  }
+</script>
+
 </body>
 </html>
