@@ -473,14 +473,15 @@
                 renderBoard(chessboardDiv, board, false);
             } else { // double board
                 boardContainer.classList.add('double-board-container'); // Add flex container styling
-                const whiteChessboardDiv = createChessboardElement('chessboard-white', false);
-                const blackChessboardDiv = createChessboardElement('chessboard-black', true); // Rotated for black
+                const blackChessboardDiv = createChessboardElement('chessboard-black', true); // This is for Black's view, and it's rotated
+                const whiteChessboardDiv = createChessboardElement('chessboard-white', false); // This is for White's view
                 
-                boardContainer.appendChild(whiteChessboardDiv);
+                // Append black's board first (left), then white's board (right)
                 boardContainer.appendChild(blackChessboardDiv);
+                boardContainer.appendChild(whiteChessboardDiv);
 
-                renderBoard(whiteChessboardDiv, board, false);
-                renderBoard(blackChessboardDiv, board, true);
+                renderBoard(blackChessboardDiv, board, true); // Render black's board with rotation logic
+                renderBoard(whiteChessboardDiv, board, false); // Render white's board without rotation logic
             }
         }
 
