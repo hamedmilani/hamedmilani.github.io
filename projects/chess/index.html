@@ -156,34 +156,16 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound (now uses properties of the old capture sound)
-        const moveSound = new Tone.MembraneSynth({
-            octaves: 2,
-            pitchDecay: 0.05,
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0,
-                release: 0.05
-            }
-        }).toDestination(); 
+        // Move sound (reverted to a simple PluckSynth for a louder, default pluck sound)
+        const moveSound = new Tone.PluckSynth().toDestination(); 
 
-        // New capture sound (slightly different MembraneSynth)
-        const captureSound = new Tone.MembraneSynth({
-            octaves: 3,
-            pitchDecay: 0.08,
-            envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                sustain: 0,
-                release: 0.1
-            }
-        }).toDestination();
+        // Capture sound (reverted to a simple MembraneSynth for a louder, default kick-like sound)
+        const captureSound = new Tone.MembraneSynth().toDestination();
 
-        // Check sound (unchanged)
+        // Check sound (unchanged, user liked this one)
         const checkSound = new Tone.Synth().toDestination(); 
 
-        // Mate sound (for sequencing two notes)
+        // Mate sound (for sequencing two notes, keeping PolySynth for multiple notes)
         const mateSound = new Tone.PolySynth().toDestination(); 
 
         // Function to play sounds
@@ -195,16 +177,16 @@
 
             switch (type) {
                 case 'move':
-                    moveSound.triggerAttackRelease("C2", "16n"); // Old capture sound parameters
+                    moveSound.triggerAttackRelease("C4", "8n"); // Default pluck sound
                     break;
                 case 'capture':
-                    captureSound.triggerAttackRelease("G1", "8n"); // New distinct capture sound
+                    captureSound.triggerAttackRelease("C2", "16n"); // Default membrane synth sound
                     break;
                 case 'check':
                     checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
                     break;
                 case 'mate':
-                    // "dan dannn" effect
+                    // "dan dannn" effect with two notes
                     mateSound.triggerAttackRelease("C4", "8n"); // First note "dan"
                     setTimeout(() => {
                         mateSound.triggerAttackRelease("G4", "4n"); // Second note "dannn"
