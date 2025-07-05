@@ -156,82 +156,76 @@
         };
 
         // Initialize Tone.js for sounds
-        // Move sound: A wooden, soft click sound
-        const moveSound = new Tone.MembraneSynth({
-            pitchDecay: 0.05,
-            octaves: 4,
-            oscillator: { type: 'sine' },
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0.01,
-                release: 0.3
-            }
-        }).toDestination();
+// Replace the moveSound initialization with a wooden pluck-like sound
+const moveSound = new Tone.MembraneSynth({
+    pitchDecay: 0.005,
+    octaves: 3,
+    envelope: {
+        attack: 0.01,
+        decay: 0.3,
+        sustain: 0,
+        release: 0.2
+    }
+}).toDestination();
 
-        // Capture sound: A sharper, more aggressive hit
-        const captureSound = new Tone.MetalSynth({
-            frequency: 200,
-            envelope: {
-                attack: 0.001,
-                decay: 0.1,
-                sustain: 0.01,
-                release: 0.2
-            },
-            harmonicity: 5.1,
-            modulationIndex: 32,
-            resonance: 4000,
-            octaves: 1.5
-        }).toDestination();
+// Replace the captureSound with a sharper, metallic strike
+const captureSound = new Tone.MetalSynth({
+    frequency: 400,
+    envelope: {
+        attack: 0.001,
+        decay: 0.2,
+        release: 0.1
+    },
+    harmonicity: 5.1,
+    modulationIndex: 32,
+    resonance: 4000,
+    octaves: 1.5
+}).toDestination();
 
-        // Check sound: A tense, sharp alert sound
-        const checkSound = new Tone.Synth({
-            oscillator: { type: 'triangle' },
-            envelope: {
-                attack: 0.01,
-                decay: 0.1,
-                sustain: 0,
-                release: 0.3
-            }
-        }).toDestination();
+// Replace the checkSound with a subtle error beep
+const checkSound = new Tone.Synth({
+    oscillator: { type: 'sine' },
+    envelope: {
+        attack: 0.005,
+        decay: 0.15,
+        sustain: 0,
+        release: 0.1
+    }
+}).toDestination();
 
-        // Mate sound: A dramatic, resonant tone
-        const mateSound = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: 'sawtooth' },
-            envelope: {
-                attack: 0.01,
-                decay: 0.2,
-                sustain: 0.2,
-                release: 0.5
-            }
-        }).toDestination();
+// Replace mateSound with a more dramatic error chord (two notes)
+const mateSound = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: 'triangle' },
+    envelope: {
+        attack: 0.01,
+        decay: 0.4,
+        sustain: 0,
+        release: 0.3
+    }
+}).toDestination();
 
-        // Function to play sounds
-        function playSound(type) {
-            // Ensure audio context is running before playing sounds
-            if (Tone.context.state !== 'running') {
-                Tone.start();
-            }
+// In the playSound function, change the notes to these:
 
-            switch (type) {
-                case 'move':
-                    moveSound.triggerAttackRelease("C4", "16n"); // Short, sharp note
-                    break;
-                case 'capture':
-                    captureSound.triggerAttackRelease("C2", "8n"); // Deeper, more impactful note
-                    break;
-                case 'check':
-                    checkSound.triggerAttackRelease("G4", "8n"); // Current check sound
-                    break;
-                case 'mate':
-                    // "dan dannn" effect with two notes
-                    mateSound.triggerAttackRelease("C4", "8n"); // First note "dan"
-                    setTimeout(() => {
-                        mateSound.triggerAttackRelease("G4", "4n"); // Second note "dannn"
-                    }, 150); // Delay of 150 milliseconds
-                    break;
-            }
-        }
+function playSound(type) {
+    if (Tone.context.state !== 'running') {
+        Tone.start();
+    }
+    switch (type) {
+        case 'move':
+            moveSound.triggerAttackRelease("C3", "32n"); // softer, lower wooden tap
+            break;
+        case 'capture':
+            captureSound.triggerAttackRelease("G4", "16n"); // sharper metallic strike
+            break;
+        case 'check':
+            checkSound.triggerAttackRelease("A4", "8n"); // subtle error beep
+            break;
+        case 'mate':
+            mateSound.triggerAttackRelease(["C4", "E4"], "4n"); // dramatic two-note chord
+            break;
+    }
+}
+
 
         // --- Game Initialization ---
         function initializeBoard() {
