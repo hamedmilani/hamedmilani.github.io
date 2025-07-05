@@ -499,9 +499,10 @@
         function renderBoard(targetDiv, currentBoard, isRotated) {
             targetDiv.innerHTML = ''; // Clear existing board in the target div
 
-            // Determine the iteration order based on rotation
-            const rows = isRotated ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
-            const cols = isRotated ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+            // Always iterate through rows and columns in standard order for data access.
+            // Visual rotation is handled by CSS on the board container and individual squares.
+            const rows = [0, 1, 2, 3, 4, 5, 6, 7];
+            const cols = [0, 1, 2, 3, 4, 5, 6, 7];
 
             for (let r of rows) {
                 for (let c of cols) {
