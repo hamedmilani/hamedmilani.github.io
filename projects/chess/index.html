@@ -1,85 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Local Chess</title>
-
-  <!-- chessboard.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs@1.0.0/dist/chessboard.min.css" />
-
-  <!-- chess.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
-
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding-top: 20px;
-    }
-    #board {
-      width: 400px;
-      margin: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chess Game</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #board {
+            width: 400px;
+            margin: 20px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls input, .controls select, .controls button {
+            margin: 5px;
+            padding: 8px;
+            font-size: 16px;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .timers {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-top: 10px;
+        }
+        .timer {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .highlight-checkmate {
+            background-color: red !important;
+        }
+    </style>
 </head>
 <body>
+    <div class="game-container">
+        <div class="controls">
+            <div>
+                <label>White Player Name: </label>
+                <input type="text" id="whiteName" placeholder="Player 1">
+            </div>
+            <div>
+                <label>Black Player Name: </label>
+                <input type="text" id="blackName" placeholder="Player 2">
+            </div>
+            <div>
+                <label>Color Selection: </label>
+                <select id="colorChoice">
+                    <option value="manual">Manual (White chooses first)</option>
+                    <option value="random">Random</option>
+                </select>
+            </div>
+            <div>
+                <label>Time Control: </label>
+                <select id="timeControl">
+                    <option value="none">No Time Control</option>
+                    <option value="10min">10 Minutes</option>
+                </select>
+            </div>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+        <div id="board"></div>
+        <div class="timers">
+            <div class="timer" id="whiteTimer">White: 10:00</div>
+            <div class="timer" id="blackTimer">Black: 10:00</div>
+        </div>
+        <div class="status" id="gameStatus">Enter names and start the game!</div>
+    </div>
 
-  <h2>Local 2-Player Chess</h2>
-  <div id="board"></div>
-  <p id="status"></p>
+    <script>
+        let board = null;
+        let game = new Chess();
+        let whiteTime = 600; // 10 minutes in seconds
+        let blackTime = 600;
+        let timerInterval = null;
+        let currentPlayer = 'w';
+        let whitePlayer = 'Player 1';
+        let blackPlayer = 'Player 2';
 
-  <script>
-    const boardElement = document.getElementById("board");
-    const statusElement = document.getElementById("status");
+        // Audio files (replace with actual paths in your GitHub repo)
+        const moveSound = new Audio('move.mp3');
+        const captureSound = new Audio('capture.mp3');
+        const checkSound = new Audio('check.mp3');
+        const checkmateSound = new Audio('checkmate.mp3');
 
-    const game = new Chess();
+        function startGame() {
+            whitePlayer = $('#whiteName').val() || 'Player 1';
+            blackPlayer = $('#blackName').val() || 'Player 2';
+            const timeControl = $('#timeControl').val();
+            const colorChoice = $('#colorChoice').val();
 
-    const board = Chessboard('board', {
-      draggable: true,
-      position: 'start',
-      onDragStart: (source, piece, position, orientation) => {
-        if (game.game_over()) return false;
-        // don't pick up pieces if it's not that side to move
-        if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-            (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-          return false;
+            // Reset game
+            game = new Chess();
+            whiteTime = timeControl === '10min' ? 600 : null;
+            blackTime = timeControl === '10min' ? 600 : null;
+            currentPlayer = 'w';
+
+            // Color assignment
+            if (colorChoice === 'random') {
+                if (Math.random() < 0.5) {
+                    board.orientation('white');
+                    $('#whiteTimer').text(`${whitePlayer}: 10:00`);
+                    $('#blackTimer').text(`${blackPlayer}: 10:00`);
+                } else {
+                    board.orientation('black');
+                    $('#whiteTimer').text(`${blackPlayer}: 10:00`);
+                    $('#blackTimer').text(`${whitePlayer}: 10:00`);
+                }
+            } else {
+                board.orientation('white');
+                $('#whiteTimer').text(`${whitePlayer}: 10:00`);
+                $('#blackTimer').text(`${blackPlayer}: 10:00`);
+            }
+
+            updateStatus();
+            if (timerInterval) clearInterval(timerInterval);
+            if (timeControl === '10min') {
+                timerInterval = setInterval(updateTimers, 1000);
+            }
         }
-      },
-      onDrop: (source, target) => {
-        const move = game.move({
-          from: source,
-          to: target,
-          promotion: 'q'
+
+        function updateTimers() {
+            if (currentPlayer === 'w' && whiteTime > 0) {
+                whiteTime--;
+                $('#whiteTimer').text(`${whitePlayer}: ${formatTime(whiteTime)}`);
+                if (whiteTime <= 0) {
+                    clearInterval(timerInterval);
+                    $('#gameStatus').text(`${blackPlayer} wins on time!`);
+                }
+            } else if (currentPlayer === 'b' && blackTime > 0) {
+                blackTime--;
+                $('#blackTimer').text(`${blackPlayer}: ${formatTime(blackTime)}`);
+                if (blackTime <= 0) {
+                    clearInterval(timerInterval);
+                    $('#gameStatus').text(`${whitePlayer} wins on time!`);
+                }
+            }
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function updateStatus() {
+            let status = '';
+            if (game.in_checkmate()) {
+                status = `Checkmate! ${currentPlayer === 'w' ? blackPlayer : whitePlayer} wins!`;
+                checkmateSound.play();
+                highlightKing();
+                if (timerInterval) clearInterval(timerInterval);
+            } else if (game.in_check()) {
+                status = 'Check!';
+                checkSound.play();
+            } else if (game.in_draw()) {
+                status = 'Draw!';
+                if (timerInterval) clearInterval(timerInterval);
+            } else if (game.in_stalemate()) {
+                status = 'Stalemate!';
+                if (timerInterval) clearInterval(timerInterval);
+            } else {
+                status = `${currentPlayer === 'w' ? whitePlayer : blackPlayer}'s turn`;
+            }
+            $('#gameStatus').text(status);
+        }
+
+        function highlightKing() {
+            const kingSquare = game.turn() === 'w' ? game.SQUARES.find(s => game.get(s)?.type === 'k' && game.get(s)?.color === 'w') :
+                                                game.SQUARES.find(s => game.get(s)?.type === 'k' && game.get(s)?.color === 'b');
+            if (kingSquare) {
+                $(`#board .square-${kingSquare}`).addClass('highlight-checkmate');
+            }
+        }
+
+        const config = {
+            draggable: true,
+            position: 'start',
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onMouseoutSquare: onMouseoutSquare,
+            onMouseoverSquare: onMouseoverSquare,
+            onSnapEnd: onSnapEnd
+        };
+        board = Chessboard('board', config);
+
+        function onDragStart(source, piece, position, orientation) {
+            if (game.game_over()) return false;
+            if ((currentPlayer === 'w' && piece.search(/^b/) !== -1) ||
+                (currentPlayer === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+        }
+
+        function onDrop(source, target) {
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // Auto-promote to queen for simplicity
+            });
+
+            if (move === null) return 'snapback';
+
+            // Play sound based on move type
+            if (move.captured) {
+                captureSound.play();
+            } else {
+                moveSound.play();
+            }
+
+            currentPlayer = game.turn();
+            updateStatus();
+            board.position(game.fen());
+        }
+
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function onMouseoverSquare(square, piece) {
+            if (game.game_over()) return;
+            const moves = game.moves({ square: square, verbose: true });
+            if (moves.length === 0) return;
+
+            // Highlight possible moves
+            for (const move of moves) {
+                $(`#board .square-${move.to}`).addClass('highlight');
+            }
+        }
+
+        function onMouseoutSquare(square, piece) {
+            $('.square-55d63').removeClass('highlight');
+        }
+
+        // Highlight possible moves
+        $(document).ready(function() {
+            $('<style>.highlight { background: rgba(255, 255, 0, 0.5) !important; }</style>').appendTo('head');
         });
-
-        if (move === null) return 'snapback';
-
-        updateStatus();
-      },
-      onSnapEnd: () => {
-        board.position(game.fen());
-      }
-    });
-
-    function updateStatus() {
-      let status = '';
-
-      if (game.in_checkmate()) {
-        status = 'Checkmate! ' + (game.turn() === 'w' ? 'Black' : 'White') + ' wins.';
-      } else if (game.in_draw()) {
-        status = 'Draw!';
-      } else {
-        status = (game.turn() === 'w' ? 'White' : 'Black') + ' to move';
-        if (game.in_check()) {
-          status += ' — Check!';
-        }
-      }
-
-      statusElement.textContent = status;
-    }
-
-    updateStatus();
-  </script>
+    </script>
 </body>
 </html>
