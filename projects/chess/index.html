@@ -566,21 +566,7 @@
                     }
                 });
             });
-
-            // Highlight king if in check
-            const kingColor = currentPlayer === 'white' ? 'wk' : 'bk';
-            const kingPosition = findKing(currentBoard, kingColor);
-            if (kingPosition && isKingInCheck(currentBoard, currentPlayer)) {
-                const [kingR, kingC] = kingPosition;
-                const boardsToHighlight = boardView === 'single' ? [document.getElementById('chessboard-single')] : [document.getElementById('chessboard-white'), document.getElementById('chessboard-black')];
-
-                boardsToHighlight.forEach(boardElem => {
-                    const kingSquare = boardElem.querySelector(`.square[data-row="${kingR}"][data-col="${kingC}"]`);
-                    if (kingSquare) {
-                        kingSquare.classList.add('king-in-checkmate');
-                    }
-                });
-            }
+            // King highlighting is now handled exclusively by checkGameStatus
         }
 
         // --- Event Handling ---
@@ -872,21 +858,10 @@
             const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white';
 
             // --- Clear previous king highlights for both kings ---
-            const whiteKingPos = findKing(board, 'wk');
-            const blackKingPos = findKing(board, 'bk');
-
-            const allKingSquares = [];
-            if (whiteKingPos) {
-                allKingSquares.push(document.querySelector(`.square[data-row="${whiteKingPos[0]}"][data-col="${whiteKingPos[1]}"]`));
-            }
-            if (blackKingPos) {
-                allKingSquares.push(document.querySelector(`.square[data-row="${blackKingPos[0]}"][data-col="${blackKingPos[1]}"]`));
-            }
-
-            allKingSquares.forEach(square => {
-                if (square) {
-                    square.classList.remove('king-in-check', 'king-in-checkmate');
-                }
+            // This needs to be done *after* drawBoard has recreated the squares
+            const allSquares = document.querySelectorAll('.square');
+            allSquares.forEach(square => {
+                square.classList.remove('king-in-check', 'king-in-checkmate');
             });
             // --- End clear previous king highlights ---
 
