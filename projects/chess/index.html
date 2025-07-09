@@ -17,6 +17,10 @@
     button:hover { background: #555; }
     #status { font-size: 1.2em; margin: 10px 0; }
     #timers { display: flex; justify-content: space-between; width: 100%; max-width: 500px; font-size: 1.1em; }
+    .highlight-legal { background: rgba(0, 255, 0, 0.3); }
+    .check { background: orange !important; }
+    .checkmate { background: red !important; }
+    img[data-piece^='b'] { transform: rotate(180deg); }
     @media (max-width: 600px) { #timers { flex-direction: column; align-items: center; } }
   </style>
 </head>
@@ -35,9 +39,12 @@
   <script>
     const game = new Chess();
     let board, whiteTime, blackTime, timerInterval, useTimer = true;
-    const synth = new Tone.Synth().toDestination();
-    const captureSound = new Tone.Synth({ oscillator: { type: 'square' } }).toDestination();
-    const checkSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2 } }).toDestination();
+    const moveSound = new Tone.Player("https://freesound.org/data/previews/156/156641_2862863-lq.mp3").toDestination();
+    const captureSound = new Tone.Player("https://freesound.org/data/previews/91/91924_1408674-lq.mp3").toDestination();
+    const checkSound = new Tone.Player("https://freesound.org/data/previews/320/320146_5260872-lq.mp3").toDestination();
+    const mateSound = new Tone.Sequence((time, note) => {
+      new Tone.Synth({ oscillator: { type: 'sine' } }).toDestination().triggerAttackRelease(note, 0.2, time);
+    }, ["C4", "G4"], 1).start(0);
 
     function formatTime(seconds) {
       const min = Math.floor(seconds / 60);
@@ -69,18 +76,22 @@
       document.getElementById('whiteTime').textContent = useTimer ? '10:00' : '∞';
       document.getElementById('blackTime').textContent = useTimer ? '10:00' : '∞';
       if (!useTimer) clearInterval(timerInterval);
-      else if (game.in_progress()) startTimer();
+      else if (!game.game_over()) startTimer();
     }
 
     function updateStatus() {
       let status = game.turn() === 'w' ? 'White to move' : 'Black to move';
+      const kingSquare = Object.entries(game.SQUARES).find(([s, p]) => p === (game.turn() === 'w' ? 'K' : 'k'))?.[0];
+      document.querySelectorAll('.square-55d63').forEach(square => square.classList.remove('check', 'checkmate'));
       if (game.in_checkmate()) {
         status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
-        checkSound.triggerAttackRelease('A4', 0.5);
+        if (kingSquare) document.querySelector(`.square-${kingSquare}`).classList.add('checkmate');
+        mateSound.start();
         clearInterval(timerInterval);
       } else if (game.in_check()) {
         status += ' (Check)';
-        checkSound.triggerAttackRelease('C4', 0.3);
+        if (kingSquare) document.querySelector(`.square-${kingSquare}`).classList.add('check');
+        checkSound.start();
       } else if (game.in_draw()) {
         status = 'Draw!';
         clearInterval(timerInterval);
@@ -91,10 +102,14 @@
       document.getElementById('status').textContent = status;
     }
 
-    function endGame(message) {
-      document.getElementById('status').textContent = message;
-      clearInterval(timerInterval);
-      board.position(game.fen());
+    function showLegalMoves(square) {
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      if (!game.game_over() && game.get(square)) {
+        const moves = game.moves({ square: square, verbose: true });
+        moves.forEach(move => {
+          document.querySelector(`.square-${move.to}`).classList.add('highlight-legal');
+        });
+      }
     }
 
     function onDragStart(source, piece) {
@@ -102,14 +117,16 @@
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
       }
+      showLegalMoves(source);
       return true;
     }
 
     function onDrop(source, target) {
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
       const move = game.move({ from: source, to: target, promotion: 'q' });
       if (move === null) return 'snapback';
-      if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
-      else synth.triggerAttackRelease('C4', 0.1);
+      if (move.captured) captureSound.start();
+      else moveSound.start();
       board.position(game.fen());
       updateStatus();
       return null;
@@ -119,11 +136,16 @@
       board.position(game.fen());
     }
 
+    function onMouseDown(square) {
+      if (!game.game_over()) showLegalMoves(square);
+    }
+
     function startGame() {
       game.reset();
       board.position('start');
       updateStatus();
       startTimer();
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
     }
 
     function resetGame() {
@@ -136,6 +158,7 @@
       onDragStart: onDragStart,
       onDrop: onDrop,
       onSnapEnd: onSnapEnd,
+      onMouseDown: onMouseDown,
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
     board = Chessboard('board', cfg);
