@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Online Chess Board</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -14,46 +16,58 @@
             color: #e2e8f0;
             margin: 0;
             padding: 0;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            box-sizing: border-box;
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
+            overflow: auto;
         }
 
         .game-container {
-            background-color: #2d3748;
-            border-radius: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100vw;
+                height: 100vh;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            #boardContainer {
+                width: 100vw;
+                height: 100vw;
+                max-width: 100%;
+                max-height: 100%;
+                aspect-ratio: 1 / 1;
+            }
+
+            .chessboard {
+                width: 100%;
+                height: 100%;
+            }
         }
 
         .game-header {
             width: 100%;
             background-color: #1a202c;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
+            padding: 1rem;
+            text-align: center;
             border-bottom: 1px solid #4a5568;
-        }
-
-        .game-header h1 {
-            font-size: 1.5rem;
-            margin: 0.5rem 0;
         }
 
         .controls {
             display: flex;
             justify-content: center;
             gap: 1rem;
+            padding: 0.5rem;
         }
 
         .control-group {
@@ -64,150 +78,101 @@
 
         .control-group label {
             font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .control-group input[type="radio"] {
-            margin-right: 0.25rem;
         }
 
         .game-content {
             flex-grow: 1;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
-            height: 100%;
-            position: relative;
+            padding: 1rem;
         }
 
         .board-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            padding: 0;
-        }
-
-        .chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, minmax(0, 1fr));
-            grid-template-rows: repeat(8, minmax(0, 1fr));
-            width: 100vmin;
-            height: 100vmin;
-            border: 2px solid #4a5568;
-            overflow: hidden;
-        }
-
-        .square {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: calc(100vmin / 8 * 0.7);
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s ease;
-        }
-
-        .light {
-            background-color: #f0d9b5;
-        }
-
-        .dark {
-            background-color: #b58863;
-        }
-
-        .piece-white {
-            font-family: 'ChessFont', sans-serif;
-            color: #ffffff;
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-        }
-
-        .piece-black {
-            font-family: 'ChessFont', sans-serif;
-            color: #000000;
-        }
-
-        .selected {
-            background-color: #6ee7b7;
-        }
-
-        .possible-move {
-            background-color: #a7f3d0;
             position: relative;
-        }
-
-        .possible-move::after {
-            content: '';
-            position: absolute;
-            width: 30%;
-            height: 30%;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-        }
-
-        .possible-move.capture::after {
-            width: 90%;
-            height: 90%;
-            border: 4px solid rgba(0, 0, 0, 0.2);
-            background: none;
-            border-radius: 0;
-        }
-
-        .king-in-checkmate {
-            background-color: #ef4444 !important;
-        }
-
-        .status-display {
-            font-size: 1rem;
-            font-weight: 600;
-            text-align: center;
-            position: absolute;
-            top: 0;
             width: 100%;
-            background-color: rgba(26, 32, 44, 0.8);
-            padding: 0.5rem;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
+            margin: auto;
+        }
+
+        @media (max-width: 768px) {
+            .board-wrapper {
+                max-width: 100vw;
+                max-height: 100vw;
+            }
         }
 
         .timer-container {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
-            height: 100%;
-            padding: 1rem;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 10px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .timer-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: stretch;
+                padding: 0;
+            }
+
+            .timer-display {
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+                font-size: 2rem;
+                padding: 0.5rem;
+                flex-grow: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #whiteTimeDisplay {
+                background-color: #4caf50;
+                color: #fff;
+                order: 2;
+            }
+
+            #blackTimeDisplay {
+                background-color: #f44336;
+                color: #fff;
+                order: 1;
+            }
         }
 
         .timer-display {
             font-size: 1.5rem;
             font-weight: 700;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            color: #ffffff;
+            color: #a7f3d0;
         }
 
-        .white-timer {
-            background-color: #4299e1;
-            transform: rotate(180deg);
-        }
-
-        .black-timer {
-            background-color: #e53e3e;
+        .status-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1rem;
         }
 
         .start-button, .reset-button {
             background-color: #4299e1;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s ease;
+            margin-top: 1rem;
         }
 
         .start-button:hover, .reset-button:hover {
@@ -218,27 +183,16 @@
             display: none;
         }
 
-        @font-face {
-            font-family: 'ChessFont';
-            src: url('https://cdn.jsdelivr.net/npm/chess-font@1.0.0/fonts/chess.woff') format('woff');
-        }
-
-        @media (orientation: portrait) {
-            .chessboard {
-                width: 100vw;
-                height: 100vw;
-            }
-
-            .square {
-                font-size: calc(100vw / 8 * 0.7);
-            }
+        #chessboard {
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="game-header">
-            <h1>Simple Online Chess Board</h1>
+            <h1 class="text-3xl font-bold text-blue-400">Simple Online Chess Board</h1>
             <div class="controls">
                 <div class="control-group">
                     <label>Time Control:</label>
@@ -256,35 +210,29 @@
 
         <div id="mainGameContent" class="game-content hidden-game-content">
             <div id="status" class="status-display">White to move</div>
-            <div class="timer-container" style="order: -1;">
-                <div id="whiteTimeDisplay" class="timer-display white-timer">10:00</div>
-            </div>
-            <div id="boardContainer" class="board-wrapper">
-                <!-- Chessboard will be rendered here -->
-            </div>
             <div class="timer-container">
-                <div id="blackTimeDisplay" class="timer-display black-timer">10:00</div>
+                <div id="whiteTimeDisplay" class="timer-display">10:00</div>
+                <div id="boardContainer" class="board-wrapper">
+                    <div id="chessboard"></div>
+                </div>
+                <div id="blackTimeDisplay" class="timer-display">10:00</div>
             </div>
             <button id="resetButton" class="reset-button">Reset Game</button>
         </div>
     </div>
 
     <script>
-        // Initialize Firebase variables
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
-
         // Chess board and game state
         let board = [];
         let currentPlayer = 'white';
         let selectedPiece = null;
         let possibleMoves = [];
         let isGameOver = false;
-        let castlingAvailability = {
+        let castleAvailability = {
             white: { kingside: true, queenside: true },
             black: { kingside: true, queenside: true }
         };
+        let chessboard;
 
         // Timer variables
         let whiteTime = 10 * 60;
@@ -300,34 +248,18 @@
         const statusDisplay = document.getElementById('status');
         const whiteTimeDisplay = document.getElementById('whiteTimeDisplay');
         const blackTimeDisplay = document.getElementById('blackTimeDisplay');
-        const boardContainer = document.getElementById('boardContainer');
         const timeControlRadios = document.querySelectorAll('input[name="timeControl"]');
-
-        // Piece Unicode characters (using ChessFont characters)
-        const PIECES = {
-            'wp': '♙', 'wr': '♖', 'wn': '♘', 'wb': '♗', 'wq': '♕', 'wk': '♔',
-            'bp': '♟', 'br': '♜', 'bn': '♞', 'bb': '♝', 'bq': '♛', 'bk': '♚'
-        };
 
         // Initialize Tone.js for sounds
         const moveSound = new Tone.MembraneSynth({
             pitchDecay: 0.005,
             octaves: 3,
-            envelope: {
-                attack: 0.01,
-                decay: 0.3,
-                sustain: 0,
-                release: 0.2
-            }
+            envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 }
         }).toDestination();
 
         const captureSound = new Tone.MetalSynth({
             frequency: 400,
-            envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                release: 0.1
-            },
+            envelope: { attack: 0.001, decay: 0.2, release: 0.1 },
             harmonicity: 5.1,
             modulationIndex: 32,
             resonance: 4000,
@@ -336,22 +268,12 @@
 
         const checkSound = new Tone.Synth({
             oscillator: { type: 'sine' },
-            envelope: {
-                attack: 0.005,
-                decay: 0.15,
-                sustain: 0,
-                release: 0.1
-            }
+            envelope: { attack: 0.005, decay: 0.15, sustain: 0, release: 0.1 }
         }).toDestination();
 
         const mateSound = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: 'triangle' },
-            envelope: {
-                attack: 0.01,
-                decay: 0.4,
-                sustain: 0,
-                release: 0.3
-            }
+            envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.3 }
         }).toDestination();
 
         function playSound(type) {
@@ -378,12 +300,11 @@
         function startTimer() {
             stopTimer();
             if (!timeControlEnabled) {
-                whiteTimeDisplay.style.display = 'none';
-                blackTimeDisplay.style.display = 'none';
+                document.querySelector('.timer-container').style.display = 'none';
                 return;
+            } else {
+                document.querySelector('.timer-container').style.display = 'flex';
             }
-            whiteTimeDisplay.style.display = 'block';
-            blackTimeDisplay.style.display = 'block';
 
             timerInterval = setInterval(() => {
                 if (currentPlayer === 'white') {
@@ -425,24 +346,22 @@
             currentPlayer = 'white';
             selectedPiece = null;
             possibleMoves = [];
-            castlingAvailability = {
+            castleAvailability = {
                 white: { kingside: true, queenside: true },
                 black: { kingside: true, queenside: true }
             };
 
             const selectedTimeControl = document.querySelector('input[name="timeControl"]:checked').value;
             timeControlEnabled = (selectedTimeControl === '10min');
-
+            
             if (timeControlEnabled) {
                 whiteTime = 10 * 60;
                 blackTime = 10 * 60;
-                whiteTimeDisplay.style.display = 'block';
-                blackTimeDisplay.style.display = 'block';
+                document.querySelector('.timer-container').style.display = 'flex';
             } else {
                 whiteTime = 0;
                 blackTime = 0;
-                whiteTimeDisplay.style.display = 'none';
-                blackTimeDisplay.style.display = 'none';
+                document.querySelector('.timer-container').style.display = 'none';
             }
             updateTimers();
 
@@ -456,151 +375,92 @@
                 ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
                 ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
             ];
+
             updateStatus(`${capitalize(currentPlayer)} to move`);
-            drawBoard();
+
+            // Initialize Chessboard.js
+            if (chessboard) {
+                chessboard.destroy();
+            }
+            chessboard = Chessboard('chessboard', {
+                position: boardToFen(board),
+                orientation: currentPlayer === 'white' ? 'white' : 'black',
+                draggable: true,
+                onDragStart: onDragStart,
+                onDrop: onDrop,
+                onSnapEnd: onSnapEnd
+            });
+
             if (timeControlEnabled) {
                 startTimer();
             } else {
                 stopTimer();
             }
-ಸ
-
-            // Ensure board is oriented correctly at the start
-            if (currentPlayer === 'black') {
-                rotateBoardForBlack();
-            }
         }
 
-        // Board Drawing
-        function drawBoard() {
-            boardContainer.innerHTML = '';
-            const chessboardDiv = document.createElement('div');
-            chessboardDiv.id = 'chessboard';
-            chessboardDiv.classList.add('chessboard');
-            boardContainer.appendChild(chessboardDiv);
-            renderBoard(chessboardDiv);
-        }
-
-        function rotateBoardForBlack() {
-            const squares = document.querySelectorAll('.square');
-            squares.forEach(square => {
-                square.style.transform = currentPlayer === 'black' ? 'rotate(180deg)' : 'rotate(0deg)';
-            });
-        }
-
-        function renderBoard(targetDiv) {
-            targetDiv.innerHTML = '';
-
+        // Convert board array to FEN for Chessboard.js
+        function boardToFen(board) {
+            let fen = '';
             for (let r = 0; r < 8; r++) {
-                let displayRow = currentPlayer === 'white' ? 7 - r : r;
+                let empty = 0;
                 for (let c = 0; c < 8; c++) {
-                    let displayCol = currentPlayer === 'white' ? c : 7 - c;
-                    const square = document.createElement('div');
-                    square.classList.add('square');
-                    square.dataset.row = displayRow;
-                    square.dataset.col = displayCol;
-
-                    if ((displayRow + displayCol) % 2 === 0) {
-                        square.classList.add('light');
+                    const piece = board[r][c];
+                    if (!piece) {
+                        empty++;
                     } else {
-                        square.classList.add('dark');
+                        if (empty > 0) {
+                            fen += empty;
+                            empty = 0;
+                        }
+                        fen += piece[0] === 'w' ? piece[1].toUpperCase() : piece[1];
                     }
-
-                    const actualRow = currentPlayer === 'white' ? r : 7 - r;
-                    const actualCol = currentPlayer === 'white' ? c : 7 - c;
-                    const piece = board[actualRow][actualCol];
-                    if (piece) {
-                        square.textContent = PIECES[piece];
-                        const pieceColorClass = piece[0] === 'w' ? 'piece-white' : 'piece-black';
-                        square.classList.add(pieceColorClass);
-                    }
-
-                    if (currentPlayer === 'black') {
-                        square.style.transform = 'rotate(180deg)';
-                    }
-
-                    square.addEventListener('click', handleSquareClick);
-                    targetDiv.appendChild(square);
                 }
+                if (empty > 0) fen += empty;
+                if (r < 7) fen += '/';
             }
-
-            if (selectedPiece) {
-                const { row, col } = selectedPiece;
-                const displayRow = currentPlayer === 'white' ? 7 - row : row;
-                const displayCol = currentPlayer === 'white' ? col : 7 - col;
-                const selectedSquare = targetDiv.querySelector(`.square[data-row="${displayRow}"][data-col="${displayCol}"]`);
-                if (selectedSquare) {
-                    selectedSquare.classList.add('selected');
-                }
-            }
-
-            possibleMoves.forEach(move => {
-                const [r, c] = move;
-                const displayRow = currentPlayer === 'white' ? 7 - r : r;
-                const displayCol = currentPlayer === 'white' ? c : 7 - c;
-                const targetSquare = targetDiv.querySelector(`.square[data-row="${displayRow}"][data-col="${displayCol}"]`);
-                if (targetSquare) {
-                    targetSquare.classList.add('possible-move');
-                    if (board[r][c]) {
-                        targetSquare.classList.add('capture');
-                    }
-                }
-            });
-
-            const kingColor = currentPlayer === 'white' ? 'wk' : 'bk';
-            const kingPosition = findKing(board, kingColor);
-            if (kingPosition && isKingInCheck(board, currentPlayer)) {
-                const [kingR, kingC] = kingPosition;
-                const displayRow = currentPlayer === 'white' ? 7 - kingR : kingR;
-                const displayCol = currentPlayer === 'white' ? kingC : 7 - kingC;
-                const kingSquare = targetDiv.querySelector(`.square[data-row="${displayRow}"][data-col="${displayCol}"]`);
-                if (kingSquare) {
-                    kingSquare.classList.add('king-in-checkmate');
-                }
-            }
+            fen += ` ${currentPlayer[0]}`;
+            // Simplified castling availability for FEN
+            let castling = '';
+            if (castleAvailability.white.kingside) castling += 'K';
+            if (castleAvailability.white.queenside) castling += 'Q';
+            if (castleAvailability.black.kingside) castling += 'k';
+            if (castleAvailability.black.queenside) castling += 'q';
+            fen += ` ${castling || '-'}`;
+            fen += ' - 0 1'; // En passant, halfmove, fullmove (simplified)
+            return fen;
         }
 
-        // Event Handling
-        function handleSquareClick(event) {
-            if (isGameOver) return;
+        // Chessboard.js Event Handlers
+        function onDragStart(source, piece, position, orientation) {
+            if (isGameOver) return false;
+            if ((currentPlayer === 'white' && piece.search(/^b/) !== -1) ||
+                (currentPlayer === 'black' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+            return true;
+        }
 
-            const displayRow = parseInt(event.target.dataset.row);
-            const displayCol = parseInt(event.target.dataset.col);
-            const row = currentPlayer === 'white' ? 7 - displayRow : displayRow;
-            const col = currentPlayer === 'white' ? displayCol : 7 - displayCol;
-            const clickedPiece = board[row][col];
+        function onDrop(source, target) {
+            const fromRow = 8 - parseInt(source[1]);
+            const fromCol = source.charCodeAt(0) - 97;
+            const toRow = 8 - parseInt(target[1]);
+            const toCol = target.charCodeAt(0) - 97;
 
-            if (selectedPiece) {
-                const moveIndex = possibleMoves.findIndex(move => move[0] === row && move[1] === col);
-                if (moveIndex !== -1) {
-                    makeMove(selectedPiece.row, selectedPiece.col, row, col);
-                    selectedPiece = null;
-                    possibleMoves = [];
-                    drawBoard();
-                    if (currentPlayer === 'black') {
-                        rotateBoardForBlack();
-                    } else {
-                        rotateBoardForBlack(); // Reset to white's perspective
-                    }
-                } else {
-                    selectedPiece = null;
-                    possibleMoves = [];
-                    drawBoard();
-                    if (clickedPiece && clickedPiece[0] === currentPlayer[0]) {
-                        selectPiece(row, col, clickedPiece);
-                    }
-                }
+            const piece = board[fromRow][fromCol];
+            const moves = getLegalMoves(fromRow, fromCol, piece);
+            const isValidMove = moves.some(move => move[0] === toRow && move[1] === toCol);
+
+            if (isValidMove) {
+                makeMove(fromRow, fromCol, toRow, toCol);
+                return null;
             } else {
-                if (clickedPiece && clickedPiece[0] === currentPlayer[0]) {
-                    selectPiece(row, col, clickedPiece);
-                }
+                return 'snapback';
             }
         }
 
-        function selectPiece(row, col, piece) {
-            selectedPiece = { row, col, piece };
-            possibleMoves = getLegalMoves(row, col, piece);
-            drawBoard();
+        function onSnapEnd() {
+            chessboard.position(boardToFen(board));
+            chessboard.orientation(currentPlayer === 'white' ? 'white' : 'black');
         }
 
         // Game Logic
@@ -657,40 +517,27 @@
                 case 'k':
                     const kingMoves = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
                     kingMoves.forEach(([dr, dc]) => addMoveIfValid(moves, row + dr, col + dc, color, true));
-
-                    // Castling moves
+                    // Castling
                     if (color === 'w' && row === 7 && col === 4) {
-                        if (castlingAvailability.white.kingside &&
-                            !board[7][5] && !board[7][6] &&
-                            board[7][7] === 'wr' &&
-                            !isKingInCheck(board, 'white') &&
-                            !isSquareAttacked(board, 7, 5, 'white') &&
-                            !isSquareAttacked(board, 7, 6, 'white')) {
+                        if (castleAvailability.white.kingside && board[7][7] === 'wr' &&
+                            !board[7][5] && !board[7][6] && !isKingInCheck(board, 'white') &&
+                            !isSquareUnderAttack(board, 7, 5, 'white') && !isSquareUnderAttack(board, 7, 6, 'white')) {
                             moves.push([7, 6]);
                         }
-                        if (castlingAvailability.white.queenside &&
-                            !board[7][3] && !board[7][2] && !board[7][1] &&
-                            board[7][0] === 'wr' &&
-                            !isKingInCheck(board, 'white') &&
-                            !isSquareAttacked(board, 7, 3, 'white') &&
-                            !isSquareAttacked(board, 7, 2, 'white')) {
+                        if (castleAvailability.white.queenside && board[7][0] === 'wr' &&
+                            !board[7][1] && !board[7][2] && !board[7][3] && !isKingInCheck(board, 'white') &&
+                            !isSquareUnderAttack(board, 7, 3, 'white') && !isSquareUnderAttack(board, 7, 2, 'white')) {
                             moves.push([7, 2]);
                         }
                     } else if (color === 'b' && row === 0 && col === 4) {
-                        if (castlingAvailability.black.kingside &&
-                            !board[0][5] && !board[0][6] &&
-                            board[0][7] === 'br' &&
-                            !isKingInCheck(board, 'black') &&
-                            !isSquareAttacked(board, 0, 5, 'black') &&
-                            !isSquareAttacked(board, 0, 6, 'black')) {
+                        if (castleAvailability.black.kingside && board[0][7] === 'br' &&
+                            !board[0][5] && !board[0][6] && !isKingInCheck(board, 'black') &&
+                            !isSquareUnderAttack(board, 0, 5, 'black') && !isSquareUnderAttack(board, 0, 6, 'black')) {
                             moves.push([0, 6]);
                         }
-                        if (castlingAvailability.black.queenside &&
-                            !board[0][3] && !board[0][2] && !board[0][1] &&
-                            board[0][0] === 'br' &&
-                            !isKingInCheck(board, 'black') &&
-                            !isSquareAttacked(board, 0, 3, 'black') &&
-                            !isSquareAttacked(board, 0, 2, 'black')) {
+                        if (castleAvailability.black.queenside && board[0][0] === 'br' &&
+                            !board[0][1] && !board[0][2] && !board[0][3] && !isKingInCheck(board, 'black') &&
+                            !isSquareUnderAttack(board, 0, 3, 'black') && !isSquareUnderAttack(board, 0, 2, 'black')) {
                             moves.push([0, 2]);
                         }
                     }
@@ -701,20 +548,15 @@
 
         function addMoveIfValid(moves, r, c, color, isSingleMove = false) {
             if (r < 0 || r >= 8 || c < 0 || c >= 8) return false;
-
             const targetPiece = board[r][c];
-            if (targetPiece && targetPiece[0] === color) {
-                return false;
-            }
+            if (targetPiece && targetPiece[0] === color) return false;
             moves.push([r, c]);
-            if (targetPiece && targetPiece[0] !== color) {
-                return false;
-            }
-            return true;
+            if (targetPiece && targetPiece[0] !== color) return false;
+            return !isSingleMove;
         }
 
-        function isSquareAttacked(currentBoard, row, col, kingColor) {
-            const opponentColor = kingColor === 'white' ? 'b' : 'w';
+        function isSquareUnderAttack(currentBoard, row, col, color) {
+            const opponentColor = color === 'white' ? 'b' : 'w';
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const piece = currentBoard[r][c];
@@ -744,20 +586,16 @@
             const kingPiece = kingColor === 'white' ? 'wk' : 'bk';
             const opponentColor = kingColor === 'white' ? 'b' : 'w';
             const kingPos = findKing(currentBoard, kingPiece);
-
             if (!kingPos) return false;
-
             const [kingR, kingC] = kingPos;
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const piece = currentBoard[r][c];
                     if (piece && piece[0] === opponentColor) {
-                        const opponentPseudoMoves = getPseudoLegalMovesForCheck(currentBoard, r, c, piece);
-                        for (const move of opponentPseudoMoves) {
-                            if (move[0] === kingR && move[1] === kingC) {
-                                return true;
-                            }
+                        const moves = getPseudoLegalMovesForCheck(currentBoard, r, c, piece);
+                        if (moves.some(move => move[0] === kingR && move[1] === kingC)) {
+                            return true;
                         }
                     }
                 }
@@ -772,16 +610,11 @@
 
             function addMoveIfValidForCheck(movesArr, r, c, pieceColor, isSingleMove = false) {
                 if (r < 0 || r >= 8 || c < 0 || c >= 8) return false;
-
                 const targetPiece = currentBoard[r][c];
-                if (targetPiece && targetPiece[0] === pieceColor) {
-                    return false;
-                }
+                if (targetPiece && targetPiece[0] === pieceColor) return false;
                 movesArr.push([r, c]);
-                if (targetPiece && targetPiece[0] !== pieceColor) {
-                    return false;
-                }
-                return true;
+                if (targetPiece && targetPiece[0] !== pieceColor) return false;
+                return !isSingleMove;
             }
 
             switch (type) {
@@ -836,33 +669,22 @@
 
             for (const [endR, endC] of pseudoLegalMoves) {
                 const tempBoard = JSON.parse(JSON.stringify(board));
-                const tempCastling = JSON.parse(JSON.stringify(castlingAvailability));
                 const capturedPiece = tempBoard[endR][endC];
                 tempBoard[endR][endC] = tempBoard[startRow][startCol];
                 tempBoard[startRow][startCol] = null;
 
-                // Handle castling moves
-                if (piece[1] === 'k' && Math.abs(endC - startCol) === 2) {
-                    if (piece[0] === 'w' && startRow === 7) {
-                        if (endC === 6) { // Kingside
-                            tempBoard[7][5] = tempBoard[7][7];
-                            tempBoard[7][7] = null;
-                        } else if (endC === 2) { // Queenside
-                            tempBoard[7][3] = tempBoard[7][0];
-                            tempBoard[7][0] = null;
-                        }
-                    } else if (piece[0] === 'b' && startRow === 0) {
-                        if (endC === 6) {
-                            tempBoard[0][5] = tempBoard[0][7];
-                            tempBoard[0][7] = null;
-                        } else if (endC === 2) {
-                            tempBoard[0][3] = tempBoard[0][0];
-                            tempBoard[0][0] = null;
-                        }
+                // Handle castling
+                if (piece[1] === 'k' && Math.abs(startCol - endC) === 2) {
+                    if (endC === 6) {
+                        tempBoard[startRow][5] = tempBoard[startRow][7];
+                        tempBoard[startRow][7] = null;
+                    } else if (endC === 2) {
+                        tempBoard[startRow][3] = tempBoard[startRow][0];
+                        tempBoard[startRow][0] = null;
                     }
                 }
 
-                if (!isKingInCheck(tempBoard, piece[0])) {
+                if (!isKingInCheck(tempBoard, currentPlayer)) {
                     legalMoves.push([endR, endC]);
                 }
             }
@@ -874,183 +696,142 @@
             const capturedPiece = board[endRow][endCol];
 
             // Handle castling
-            if (pieceToMove[1] === 'k' && Math.abs(endCol - startCol) === 2) {
-                if (pieceToMove[0] === 'w' && startRow === 7) {
-                    if (endCol === 6) { // Kingside
-                        board[7][5] = board[7][7];
-                        board[7][7] = null;
-                    } else if (endCol === 2) { // Queenside
-                        board[7][3] = board[7][0];
-                        board[7][0] = null;
-                    }
-                    castlingAvailability.white.kingside = false;
-                    castlingAvailability.white.queenside = false;
-                } else if (pieceToMove[0] === 'b' && startRow === 0) {
-                    if (endCol === 6) {
-                        board[0][5] = board[0][7];
-                        board[0][7] = null;
-                    } else if (endCol === 2) {
-                        board[0][3] = board[0][0];
-                        board[0][0] = null;
-                    }
-                    castlingAvailability.black.kingside = false;
-                    castlingAvailability.black.queenside = false;
+            if (pieceToMove[1] === 'k' && Math.abs(startCol - endCol) === 2) {
+                if (endCol === 6) { // Kingside
+                    board[startRow][5] = board[startRow][7];
+                    board[startRow][7] = null;
+                } else if (endCol === 2) { // Queenside
+                    board[startRow][3] = board[startRow][0];
+                    board[startRow][0] = null;
                 }
             }
 
-            // Update castling availability
-            if (pieceToMove[1] === 'k') {
-                if (pieceToMove[0] === 'w') {
-                    castlingAvailability.white.kingside = false;
-                    castlingAvailability.white.queenside = false;
-                } else {
-                    castlingAvailability.black.kingside = false;
-                    castlingAvailability.black.queenside = false;
-                }
-            } else if (pieceToMove[1] === 'r') {
-                if (pieceToMove[0] === 'w') {
-                    if (startRow === 7 && startCol === 7) castlingAvailability.white.kingside = false;
-                    if (startRow === 7 && startCol === 0) castlingAvailability.white.queenside = false;
-                } else {
-                    if (startRow === 0 && startCol === 7) castlingAvailability.black.kingside = false;
-                    if (startRow === 0 && startCol === 0) castlingAvailability.black.queenside = false;
-                }
-            }
-
-            // Update board
             board[endRow][endCol] = pieceToMove;
             board[startRow][startCol] = null;
 
+            // Update castling availability
+            if (pieceToMove === 'wk') {
+                castleAvailability.white.kingside = false;
+                castleAvailability.white.queenside = false;
+            } else if (pieceToMove === 'bk') {
+                castleAvailability.black.kingside = false;
+                castleAvailability.black.queenside = false;
+            } else if (pieceToMove === 'wr') {
+                if (startRow === 7 && startCol === 7) castleAvailability.white.kingside = false;
+                else if (startRow === 7 && startCol === 0) castleAvailability.white.queenside = false;
+            } else if (pieceToMove === 'br') {
+                if (startRow === 0 && startCol === 7) castleAvailability.black.kingside = false;
+                else if (startRow === 0 && startCol === 0) castleAvailability.black.queenside = false;
+            }
+
             if (capturedPiece) {
                 playSound('capture');
-                if (capturedPiece[1] === 'r') {
-                    if (capturedPiece[0] === 'w') {
-                        if (endRow === 7 && endCol === 7) castlingAvailability.white.kingside = false;
-                        if (endRow === 7 && endCol === 0) castlingAvailability.white.queenside = false;
-                    } else {
-                        if (endRow === 0 && endCol === 7) castlingAvailability.black.kingside = false;
-                        if (endRow === 0 && endCol === 0) castlingAvailability.black.queenside = false;
-                    }
-                }
             } else {
                 playSound('move');
             }
 
             // Pawn promotion
-            if (pieceToMove[1] === 'p' && ((pieceToMove[0] === 'w' && endRow === 0) || (pieceToMove[0] === 'b' && endRow === 7))) {
-                board[endRow][endCol] = pieceToMove[0] === 'w' ? 'wq' : 'bq';
+            if (pieceToMove[1] === 'p' && ((currentPlayer === 'white' && endRow === 0) || (currentPlayer === 'black' && endRow === 7))) {
+                board[endRow][endCol] = currentPlayer === 'white' ? 'wq' : 'bq';
             }
 
-            // Switch turns
             currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-
+            chessboard.orientation(currentPlayer === 'white' ? 'white' : 'black');
+            
             if (timeControlEnabled) {
                 stopTimer();
                 startTimer();
             }
 
             checkGameStatus();
+            chessboard.position(boardToFen(board));
         }
 
         function checkGameStatus() {
             const playerWhoseTurnItIs = currentPlayer;
             const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white';
-            const isPlayerWhoseTurnItIsInCheck = isKingInCheck(board, playerWhoseTurnItIs);
 
-            if (isPlayerWhoseTurnItIsInCheck) {
+            if (isKingInCheck(board, playerWhoseTurnItIs)) {
                 playSound('check');
                 let hasLegalMoves = false;
                 for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-                const piece = board[r][c];
-                if (piece && piece[0] === playerWhoseTurnItIs[0]) {
-                    if (getLegalMoves(r, c, piece).length > 0) {
-                        hasLegalMoves = true;
-                        break;
+                    for (let c = 0; c < 8; c++) {
+                        const piece = board[r][c];
+                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
+                            if (getLegalMoves(r, c, piece).length > 0) {
+                                hasLegalMoves = true;
+                                break;
+                            }
+                        }
                     }
+                    if (hasLegalMoves) break;
                 }
-            }
-            if (hasLegalMoves) break;
-        }
 
-        if (!hasLegalMoves) {
-            isGameOver = true;
-            stopTimer();
-            playSound('mate');
-            updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
-            const kingPieceInCheck = playerWhoseTurnItIs === 'white' ? 'wk' : 'bk';
-            const kingPosition = findKing(board, kingPieceInCheck);
-            if (kingPosition) {
-                const [kingR, kingC] = kingPosition;
-                const displayRow = currentPlayer === 'white' ? 7 - kingR : kingR;
-                const displayCol = currentPlayer === 'white' ? kingC : 7 - kingC;
-                const kingSquare = document.getElementById('chessboard').querySelector(`.square[data-row="${displayRow}"][data-col="${displayCol}"]`);
-                if (kingSquare) {
-                    kingSquare.classList.add('king-in-checkmate');
+                if (!hasLegalMoves) {
+                    isGameOver = true;
+                    stopTimer();
+                    playSound('mate');
+                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
+                    return;
+                } else {
+                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is in check! ${capitalize(playerWhoseTurnItIs)} to move.`);
                 }
-            }
-            return;
-        } else {
-            updateStatus(`${capitalize(playerWhoseTurnItIs)} is in check! ${capitalize(playerWhoseTurnItIs)} to move.`);
-        }
-    } else {
-        let hasLegalMoves = false;
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-                const piece = board[r][c];
-                if (piece && piece[0] === playerWhoseTurnItIs[0]) {
-                    if (getLegalMoves(r, c, piece).length > 0) {
-                        hasLegalMoves = true;
-                        break;
+            } else {
+                let hasLegalMoves = false;
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        const piece = board[r][c];
+                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
+                            if (getLegalMoves(r, c, piece).length > 0) {
+                                hasLegalMoves = true;
+                                break;
+                            }
+                        }
                     }
+                    if (hasLegalMoves) break;
                 }
+
+                if (!hasLegalMoves) {
+                    isGameOver = true;
+                    stopTimer();
+                    updateStatus(`Stalemate! It's a draw.`);
+                    return;
+                }
+
+                updateStatus(`${capitalize(playerWhoseTurnItIs)} to move`);
             }
-            if (hasLegalMoves) break;
         }
 
-        if (!hasLegalMoves) {
-            isGameOver = true;
-            stopTimer();
-            updateStatus(`Stalemate! It's a draw.`);
-            return;
+        function updateStatus(message) {
+            statusDisplay.textContent = message;
         }
 
-        updateStatus(`${capitalize(playerWhoseTurnItIs)} to move`);
-    }
-}
-
-// UI Helpers
-function updateStatus(message) {
-    statusDisplay.textContent = message;
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// Event Listeners
-startGameButton.addEventListener('click', () => {
-    startGameScreen.classList.add('hidden-game-content');
-    mainGameContent.classList.remove('hidden-game-content');
-    initializeBoard();
-});
-
-resetButton.addEventListener('click', initializeBoard);
-
-timeControlRadios.forEach(radio => {
-    radio.addEventListener('change', initializeBoard);
-});
-
-window.onload = function() {
-    document.documentElement.addEventListener('mousedown', () => {
-        if (Tone.context.state !== 'running') {
-            Tone.start();
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
         }
-    }, { once: true });
 
-    startGameScreen.classList.remove('hidden-game-content');
-    mainGameContent.classList.add('hidden-game-content');
-};
+        startGameButton.addEventListener('click', () => {
+            startGameScreen.classList.add('hidden-game-content');
+            mainGameContent.classList.remove('hidden-game-content');
+            initializeBoard();
+        });
+
+        resetButton.addEventListener('click', initializeBoard);
+
+        timeControlRadios.forEach(radio => {
+            radio.addEventListener('change', initializeBoard);
+        });
+
+        window.onload = function() {
+            document.documentElement.addEventListener('mousedown', () => {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+            }, { once: true });
+
+            startGameScreen.classList.remove('hidden-game-content');
+            mainGameContent.classList.add('hidden-game-content');
+        };
     </script>
 </body>
 </html>
