@@ -39,6 +39,7 @@
   <script>
     const game = new Chess();
     let board, whiteTime, blackTime, timerInterval, useTimer = true;
+    let selectedSquare = null;
     const moveSound = new Tone.Player("https://freesound.org/data/previews/156/156641_2862863-lq.mp3").toDestination();
     const captureSound = new Tone.Player("https://freesound.org/data/previews/91/91924_1408674-lq.mp3").toDestination();
     const checkSound = new Tone.Player("https://freesound.org/data/previews/320/320146_5260872-lq.mp3").toDestination();
@@ -137,7 +138,31 @@
     }
 
     function onMouseDown(square) {
-      if (!game.game_over()) showLegalMoves(square);
+      if (game.game_over()) return;
+      
+      // If a square is already selected and we click on a legal move square
+      if (selectedSquare && document.querySelector(`.square-${square}`).classList.contains('highlight-legal')) {
+        const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+        if (move) {
+          if (move.captured) captureSound.start();
+          else moveSound.start();
+          board.position(game.fen());
+          updateStatus();
+        }
+        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+        selectedSquare = null;
+        return;
+      }
+      
+      // If clicking on a piece of the current player's color
+      const piece = game.get(square);
+      if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
+        selectedSquare = square;
+        showLegalMoves(square);
+      } else {
+        selectedSquare = null;
+        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      }
     }
 
     function startGame() {
@@ -146,6 +171,7 @@
       updateStatus();
       startTimer();
       document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      selectedSquare = null;
     }
 
     function resetGame() {
