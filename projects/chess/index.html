@@ -4,203 +4,61 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Minimal Chess</title>
-  <!-- Tailwind CSS CDN for modern styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter font for a clean look -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- jQuery and Chess.js for game logic -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
-  <!-- Chessboard.js for the visual board -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
-  <!-- Tone.js for sound effects -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
   <style>
-    /* Custom styles for the chess game */
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #1a202c; /* Dark background */
-      color: #e2e8f0; /* Light text color */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    #board {
-      width: 100%;
-      max-width: 500px; /* Max width for the board */
-      border-radius: 8px; /* Rounded corners for the board */
-      overflow: hidden; /* Ensures rounded corners apply to content */
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
-    }
-
-    /* Styles for the chessboard squares */
-    .board-b72b1 .square-55d63 {
-      background-color: #779556; /* Dark squares */
-    }
-    .board-b72b1 .square-55d63.black-3c85d {
-      background-color: #ebecd0; /* Light squares */
-    }
-
-    /* Highlight for legal moves */
-    .highlight-legal {
-      box-shadow: inset 0 0 0 3px #4CAF50; /* Green border highlight */
-      background-color: rgba(76, 175, 80, 0.2) !important; /* Semi-transparent green fill */
-    }
-
-    /* Highlight for check */
-    .check {
-      box-shadow: inset 0 0 0 3px #FFC107; /* Orange border highlight */
-      background-color: rgba(255, 193, 7, 0.3) !important; /* Semi-transparent orange fill */
-    }
-
-    /* Highlight for checkmate */
-    .checkmate {
-      box-shadow: inset 0 0 0 3px #F44336; /* Red border highlight */
-      background-color: rgba(244, 67, 54, 0.4) !important; /* Semi-transparent red fill */
-    }
-
-    /* Rotate black pieces for a different perspective */
-    img[data-piece^='b'] {
-      transform: rotate(180deg);
-    }
-
-    #timers {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 500px;
-      margin-top: 20px;
-      font-size: 1.1em;
-      background-color: #2d3748; /* Darker background for timers */
-      padding: 10px 15px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    #status {
-      font-size: 1.4em;
-      margin: 20px 0;
-      font-weight: 600;
-      color: #a0aec0; /* Lighter gray for status */
-    }
-
-    #controls {
-      display: flex;
-      gap: 15px;
-      margin-top: 20px;
-      flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-      justify-content: center;
-    }
-
-    button {
-      background: #4a5568; /* Dark gray button background */
-      color: #e2e8f0; /* Light text color */
-      border: none;
-      padding: 12px 24px;
-      cursor: pointer;
-      border-radius: 6px;
-      font-size: 1em;
-      font-weight: 600;
-      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    button:hover {
-      background: #636b77; /* Slightly lighter on hover */
-      transform: translateY(-2px); /* Slight lift effect */
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    button:active {
-      transform: translateY(0); /* Press effect */
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      #timers {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
-      #status {
-        font-size: 1.2em;
-      }
-      button {
-        padding: 10px 20px;
-        font-size: 0.9em;
-      }
-    }
+    body { background: #222; color: #ddd; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
+    #board { width: 100%; max-width: 500px; }
+    #controls { margin: 10px 0; display: flex; gap: 10px; }
+    button { background: #444; color: #ddd; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #555; }
+    #status { font-size: 1.2em; margin: 10px 0; }
+    #timers { display: flex; justify-content: space-between; width: 100%; max-width: 500px; font-size: 1.1em; }
+    .highlight-legal { background: rgba(0, 255, 0, 0.3); }
+    .check { background: orange !important; }
+    .checkmate { background: red !important; }
+    img[data-piece^='b'] { transform: rotate(180deg); }
+    @media (max-width: 600px) { #timers { flex-direction: column; align-items: center; } }
   </style>
 </head>
 <body>
   <div id="board"></div>
   <div id="timers">
-    <div class="text-white">White: <span id="whiteTime">10:00</span></div>
-    <div class="text-white">Black: <span id="blackTime">10:00</span></div>
+    <div>White: <span id="whiteTime">10:00</span></div>
+    <div>Black: <span id="blackTime">10:00</span></div>
   </div>
-  <div id="status" class="text-center">White to move</div>
+  <div id="status">White to move</div>
   <div id="controls">
     <button onclick="startGame()">Start Game</button>
     <button onclick="toggleTimer()">Toggle Timer (10 min)</button>
     <button onclick="resetGame()">Reset</button>
   </div>
-
   <script>
-    // Initialize the Chess.js game instance
     const game = new Chess();
-
-    // Global variables for board, timers, and game state
-    let board;
-    let whiteTime;
-    let blackTime;
-    let timerInterval;
-    let useTimer = true;
-    let selectedSquare = null; // Stores the square of the currently selected piece for click-to-move
-
-    // Initialize Tone.js players for sound effects
-    // Note: These URLs are from freesound.org. In a production environment,
-    // it's recommended to host your own sound files for reliability and performance.
+    let board, whiteTime, blackTime, timerInterval, useTimer = true;
+    let selectedSquare = null;
     const moveSound = new Tone.Player("https://freesound.org/data/previews/156/156641_2862863-lq.mp3").toDestination();
     const captureSound = new Tone.Player("https://freesound.org/data/previews/91/91924_1408674-lq.mp3").toDestination();
     const checkSound = new Tone.Player("https://freesound.org/data/previews/320/320146_5260872-lq.mp3").toDestination();
-    // Mate sound is a simple sequence of notes
     const mateSound = new Tone.Sequence((time, note) => {
       new Tone.Synth({ oscillator: { type: 'sine' } }).toDestination().triggerAttackRelease(note, 0.2, time);
-    }, ["C4", "G4"], 1).start(0); // Start the sequence immediately
+    }, ["C4", "G4"], 1).start(0);
 
-    /**
-     * Formats seconds into a M:SS string.
-     * @param {number} seconds - The time in seconds.
-     * @returns {string} Formatted time string.
-     */
     function formatTime(seconds) {
       const min = Math.floor(seconds / 60);
       const sec = seconds % 60;
       return `${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
 
-    /**
-     * Starts or resumes the game timer.
-     */
     function startTimer() {
-      clearInterval(timerInterval); // Clear any existing timer
-      whiteTime = useTimer ? 600 : Infinity; // 10 minutes (600 seconds) or infinite
+      clearInterval(timerInterval);
+      whiteTime = useTimer ? 600 : Infinity;
       blackTime = useTimer ? 600 : Infinity;
       document.getElementById('whiteTime').textContent = formatTime(whiteTime);
       document.getElementById('blackTime').textContent = formatTime(blackTime);
-
       timerInterval = setInterval(() => {
         if (game.turn() === 'w' && useTimer) {
           whiteTime--;
@@ -211,84 +69,43 @@
           document.getElementById('blackTime').textContent = formatTime(blackTime);
           if (blackTime <= 0) endGame('White wins by time');
         }
-      }, 1000); // Update every second
+      }, 1000);
     }
 
-    /**
-     * Toggles the timer on/off.
-     */
     function toggleTimer() {
       useTimer = !useTimer;
       document.getElementById('whiteTime').textContent = useTimer ? '10:00' : '∞';
       document.getElementById('blackTime').textContent = useTimer ? '10:00' : '∞';
-      if (!useTimer) {
-        clearInterval(timerInterval); // Stop timer if toggled off
-      } else if (!game.game_over()) {
-        startTimer(); // Restart timer if toggled on and game is not over
-      }
+      if (!useTimer) clearInterval(timerInterval);
+      else if (!game.game_over()) startTimer();
     }
 
-    /**
-     * Finds the square of the king for the given color.
-     * @param {'w'|'b'} color - The color of the king to find ('w' for white, 'b' for black).
-     * @returns {string|null} The square name (e.g., 'e1') or null if not found.
-     */
-    function findKingSquare(color) {
-      for (const square of Chess.SQUARES) {
-        const piece = game.get(square);
-        if (piece && piece.type === 'k' && piece.color === color) {
-          return square;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Updates the game status display and highlights check/checkmate.
-     */
     function updateStatus() {
       let status = game.turn() === 'w' ? 'White to move' : 'Black to move';
-      const currentTurnColor = game.turn();
-      const kingSquare = findKingSquare(currentTurnColor);
-
-      // Remove any previous check/checkmate highlights
+      const kingSquare = Object.entries(game.SQUARES).find(([s, p]) => p === (game.turn() === 'w' ? 'K' : 'k'))?.[0];
       document.querySelectorAll('.square-55d63').forEach(square => square.classList.remove('check', 'checkmate'));
-
       if (game.in_checkmate()) {
-        status = `Checkmate! ${currentTurnColor === 'w' ? 'Black' : 'White'} wins!`;
+        status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
         if (kingSquare) document.querySelector(`.square-${kingSquare}`).classList.add('checkmate');
-        mateSound.start(); // Play checkmate sound
-        clearInterval(timerInterval); // Stop timer
+        mateSound.start();
+        clearInterval(timerInterval);
       } else if (game.in_check()) {
         status += ' (Check)';
         if (kingSquare) document.querySelector(`.square-${kingSquare}`).classList.add('check');
-        checkSound.start(); // Play check sound
+        checkSound.start();
       } else if (game.in_draw()) {
         status = 'Draw!';
-        clearInterval(timerInterval); // Stop timer
+        clearInterval(timerInterval);
       } else if (game.in_stalemate()) {
         status = 'Stalemate!';
-        clearInterval(timerInterval); // Stop timer
+        clearInterval(timerInterval);
       }
       document.getElementById('status').textContent = status;
     }
 
-    /**
-     * Removes all legal move highlights from the board.
-     */
-    function removeHighlights() {
-      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
-    }
-
-    /**
-     * Highlights the legal moves for a given square.
-     * @param {string} square - The square from which to show legal moves.
-     */
     function showLegalMoves(square) {
-      removeHighlights(); // Always clear existing highlights first
-      const piece = game.get(square);
-      // Only highlight if there's a piece and it belongs to the current player
-      if (piece && piece.color === game.turn()) {
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      if (!game.game_over() && game.get(square)) {
         const moves = game.moves({ square: square, verbose: true });
         moves.forEach(move => {
           document.querySelector(`.square-${move.to}`).classList.add('highlight-legal');
@@ -296,139 +113,89 @@
       }
     }
 
-    /**
-     * Handles square interactions (clicks) for click-to-move functionality.
-     * This function is called when a user clicks (or mouses down) on a square.
-     * @param {string} square - The square that was interacted with.
-     */
-    function handleSquareInteraction(square) {
-      // If a piece is already selected for click-to-move
-      if (selectedSquare) {
-        // Attempt to move the selected piece to the clicked square
-        // 'q' is used for promotion for simplicity; a real game would prompt the user.
-        const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
-
-        if (move) {
-          // Valid move was made
-          if (move.captured) captureSound.start();
-          else moveSound.start();
-          board.position(game.fen()); // Update board visual
-          updateStatus();
-          selectedSquare = null; // Reset selected square
-          removeHighlights(); // Clear highlights
-        } else {
-          // Invalid move attempt for the currently selected piece
-          const pieceOnClickedSquare = game.get(square);
-          // If the clicked square has a piece of the current player's color, select that piece instead
-          if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
-            selectedSquare = square; // Select the new piece
-            showLegalMoves(square); // Show legal moves for the new piece
-          } else {
-            // Clicked on an empty square or opponent's piece, and it's not a legal move for the selected piece.
-            // Deselect the piece and clear highlights.
-            selectedSquare = null;
-            removeHighlights();
-          }
-        }
-      } else {
-        // No piece is selected, so select the clicked piece if it belongs to the current player
-        const pieceOnClickedSquare = game.get(square);
-        if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
-          selectedSquare = square;
-          showLegalMoves(square);
-        }
-      }
-    }
-
-    /**
-     * Callback for chessboard.js when a drag operation starts.
-     * @param {string} source - The source square of the piece being dragged.
-     * @param {string} piece - The FEN string of the piece being dragged.
-     * @returns {boolean} True if the drag is allowed, false otherwise.
-     */
     function onDragStart(source, piece) {
-      // When a drag starts, clear any active click-to-move selection
-      selectedSquare = null;
-      removeHighlights();
-
-      // Prevent dragging if game is over or it's not the correct player's turn
       if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
       }
-      // Highlight legal moves for the piece being dragged
       showLegalMoves(source);
+      selectedSquare = source;
       return true;
     }
 
-    /**
-     * Callback for chessboard.js when a piece is dropped.
-     * @param {string} source - The source square of the piece.
-     * @param {string} target - The target square where the piece was dropped.
-     * @returns {string|null} 'snapback' if the move is illegal, null otherwise.
-     */
     function onDrop(source, target) {
-      removeHighlights(); // Clear highlights after a drag-and-drop move
-      // selectedSquare is already null from onDragStart, no need to reset here.
-
-      // Attempt to make the move
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
       const move = game.move({ from: source, to: target, promotion: 'q' });
-      if (move === null) {
-        // Illegal move, snap the piece back
-        return 'snapback';
-      }
-
-      // Play sound based on move type
+      if (move === null) return 'snapback';
       if (move.captured) captureSound.start();
       else moveSound.start();
-
-      board.position(game.fen()); // Update board visual
-      updateStatus(); // Update game status
+      board.position(game.fen());
+      updateStatus();
+      selectedSquare = null;
       return null;
     }
 
-    /**
-     * Callback for chessboard.js after a piece has been snapped back or moved.
-     * Ensures the board position is visually correct.
-     */
     function onSnapEnd() {
       board.position(game.fen());
     }
 
-    /**
-     * Starts a new game.
-     */
+    function onMouseDown(square) {
+      if (game.game_over()) return;
+      
+      const piece = game.get(square);
+      
+      // If clicking on a highlighted square (legal move)
+      if (selectedSquare && document.querySelector(`.square-${square}`).classList.contains('highlight-legal')) {
+        const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+        if (move) {
+          if (move.captured) captureSound.start();
+          else moveSound.start();
+          board.position(game.fen());
+          updateStatus();
+        }
+        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+        selectedSquare = null;
+        return;
+      }
+      
+      // If clicking on a piece of the current player's color
+      if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
+        selectedSquare = square;
+        showLegalMoves(square);
+      } else {
+        selectedSquare = null;
+        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      }
+    }
+
     function startGame() {
-      game.reset(); // Reset game state
-      board.position('start'); // Set board to initial position
-      updateStatus(); // Update status display
-      startTimer(); // Start game timer
-      removeHighlights(); // Ensure no highlights are left from previous games
-      selectedSquare = null; // Clear any selected piece
+      game.reset();
+      board.position('start');
+      updateStatus();
+      startTimer();
+      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      selectedSquare = null;
     }
 
-    /**
-     * Resets the current game.
-     */
     function resetGame() {
-      startGame(); // Simply call startGame to reset
+      startGame();
     }
 
-    // Configuration for chessboard.js
+    function endGame(message) {
+      document.getElementById('status').textContent = message;
+      clearInterval(timerInterval);
+    }
+
     const cfg = {
-      draggable: true, // Enable drag-and-drop
-      position: 'start', // Initial board position
-      onDragStart: onDragStart, // Callback for drag start
-      onDrop: onDrop, // Callback for piece drop
-      onSnapEnd: onSnapEnd, // Callback after piece snap
-      onMouseDown: handleSquareInteraction, // Custom handler for mouse down/click on squares
-      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' // Piece images
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd,
+      onMouseDown: onMouseDown,
+      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
-
-    // Initialize the chessboard
     board = Chessboard('board', cfg);
-
-    // Start the game when the script loads
     startGame();
   </script>
 </body>
