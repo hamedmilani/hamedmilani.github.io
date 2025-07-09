@@ -1,837 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Online Chess Board</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a202c;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: auto;
-        }
-
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-            .game-container {
-                width: 100vw;
-                height: 100vh;
-                flex-direction: column;
-                justify-content: space-between;
-            }
-
-            #boardContainer {
-                width: 100vw;
-                height: 100vw;
-                max-width: 100%;
-                max-height: 100%;
-                aspect-ratio: 1 / 1;
-            }
-
-            .chessboard {
-                width: 100%;
-                height: 100%;
-            }
-        }
-
-        .game-header {
-            width: 100%;
-            background-color: #1a202c;
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid #4a5568;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            padding: 0.5rem;
-        }
-
-        .control-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .control-group label {
-            font-weight: 600;
-        }
-
-        .game-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 1rem;
-        }
-
-        .board-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            aspect-ratio: 1 / 1;
-            margin: auto;
-        }
-
-        @media (max-width: 768px) {
-            .board-wrapper {
-                max-width: 100vw;
-                max-height: 100vw;
-            }
-        }
-
-        .timer-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 600px;
-            padding: 0 10px;
-            position: relative;
-        }
-
-        @media (max-width: 768px) {
-            .timer-container {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                flex-direction: column;
-                justify-content: space-between;
-                align-items: stretch;
-                padding: 0;
-            }
-
-            .timer-display {
-                writing-mode: vertical-rl;
-                text-orientation: mixed;
-                font-size: 2rem;
-                padding: 0.5rem;
-                flex-grow: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            #whiteTimeDisplay {
-                background-color: #4caf50;
-                color: #fff;
-                order: 2;
-            }
-
-            #blackTimeDisplay {
-                background-color: #f44336;
-                color: #fff;
-                order: 1;
-            }
-        }
-
-        .timer-display {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #a7f3d0;
-        }
-
-        .status-display {
-            font-size: 1.25rem;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .start-button, .reset-button {
-            background-color: #4299e1;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-top: 1rem;
-        }
-
-        .start-button:hover, .reset-button:hover {
-            background-color: #3182ce;
-        }
-
-        .hidden-game-content {
-            display: none;
-        }
-
-        #chessboard {
-            width: 100%;
-            height: 100%;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimal Chess</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+  <style>
+    body { background: #222; color: #ddd; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
+    #board { width: 100%; max-width: 500px; }
+    #controls { margin: 10px 0; display: flex; gap: 10px; }
+    button { background: #444; color: #ddd; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #555; }
+    #status { font-size: 1.2em; margin: 10px 0; }
+    #timers { display: flex; justify-content: space-between; width: 100%; max-width: 500px; font-size: 1.1em; }
+    @media (max-width: 600px) { #timers { flex-direction: column; align-items: center; } }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="game-header">
-            <h1 class="text-3xl font-bold text-blue-400">Simple Online Chess Board</h1>
-            <div class="controls">
-                <div class="control-group">
-                    <label>Time Control:</label>
-                    <input type="radio" id="timeControl10Min" name="timeControl" value="10min" checked>
-                    <label for="timeControl10Min">10 Mins</label>
-                    <input type="radio" id="timeControlNoControl" name="timeControl" value="nocontrol">
-                    <label for="timeControlNoControl">No Control</label>
-                </div>
-            </div>
-        </div>
+  <div id="board"></div>
+  <div id="timers">
+    <div>White: <span id="whiteTime">10:00</span></div>
+    <div>Black: <span id="blackTime">10:00</span></div>
+  </div>
+  <div id="status">White to move</div>
+  <div id="controls">
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="toggleTimer()">Toggle Timer (10 min)</button>
+    <button onclick="resetGame()">Reset</button>
+  </div>
+  <script>
+    const game = new Chess();
+    let board, whiteTime, blackTime, timerInterval, useTimer = true;
+    const synth = new Tone.Synth().toDestination();
+    const captureSound = new Tone.Synth({ oscillator: { type: 'square' } }).toDestination();
+    const checkSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2 } }).toDestination();
 
-        <div id="startGameScreen" class="game-content">
-            <button id="startGameButton" class="start-button">Start Game</button>
-        </div>
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = seconds % 60;
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
 
-        <div id="mainGameContent" class="game-content hidden-game-content">
-            <div id="status" class="status-display">White to move</div>
-            <div class="timer-container">
-                <div id="whiteTimeDisplay" class="timer-display">10:00</div>
-                <div id="boardContainer" class="board-wrapper">
-                    <div id="chessboard"></div>
-                </div>
-                <div id="blackTimeDisplay" class="timer-display">10:00</div>
-            </div>
-            <button id="resetButton" class="reset-button">Reset Game</button>
-        </div>
-    </div>
-
-    <script>
-        // Chess board and game state
-        let board = [];
-        let currentPlayer = 'white';
-        let selectedPiece = null;
-        let possibleMoves = [];
-        let isGameOver = false;
-        let castleAvailability = {
-            white: { kingside: true, queenside: true },
-            black: { kingside: true, queenside: true }
-        };
-        let chessboard;
-
-        // Timer variables
-        let whiteTime = 10 * 60;
-        let blackTime = 10 * 60;
-        let timerInterval;
-        let timeControlEnabled = true;
-
-        // UI Elements
-        const startGameScreen = document.getElementById('startGameScreen');
-        const mainGameContent = document.getElementById('mainGameContent');
-        const startGameButton = document.getElementById('startGameButton');
-        const resetButton = document.getElementById('resetButton');
-        const statusDisplay = document.getElementById('status');
-        const whiteTimeDisplay = document.getElementById('whiteTimeDisplay');
-        const blackTimeDisplay = document.getElementById('blackTimeDisplay');
-        const timeControlRadios = document.querySelectorAll('input[name="timeControl"]');
-
-        // Initialize Tone.js for sounds
-        const moveSound = new Tone.MembraneSynth({
-            pitchDecay: 0.005,
-            octaves: 3,
-            envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 }
-        }).toDestination();
-
-        const captureSound = new Tone.MetalSynth({
-            frequency: 400,
-            envelope: { attack: 0.001, decay: 0.2, release: 0.1 },
-            harmonicity: 5.1,
-            modulationIndex: 32,
-            resonance: 4000,
-            octaves: 1.5
-        }).toDestination();
-
-        const checkSound = new Tone.Synth({
-            oscillator: { type: 'sine' },
-            envelope: { attack: 0.005, decay: 0.15, sustain: 0, release: 0.1 }
-        }).toDestination();
-
-        const mateSound = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: 'triangle' },
-            envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.3 }
-        }).toDestination();
-
-        function playSound(type) {
-            if (Tone.context.state !== 'running') {
-                Tone.start();
-            }
-            switch (type) {
-                case 'move':
-                    moveSound.triggerAttackRelease("C3", "32n");
-                    break;
-                case 'capture':
-                    captureSound.triggerAttackRelease("G4", "16n");
-                    break;
-                case 'check':
-                    checkSound.triggerAttackRelease("A4", "8n");
-                    break;
-                case 'mate':
-                    mateSound.triggerAttackRelease(["C4", "E4"], "4n");
-                    break;
-            }
+    function startTimer() {
+      clearInterval(timerInterval);
+      whiteTime = useTimer ? 600 : Infinity;
+      blackTime = useTimer ? 600 : Infinity;
+      document.getElementById('whiteTime').textContent = formatTime(whiteTime);
+      document.getElementById('blackTime').textContent = formatTime(blackTime);
+      timerInterval = setInterval(() => {
+        if (game.turn() === 'w' && useTimer) {
+          whiteTime--;
+          document.getElementById('whiteTime').textContent = formatTime(whiteTime);
+          if (whiteTime <= 0) endGame('Black wins by time');
+        } else if (game.turn() === 'b' && useTimer) {
+          blackTime--;
+          document.getElementById('blackTime').textContent = formatTime(blackTime);
+          if (blackTime <= 0) endGame('White wins by time');
         }
+      }, 1000);
+    }
 
-        // Timer Functions
-        function startTimer() {
-            stopTimer();
-            if (!timeControlEnabled) {
-                document.querySelector('.timer-container').style.display = 'none';
-                return;
-            } else {
-                document.querySelector('.timer-container').style.display = 'flex';
-            }
+    function toggleTimer() {
+      useTimer = !useTimer;
+      document.getElementById('whiteTime').textContent = useTimer ? '10:00' : '∞';
+      document.getElementById('blackTime').textContent = useTimer ? '10:00' : '∞';
+      if (!useTimer) clearInterval(timerInterval);
+      else if (game.in_progress()) startTimer();
+    }
 
-            timerInterval = setInterval(() => {
-                if (currentPlayer === 'white') {
-                    whiteTime--;
-                } else {
-                    blackTime--;
-                }
+    function updateStatus() {
+      let status = game.turn() === 'w' ? 'White to move' : 'Black to move';
+      if (game.in_checkmate()) {
+        status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
+        checkSound.triggerAttackRelease('A4', 0.5);
+        clearInterval(timerInterval);
+      } else if (game.in_check()) {
+        status += ' (Check)';
+        checkSound.triggerAttackRelease('C4', 0.3);
+      } else if (game.in_draw()) {
+        status = 'Draw!';
+        clearInterval(timerInterval);
+      } else if (game.in_stalemate()) {
+        status = 'Stalemate!';
+        clearInterval(timerInterval);
+      }
+      document.getElementById('status').textContent = status;
+    }
 
-                updateTimers();
+    function endGame(message) {
+      document.getElementById('status').textContent = message;
+      clearInterval(timerInterval);
+      board.position(game.fen());
+    }
 
-                if (whiteTime <= 0 || blackTime <= 0) {
-                    stopTimer();
-                    isGameOver = true;
-                    const winner = whiteTime <= 0 ? 'Black' : 'White';
-                    updateStatus(`${winner} wins by timeout!`);
-                    playSound('mate');
-                }
-            }, 1000);
-        }
+    function onDragStart(source, piece) {
+      if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+      return true;
+    }
 
-        function stopTimer() {
-            clearInterval(timerInterval);
-        }
+    function onDrop(source, target) {
+      const move = game.move({ from: source, to: target, promotion: 'q' });
+      if (move === null) return 'snapback';
+      if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
+      else synth.triggerAttackRelease('C4', 0.1);
+      board.position(game.fen());
+      updateStatus();
+      return null;
+    }
 
-        function updateTimers() {
-            whiteTimeDisplay.textContent = formatTime(whiteTime);
-            blackTimeDisplay.textContent = formatTime(blackTime);
-        }
+    function onSnapEnd() {
+      board.position(game.fen());
+    }
 
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = seconds % 60;
-            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-        }
+    function startGame() {
+      game.reset();
+      board.position('start');
+      updateStatus();
+      startTimer();
+    }
 
-        // Game Initialization
-        function initializeBoard() {
-            isGameOver = false;
-            currentPlayer = 'white';
-            selectedPiece = null;
-            possibleMoves = [];
-            castleAvailability = {
-                white: { kingside: true, queenside: true },
-                black: { kingside: true, queenside: true }
-            };
+    function resetGame() {
+      startGame();
+    }
 
-            const selectedTimeControl = document.querySelector('input[name="timeControl"]:checked').value;
-            timeControlEnabled = (selectedTimeControl === '10min');
-            
-            if (timeControlEnabled) {
-                whiteTime = 10 * 60;
-                blackTime = 10 * 60;
-                document.querySelector('.timer-container').style.display = 'flex';
-            } else {
-                whiteTime = 0;
-                blackTime = 0;
-                document.querySelector('.timer-container').style.display = 'none';
-            }
-            updateTimers();
-
-            board = [
-                ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
-                ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
-                [null, null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                [null, null, null, null, null, null, null, null],
-                ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
-                ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
-            ];
-
-            updateStatus(`${capitalize(currentPlayer)} to move`);
-
-            // Initialize Chessboard.js
-            if (chessboard) {
-                chessboard.destroy();
-            }
-            chessboard = Chessboard('chessboard', {
-                position: boardToFen(board),
-                orientation: currentPlayer === 'white' ? 'white' : 'black',
-                draggable: true,
-                onDragStart: onDragStart,
-                onDrop: onDrop,
-                onSnapEnd: onSnapEnd
-            });
-
-            if (timeControlEnabled) {
-                startTimer();
-            } else {
-                stopTimer();
-            }
-        }
-
-        // Convert board array to FEN for Chessboard.js
-        function boardToFen(board) {
-            let fen = '';
-            for (let r = 0; r < 8; r++) {
-                let empty = 0;
-                for (let c = 0; c < 8; c++) {
-                    const piece = board[r][c];
-                    if (!piece) {
-                        empty++;
-                    } else {
-                        if (empty > 0) {
-                            fen += empty;
-                            empty = 0;
-                        }
-                        fen += piece[0] === 'w' ? piece[1].toUpperCase() : piece[1];
-                    }
-                }
-                if (empty > 0) fen += empty;
-                if (r < 7) fen += '/';
-            }
-            fen += ` ${currentPlayer[0]}`;
-            // Simplified castling availability for FEN
-            let castling = '';
-            if (castleAvailability.white.kingside) castling += 'K';
-            if (castleAvailability.white.queenside) castling += 'Q';
-            if (castleAvailability.black.kingside) castling += 'k';
-            if (castleAvailability.black.queenside) castling += 'q';
-            fen += ` ${castling || '-'}`;
-            fen += ' - 0 1'; // En passant, halfmove, fullmove (simplified)
-            return fen;
-        }
-
-        // Chessboard.js Event Handlers
-        function onDragStart(source, piece, position, orientation) {
-            if (isGameOver) return false;
-            if ((currentPlayer === 'white' && piece.search(/^b/) !== -1) ||
-                (currentPlayer === 'black' && piece.search(/^w/) !== -1)) {
-                return false;
-            }
-            return true;
-        }
-
-        function onDrop(source, target) {
-            const fromRow = 8 - parseInt(source[1]);
-            const fromCol = source.charCodeAt(0) - 97;
-            const toRow = 8 - parseInt(target[1]);
-            const toCol = target.charCodeAt(0) - 97;
-
-            const piece = board[fromRow][fromCol];
-            const moves = getLegalMoves(fromRow, fromCol, piece);
-            const isValidMove = moves.some(move => move[0] === toRow && move[1] === toCol);
-
-            if (isValidMove) {
-                makeMove(fromRow, fromCol, toRow, toCol);
-                return null;
-            } else {
-                return 'snapback';
-            }
-        }
-
-        function onSnapEnd() {
-            chessboard.position(boardToFen(board));
-            chessboard.orientation(currentPlayer === 'white' ? 'white' : 'black');
-        }
-
-        // Game Logic
-        function getPseudoLegalMoves(row, col, piece) {
-            const moves = [];
-            const color = piece[0];
-            const type = piece[1];
-
-            switch (type) {
-                case 'p':
-                    const direction = (color === 'w') ? -1 : 1;
-                    if (board[row + direction] && !board[row + direction][col]) {
-                        moves.push([row + direction, col]);
-                    }
-                    if (((color === 'w' && row === 6) || (color === 'b' && row === 1)) &&
-                        !board[row + direction][col] && board[row + 2 * direction] && !board[row + 2 * direction][col]) {
-                        moves.push([row + 2 * direction, col]);
-                    }
-                    if (board[row + direction]) {
-                        if (col - 1 >= 0 && board[row + direction][col - 1] && board[row + direction][col - 1][0] !== color) {
-                            moves.push([row + direction, col - 1]);
-                        }
-                        if (col + 1 < 8 && board[row + direction][col + 1] && board[row + direction][col + 1][0] !== color) {
-                            moves.push([row + direction, col + 1]);
-                        }
-                    }
-                    break;
-                case 'r':
-                    for (let i = row + 1; i < 8; i++) { if (!addMoveIfValid(moves, i, col, color)) break; }
-                    for (let i = row - 1; i >= 0; i--) { if (!addMoveIfValid(moves, i, col, color)) break; }
-                    for (let i = col + 1; i < 8; i++) { if (!addMoveIfValid(moves, row, i, color)) break; }
-                    for (let i = col - 1; i >= 0; i--) { if (!addMoveIfValid(moves, row, i, color)) break; }
-                    break;
-                case 'n':
-                    const knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
-                    knightMoves.forEach(([dr, dc]) => addMoveIfValid(moves, row + dr, col + dc, color, true));
-                    break;
-                case 'b':
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row + i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row + i, col - i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row - i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row - i, col - i, color)) break; }
-                    break;
-                case 'q':
-                    for (let i = row + 1; i < 8; i++) { if (!addMoveIfValid(moves, i, col, color)) break; }
-                    for (let i = row - 1; i >= 0; i--) { if (!addMoveIfValid(moves, i, col, color)) break; }
-                    for (let i = col + 1; i < 8; i++) { if (!addMoveIfValid(moves, row, i, color)) break; }
-                    for (let i = col - 1; i >= 0; i--) { if (!addMoveIfValid(moves, row, i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row + i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row + i, col - i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row - i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValid(moves, row - i, col - i, color)) break; }
-                    break;
-                case 'k':
-                    const kingMoves = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-                    kingMoves.forEach(([dr, dc]) => addMoveIfValid(moves, row + dr, col + dc, color, true));
-                    // Castling
-                    if (color === 'w' && row === 7 && col === 4) {
-                        if (castleAvailability.white.kingside && board[7][7] === 'wr' &&
-                            !board[7][5] && !board[7][6] && !isKingInCheck(board, 'white') &&
-                            !isSquareUnderAttack(board, 7, 5, 'white') && !isSquareUnderAttack(board, 7, 6, 'white')) {
-                            moves.push([7, 6]);
-                        }
-                        if (castleAvailability.white.queenside && board[7][0] === 'wr' &&
-                            !board[7][1] && !board[7][2] && !board[7][3] && !isKingInCheck(board, 'white') &&
-                            !isSquareUnderAttack(board, 7, 3, 'white') && !isSquareUnderAttack(board, 7, 2, 'white')) {
-                            moves.push([7, 2]);
-                        }
-                    } else if (color === 'b' && row === 0 && col === 4) {
-                        if (castleAvailability.black.kingside && board[0][7] === 'br' &&
-                            !board[0][5] && !board[0][6] && !isKingInCheck(board, 'black') &&
-                            !isSquareUnderAttack(board, 0, 5, 'black') && !isSquareUnderAttack(board, 0, 6, 'black')) {
-                            moves.push([0, 6]);
-                        }
-                        if (castleAvailability.black.queenside && board[0][0] === 'br' &&
-                            !board[0][1] && !board[0][2] && !board[0][3] && !isKingInCheck(board, 'black') &&
-                            !isSquareUnderAttack(board, 0, 3, 'black') && !isSquareUnderAttack(board, 0, 2, 'black')) {
-                            moves.push([0, 2]);
-                        }
-                    }
-                    break;
-            }
-            return moves;
-        }
-
-        function addMoveIfValid(moves, r, c, color, isSingleMove = false) {
-            if (r < 0 || r >= 8 || c < 0 || c >= 8) return false;
-            const targetPiece = board[r][c];
-            if (targetPiece && targetPiece[0] === color) return false;
-            moves.push([r, c]);
-            if (targetPiece && targetPiece[0] !== color) return false;
-            return !isSingleMove;
-        }
-
-        function isSquareUnderAttack(currentBoard, row, col, color) {
-            const opponentColor = color === 'white' ? 'b' : 'w';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const piece = currentBoard[r][c];
-                    if (piece && piece[0] === opponentColor) {
-                        const moves = getPseudoLegalMovesForCheck(currentBoard, r, c, piece);
-                        if (moves.some(move => move[0] === row && move[1] === col)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        function findKing(currentBoard, kingPiece) {
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    if (currentBoard[r][c] === kingPiece) {
-                        return [r, c];
-                    }
-                }
-            }
-            return null;
-        }
-
-        function isKingInCheck(currentBoard, kingColor) {
-            const kingPiece = kingColor === 'white' ? 'wk' : 'bk';
-            const opponentColor = kingColor === 'white' ? 'b' : 'w';
-            const kingPos = findKing(currentBoard, kingPiece);
-            if (!kingPos) return false;
-            const [kingR, kingC] = kingPos;
-
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const piece = currentBoard[r][c];
-                    if (piece && piece[0] === opponentColor) {
-                        const moves = getPseudoLegalMovesForCheck(currentBoard, r, c, piece);
-                        if (moves.some(move => move[0] === kingR && move[1] === kingC)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        function getPseudoLegalMovesForCheck(currentBoard, row, col, piece) {
-            const moves = [];
-            const color = piece[0];
-            const type = piece[1];
-
-            function addMoveIfValidForCheck(movesArr, r, c, pieceColor, isSingleMove = false) {
-                if (r < 0 || r >= 8 || c < 0 || c >= 8) return false;
-                const targetPiece = currentBoard[r][c];
-                if (targetPiece && targetPiece[0] === pieceColor) return false;
-                movesArr.push([r, c]);
-                if (targetPiece && targetPiece[0] !== pieceColor) return false;
-                return !isSingleMove;
-            }
-
-            switch (type) {
-                case 'p':
-                    const direction = (color === 'w') ? -1 : 1;
-                    if (currentBoard[row + direction]) {
-                        if (col - 1 >= 0 && currentBoard[row + direction][col - 1] && currentBoard[row + direction][col - 1][0] !== color) {
-                            moves.push([row + direction, col - 1]);
-                        }
-                        if (col + 1 < 8 && currentBoard[row + direction][col + 1] && currentBoard[row + direction][col + 1][0] !== color) {
-                            moves.push([row + direction, col + 1]);
-                        }
-                    }
-                    break;
-                case 'r':
-                    for (let i = row + 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, i, col, color)) break; }
-                    for (let i = row - 1; i >= 0; i--) { if (!addMoveIfValidForCheck(moves, i, col, color)) break; }
-                    for (let i = col + 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row, i, color)) break; }
-                    for (let i = col - 1; i >= 0; i--) { if (!addMoveIfValidForCheck(moves, row, i, color)) break; }
-                    break;
-                case 'n':
-                    const knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
-                    knightMoves.forEach(([dr, dc]) => addMoveIfValidForCheck(moves, row + dr, col + dc, color, true));
-                    break;
-                case 'b':
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row + i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row + i, col - i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row - i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row - i, col - i, color)) break; }
-                    break;
-                case 'q':
-                    for (let i = row + 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, i, col, color)) break; }
-                    for (let i = row - 1; i >= 0; i--) { if (!addMoveIfValidForCheck(moves, i, col, color)) break; }
-                    for (let i = col + 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row, i, color)) break; }
-                    for (let i = col - 1; i >= 0; i--) { if (!addMoveIfValidForCheck(moves, row, i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row + i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row + i, col - i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row - i, col + i, color)) break; }
-                    for (let i = 1; i < 8; i++) { if (!addMoveIfValidForCheck(moves, row - i, col - i, color)) break; }
-                    break;
-                case 'k':
-                    const kingMoves = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
-                    kingMoves.forEach(([dr, dc]) => addMoveIfValidForCheck(moves, row + dr, col + dc, color, true));
-                    break;
-            }
-            return moves;
-        }
-
-        function getLegalMoves(startRow, startCol, piece) {
-            const pseudoLegalMoves = getPseudoLegalMoves(startRow, startCol, piece);
-            const legalMoves = [];
-
-            for (const [endR, endC] of pseudoLegalMoves) {
-                const tempBoard = JSON.parse(JSON.stringify(board));
-                const capturedPiece = tempBoard[endR][endC];
-                tempBoard[endR][endC] = tempBoard[startRow][startCol];
-                tempBoard[startRow][startCol] = null;
-
-                // Handle castling
-                if (piece[1] === 'k' && Math.abs(startCol - endC) === 2) {
-                    if (endC === 6) {
-                        tempBoard[startRow][5] = tempBoard[startRow][7];
-                        tempBoard[startRow][7] = null;
-                    } else if (endC === 2) {
-                        tempBoard[startRow][3] = tempBoard[startRow][0];
-                        tempBoard[startRow][0] = null;
-                    }
-                }
-
-                if (!isKingInCheck(tempBoard, currentPlayer)) {
-                    legalMoves.push([endR, endC]);
-                }
-            }
-            return legalMoves;
-        }
-
-        function makeMove(startRow, startCol, endRow, endCol) {
-            const pieceToMove = board[startRow][startCol];
-            const capturedPiece = board[endRow][endCol];
-
-            // Handle castling
-            if (pieceToMove[1] === 'k' && Math.abs(startCol - endCol) === 2) {
-                if (endCol === 6) { // Kingside
-                    board[startRow][5] = board[startRow][7];
-                    board[startRow][7] = null;
-                } else if (endCol === 2) { // Queenside
-                    board[startRow][3] = board[startRow][0];
-                    board[startRow][0] = null;
-                }
-            }
-
-            board[endRow][endCol] = pieceToMove;
-            board[startRow][startCol] = null;
-
-            // Update castling availability
-            if (pieceToMove === 'wk') {
-                castleAvailability.white.kingside = false;
-                castleAvailability.white.queenside = false;
-            } else if (pieceToMove === 'bk') {
-                castleAvailability.black.kingside = false;
-                castleAvailability.black.queenside = false;
-            } else if (pieceToMove === 'wr') {
-                if (startRow === 7 && startCol === 7) castleAvailability.white.kingside = false;
-                else if (startRow === 7 && startCol === 0) castleAvailability.white.queenside = false;
-            } else if (pieceToMove === 'br') {
-                if (startRow === 0 && startCol === 7) castleAvailability.black.kingside = false;
-                else if (startRow === 0 && startCol === 0) castleAvailability.black.queenside = false;
-            }
-
-            if (capturedPiece) {
-                playSound('capture');
-            } else {
-                playSound('move');
-            }
-
-            // Pawn promotion
-            if (pieceToMove[1] === 'p' && ((currentPlayer === 'white' && endRow === 0) || (currentPlayer === 'black' && endRow === 7))) {
-                board[endRow][endCol] = currentPlayer === 'white' ? 'wq' : 'bq';
-            }
-
-            currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-            chessboard.orientation(currentPlayer === 'white' ? 'white' : 'black');
-            
-            if (timeControlEnabled) {
-                stopTimer();
-                startTimer();
-            }
-
-            checkGameStatus();
-            chessboard.position(boardToFen(board));
-        }
-
-        function checkGameStatus() {
-            const playerWhoseTurnItIs = currentPlayer;
-            const playerWhoJustMoved = currentPlayer === 'white' ? 'black' : 'white';
-
-            if (isKingInCheck(board, playerWhoseTurnItIs)) {
-                playSound('check');
-                let hasLegalMoves = false;
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        const piece = board[r][c];
-                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
-                            if (getLegalMoves(r, c, piece).length > 0) {
-                                hasLegalMoves = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (hasLegalMoves) break;
-                }
-
-                if (!hasLegalMoves) {
-                    isGameOver = true;
-                    stopTimer();
-                    playSound('mate');
-                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is checkmated! ${capitalize(playerWhoJustMoved)} wins!`);
-                    return;
-                } else {
-                    updateStatus(`${capitalize(playerWhoseTurnItIs)} is in check! ${capitalize(playerWhoseTurnItIs)} to move.`);
-                }
-            } else {
-                let hasLegalMoves = false;
-                for (let r = 0; r < 8; r++) {
-                    for (let c = 0; c < 8; c++) {
-                        const piece = board[r][c];
-                        if (piece && piece[0] === playerWhoseTurnItIs[0]) {
-                            if (getLegalMoves(r, c, piece).length > 0) {
-                                hasLegalMoves = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (hasLegalMoves) break;
-                }
-
-                if (!hasLegalMoves) {
-                    isGameOver = true;
-                    stopTimer();
-                    updateStatus(`Stalemate! It's a draw.`);
-                    return;
-                }
-
-                updateStatus(`${capitalize(playerWhoseTurnItIs)} to move`);
-            }
-        }
-
-        function updateStatus(message) {
-            statusDisplay.textContent = message;
-        }
-
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        startGameButton.addEventListener('click', () => {
-            startGameScreen.classList.add('hidden-game-content');
-            mainGameContent.classList.remove('hidden-game-content');
-            initializeBoard();
-        });
-
-        resetButton.addEventListener('click', initializeBoard);
-
-        timeControlRadios.forEach(radio => {
-            radio.addEventListener('change', initializeBoard);
-        });
-
-        window.onload = function() {
-            document.documentElement.addEventListener('mousedown', () => {
-                if (Tone.context.state !== 'running') {
-                    Tone.start();
-                }
-            }, { once: true });
-
-            startGameScreen.classList.remove('hidden-game-content');
-            mainGameContent.classList.add('hidden-game-content');
-        };
-    </script>
+    const cfg = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd,
+      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+    };
+    board = Chessboard('board', cfg);
+    startGame();
+  </script>
 </body>
 </html>
