@@ -1,213 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Minimal Chess</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/chessboard-1.0.0.min.css" rel="stylesheet"/>
   <style>
-    body { background: #222; color: #ddd; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
-    #board { width: 100%; max-width: 500px; }
-    #controls { margin: 10px 0; display: flex; gap: 10px; }
-    button { background: #444; color: #ddd; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; }
-    button:hover { background: #555; }
-    #status { font-size: 1.2em; margin: 10px 0; }
-    #timers { display: flex; justify-content: space-between; width: 100%; max-width: 500px; font-size: 1.1em; }
-    .highlight-legal { background: rgba(0, 255, 0, 0.3); }
-    .check { background: orange !important; }
-    .checkmate { background: red !important; }
-    img[data-piece^='b'] { transform: rotate(180deg); }
-    @media (max-width: 600px) { #timers { flex-direction: column; align-items: center; } }
+    body {
+      background: #121212;
+      color: #eee;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    #board {
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    #status, #timers, #controls {
+      margin: 10px;
+      text-align: center;
+    }
+    .highlight {
+      background-color: rgba(0, 255, 0, 0.4) !important;
+    }
+    .check {
+      background-color: orange !important;
+    }
+    .checkmate {
+      background-color: red !important;
+    }
+    .clock {
+      font-size: 1.2em;
+      margin: 5px;
+    }
+    button {
+      margin: 5px;
+      padding: 8px 16px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      #board {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
+  <h1>Minimal Chess</h1>
   <div id="board"></div>
+  <div id="status">Game loading...</div>
   <div id="timers">
-    <div>White: <span id="whiteTime">10:00</span></div>
-    <div>Black: <span id="blackTime">10:00</span></div>
+    <div class="clock" id="white-timer">White: 10:00</div>
+    <div class="clock" id="black-timer">Black: 10:00</div>
   </div>
-  <div id="status">White to move</div>
   <div id="controls">
-    <button onclick="startGame()">Start Game</button>
-    <button onclick="toggleTimer()">Toggle Timer (10 min)</button>
-    <button onclick="resetGame()">Reset</button>
+    <button id="startBtn">Start Game</button>
+    <button id="toggleTimerBtn">Toggle Timer</button>
+    <button id="resetBtn">Reset</button>
   </div>
+
   <script>
-    const game = new Chess();
-    let board, whiteTime, blackTime, timerInterval, useTimer = true;
+    let board, game, timerActive = false;
+    let whiteTime = 600, blackTime = 600, interval = null;
     let selectedSquare = null;
 
-    const moveSound = new Tone.Player("https://freesound.org/data/previews/156/156641_2862863-lq.mp3").toDestination();
-    const captureSound = new Tone.Player("https://freesound.org/data/previews/91/91924_1408674-lq.mp3").toDestination();
-    const checkSound = new Tone.Player("https://freesound.org/data/previews/320/320146_5260872-lq.mp3").toDestination();
-    const mateSound = new Tone.Sequence((time, note) => {
-      new Tone.Synth({ oscillator: { type: 'sine' } }).toDestination().triggerAttackRelease(note, 0.2, time);
-    }, ["C4", "G4"], 1).start(0);
+    const synth = new Tone.Synth().toDestination();
 
-    function formatTime(seconds) {
-      const min = Math.floor(seconds / 60);
-      const sec = seconds % 60;
-      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
-
-    function startTimer() {
-      clearInterval(timerInterval);
-      whiteTime = useTimer ? 600 : Infinity;
-      blackTime = useTimer ? 600 : Infinity;
-      document.getElementById('whiteTime').textContent = formatTime(whiteTime);
-      document.getElementById('blackTime').textContent = formatTime(blackTime);
-      timerInterval = setInterval(() => {
-        if (game.turn() === 'w' && useTimer) {
-          whiteTime--;
-          document.getElementById('whiteTime').textContent = formatTime(whiteTime);
-          if (whiteTime <= 0) endGame('Black wins by time');
-        } else if (game.turn() === 'b' && useTimer) {
-          blackTime--;
-          document.getElementById('blackTime').textContent = formatTime(blackTime);
-          if (blackTime <= 0) endGame('White wins by time');
-        }
-      }, 1000);
-    }
-
-    function toggleTimer() {
-      useTimer = !useTimer;
-      document.getElementById('whiteTime').textContent = useTimer ? '10:00' : '∞';
-      document.getElementById('blackTime').textContent = useTimer ? '10:00' : '∞';
-      if (!useTimer) clearInterval(timerInterval);
-      else if (!game.game_over()) startTimer();
+    function playSound(type) {
+      if (type === 'move') synth.triggerAttackRelease("C4", "8n");
+      else if (type === 'capture') synth.triggerAttackRelease("G4", "8n");
+      else if (type === 'check') synth.triggerAttackRelease("E4", "8n");
+      else if (type === 'mate') {
+        synth.triggerAttackRelease("C4", "8n");
+        setTimeout(() => synth.triggerAttackRelease("G4", "8n"), 200);
+      }
     }
 
     function updateStatus() {
-      let status = game.turn() === 'w' ? 'White to move' : 'Black to move';
-      document.querySelectorAll('.square-55d63').forEach(square => square.classList.remove('check', 'checkmate'));
+      let status = '';
+      let moveColor = game.turn() === 'w' ? 'White' : 'Black';
+
       if (game.in_checkmate()) {
-        status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
-        const kingSquare = game.king_square && document.querySelector(`.square-${game.king_square}`);
-        mateSound.start();
-        clearInterval(timerInterval);
-      } else if (game.in_check()) {
-        status += ' (Check)';
-        checkSound.start();
+        status = `Checkmate! ${moveColor} loses.`;
+        playSound('mate');
+        stopTimer();
       } else if (game.in_draw()) {
-        status = 'Draw!';
-        clearInterval(timerInterval);
-      } else if (game.in_stalemate()) {
-        status = 'Stalemate!';
-        clearInterval(timerInterval);
+        status = "Draw!";
+        stopTimer();
+      } else {
+        status = `${moveColor} to move.`;
+        if (game.in_check()) {
+          status += ' Check!';
+          playSound('check');
+        }
       }
-      document.getElementById('status').textContent = status;
+      $('#status').text(status);
+      highlightKing();
     }
 
-    function showLegalMoves(square) {
-      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
-      if (!game.game_over() && game.get(square)) {
-        const moves = game.moves({ square: square, verbose: true });
-        moves.forEach(move => {
-          document.querySelector(`.square-${move.to}`)?.classList.add('highlight-legal');
-        });
-      }
+    function highlightKing() {
+      board.removeGreySquares();
+      let kingSquare = game.turn() === 'w' ? game.board().flat().find(p => p && p.type === 'k' && p.color === 'w') :
+                                             game.board().flat().find(p => p && p.type === 'k' && p.color === 'b');
+      if (!kingSquare) return;
+      let square = game.SQUARES.find(sq => game.get(sq) && game.get(sq).type === 'k' && game.get(sq).color === game.turn());
+      if (game.in_checkmate()) board.setSquareStyles({ [square]: { backgroundColor: 'red' } });
+      else if (game.in_check()) board.setSquareStyles({ [square]: { backgroundColor: 'orange' } });
+    }
+
+    function updateTimers() {
+      const format = t => {
+        const m = String(Math.floor(t / 60)).padStart(2, '0');
+        const s = String(t % 60).padStart(2, '0');
+        return `${m}:${s}`;
+      };
+      $('#white-timer').text(`White: ${format(whiteTime)}`);
+      $('#black-timer').text(`Black: ${format(blackTime)}`);
+    }
+
+    function startTimer() {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (!timerActive) return;
+        if (game.turn() === 'w') whiteTime--;
+        else blackTime--;
+
+        if (whiteTime <= 0 || blackTime <= 0) {
+          $('#status').text(`${whiteTime <= 0 ? 'White' : 'Black'} loses on time.`);
+          stopTimer();
+        }
+
+        updateTimers();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+      interval = null;
+      timerActive = false;
     }
 
     function onDragStart(source, piece) {
-      if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-      }
-      showLegalMoves(source);
-      selectedSquare = source;
-      return true;
+      if (game.game_over()) return false;
+      if ((game.turn() === 'w' && piece.startsWith('b')) ||
+          (game.turn() === 'b' && piece.startsWith('w'))) return false;
     }
 
     function onDrop(source, target) {
-      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
       const move = game.move({ from: source, to: target, promotion: 'q' });
-      if (move === null) return 'snapback';
-      if (move.captured) captureSound.start();
-      else moveSound.start();
-      board.position(game.fen());
-      bindSquareClicks();
+      if (!move) return 'snapback';
+
+      playSound(move.captured ? 'capture' : 'move');
       updateStatus();
-      selectedSquare = null;
-      return null;
+      startTimer();
     }
 
     function onSnapEnd() {
       board.position(game.fen());
     }
 
-    // NEW FUNCTION: handle clicks manually
-    function bindSquareClicks() {
-      document.querySelectorAll('.square-55d63').forEach(squareEl => {
-        squareEl.addEventListener('mousedown', (e) => {
-          const square = squareEl.classList[1].replace('square-', '');
-          onSquareClick(square);
-        });
-      });
-    }
-
     function onSquareClick(square) {
-      if (game.game_over()) return;
-
-      const piece = game.get(square);
-
-      if (selectedSquare && document.querySelector(`.square-${square}`).classList.contains('highlight-legal')) {
+      if (selectedSquare) {
         const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
         if (move) {
-          if (move.captured) captureSound.start();
-          else moveSound.start();
+          playSound(move.captured ? 'capture' : 'move');
           board.position(game.fen());
-          bindSquareClicks();
+          selectedSquare = null;
+          board.removeGreySquares();
           updateStatus();
+          return;
         }
-        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
+      }
+
+      const piece = game.get(square);
+      if (!piece || piece.color !== game.turn()) {
         selectedSquare = null;
+        board.removeGreySquares();
         return;
       }
 
-      if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
-        selectedSquare = square;
-        showLegalMoves(square);
-      } else {
-        selectedSquare = null;
-        document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
-      }
+      selectedSquare = square;
+      board.removeGreySquares();
+      const moves = game.moves({ square, verbose: true });
+      const squares = {};
+      moves.forEach(m => squares[m.to] = { backgroundColor: 'rgba(0,255,0,0.4)' });
+      board.setSquareStyles(squares);
     }
 
     function startGame() {
-      game.reset();
+      game = new Chess();
       board.position('start');
+      whiteTime = blackTime = 600;
+      timerActive = true;
+      updateTimers();
       updateStatus();
       startTimer();
-      document.querySelectorAll('.highlight-legal').forEach(el => el.classList.remove('highlight-legal'));
-      selectedSquare = null;
-      bindSquareClicks(); // <- Important
     }
 
     function resetGame() {
+      stopTimer();
       startGame();
     }
 
-    function endGame(message) {
-      document.getElementById('status').textContent = message;
-      clearInterval(timerInterval);
-    }
+    $(function () {
+      game = new Chess();
 
-    const cfg = {
-      draggable: true,
-      position: 'start',
-      onDragStart: onDragStart,
-      onDrop: onDrop,
-      onSnapEnd: onSnapEnd,
-      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+      board = Chessboard('board', {
+        draggable: true,
+        position: 'start',
+        onDragStart,
+        onDrop,
+        onSnapEnd,
+        orientation: 'white',
+        onSquareClick
+      });
+
+      $('#startBtn').click(startGame);
+      $('#toggleTimerBtn').click(() => timerActive = !timerActive);
+      $('#resetBtn').click(resetGame);
+
+      startGame();
+    });
+
+    Chessboard.prototype.removeGreySquares = function () {
+      this.setSquareStyles({});
     };
-
-    board = Chessboard('board', cfg);
-    bindSquareClicks(); // <- Important
-    startGame();
   </script>
 </body>
 </html>
