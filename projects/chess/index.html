@@ -18,20 +18,36 @@
     #status { font-size: 1.2em; margin: 10px 0; }
     #timers { display: flex; justify-content: space-between; width: 100%; max-width: 500px; font-size: 1.1em; }
     .highlight-legal { background-color: rgba(0, 255, 0, 0.3) !important; }
-    .highlight-check { background-color: rgba(255, 165, 0, 0.7) !important; }
-    .highlight-checkmate { background-color: rgba(255, 0, 0, 0.7) !important; }
+    .highlight-check { background-color: #FFA500 !important; } /* Orange for check */
+    .highlight-checkmate { background-color: #FF0000 !important; } /* Red for checkmate */
     .black-piece-rotate { transform: rotate(180deg); }
     @media (max-width: 600px) { #timers { flex-direction: column; align-items: center; } }
+    #menuModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    #menuContent { background: #333; padding: 20px; border-radius: 8px; text-align: center; }
+    #menuContent button { margin: 10px; }
+    #menuContent input { margin: 10px; padding: 8px; width: 80%; background: #555; color: #ddd; border: none; border-radius: 4px; }
+    #menuContent input:focus { outline: none; }
   </style>
 </head>
 <body>
-  <div id="board"></div>
-  <div id="timers">
+  <div id="menuModal">
+    <div id="menuContent">
+      <h2>Chess Game</h2>
+      <button onclick="startNewGame()">1. Start New Game</button>
+      <button onclick="showResumeInput()">2. Resume Game</button>
+      <div id="resumeInput" style="display: none;">
+        <input type="text" id="positionInput" placeholder="Enter position (e.g., WKa2, BKb3)">
+        <button onclick="resumeGame()">Load Position</button>
+      </div>
+    </div>
+  </div>
+  <div id="board" style="display: none;"></div>
+  <div id="timers" style="display: none;">
     <div>White: <span id="whiteTime">10:00</span></div>
     <div>Black: <span id="blackTime">10:00</div>
   </div>
-  <div id="status">White to move</div>
-  <div id="controls">
+  <div id="status" style="display: none;">White to move</div>
+  <div id="controls" style="display: none;">
     <button onclick="startGame()">Start Game</button>
     <button onclick="toggleTimer()">Toggle Timer (10 min)</button>
     <button onclick="resetGame()">Reset</button>
@@ -156,15 +172,12 @@
     }
 
     function onDrop(source, target) {
+      clearLegalHighlights();
       const move = game.move({ from: source, to: target, promotion: 'q' });
-      if (move === null) {
-        clearLegalHighlights();
-        return 'snapback';
-      }
+      if (move === null) return 'snapback';
       if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
       else moveSound.triggerAttackRelease('C4', 0.1);
       board.position(game.fen());
-      clearLegalHighlights();
       updateStatus();
       return null;
     }
@@ -177,32 +190,299 @@
       if (game.game_over()) return;
 
       const piece = game.get(square);
-      if (selectedSquare && $(`#board .square-${square}`).hasClass('highlight-legal')) {
-        const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
-        if (move === null) return;
-        if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
-        else moveSound.triggerAttackRelease('C4', 0.1);
-        board.position(game.fen());
-        clearLegalHighlights();
-        updateStatus();
-      } else if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
+
+      if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
         highlightLegalMoves(square);
-      } else {
-        clearLegalHighlights();
+      } else if (selectedSquare) {
+        const moves = game.moves({ square: selectedSquare, verbose: true });
+        const isLegalMove = moves.some(move => move.to === square);
+        if (isLegalMove) {
+          const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+          if (move !== null) {
+            if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
+            else moveSound.triggerAttackRelease('C4', 0.1);
+            board.position(game.fen());
+            clearLegalHighlights();
+            updateStatus();
+          }
+        } else {
+          if (!piece || (piece && ((game.turn() === 'w' && piece.color !== 'w') || (game.turn() === 'b' && piece.color !== 'b')))) {
+            clearLegalHighlights();
+          }
+        }
       }
     }
 
-    function startGame() {
+    function parsePositionInput(input) {
+      const pieces = input.split(',').map(p => p.trim());
+      const pieceMap = { WK: 'K', WQ: 'Q', WR: 'R', WB: 'B', WN: 'N', WP: 'P', BK: 'k', BQ: 'q', BR: 'r', BB: 'b', BN: 'n', BP: 'p' };
+      let fenBoard = Array(64).fill('');
+      pieces.forEach(piece => {
+        const match = piece.match(/^(W|B)([KQRBNP])([a-h][1-8])$/);
+        if (match) {
+          const color = match[1], type = match[2], square = match[3];
+          const squareIndex = (8 - parseInt(square[1])) * 8 + (square.charCodeAt(0) - 'a'.charCodeAt(0));
+          fenBoard[squareIndex] = pieceMap[color + type];
+        }
+      });
+      const fenRows = [];
+      for (let i = 0; i < 64; i += 8) {
+        let row = fenBoard.slice(i, i + 8);
+        let fenRow = '';
+        let emptyCount = 0;
+        for (let square of row) {
+          if (square) {
+            if (emptyCount > 0) {
+              fenRow += emptyCount;
+              emptyCount = 0;
+            }
+            fenRow += square;
+          } else {
+            emptyCount++;
+          }
+        }
+        if (emptyCount > 0) fenRow += emptyCount;
+        fenRows.push(fenRow);
+      }
+      return fenRows.join('/') + ' w - - 0 1';
+    }
+
+    function startNewGame() {
       game.reset();
       board.position('start');
       clearLegalHighlights();
       updateStatus();
       startTimer();
       applyBlackPieceRotation();
+      showGame();
+    }
+
+    function showResumeInput() {
+      document.getElementById('resumeInput').style.display = 'block';
+    }
+
+    function resumeGame() {
+      const input = document.getElementById('positionInput').value;
+      try {
+        const fen = parsePositionInput(input);
+        if (game.load(fen)) {
+          board.position(game.fen());
+          clearLegalHighlights();
+          updateStatus();
+          startTimer();
+          applyBlackPieceRotation();
+          showGame();
+        } else {
+          alert('Invalid position. Please use format like: WKa2, BKb3');
+        }
+      } catch (e) {
+        alert('Invalid position format. Please use format like: WKa2, BKb3');
+      }
+    }
+
+    function showGame() {
+      document.getElementById('menuModal').style.display = 'none';
+      document.getElementById('board').style.display = 'block';
+      document.getElementById('tim10:00' : '∞';
+      document.getElementById('blackTime').textContent = useTimer ? '10:00' : '∞';
+      if (!useTimer) clearInterval(timerInterval);
+      else if (game.in_progress()) startTimer();
+    }
+
+    function updateStatus() {
+      let status = game.turn() === 'w' ? 'White to move' : 'Black to move';
+      if (game.in_checkmate()) {
+        status = `Checkmate! ${game.turn() === 'w' ? 'Black' : 'White'} wins!`;
+        Tone.Transport.start();
+        checkmateSound.start();
+        setTimeout(() => Tone.Transport.stop(), 2000);
+        clearInterval(timerInterval);
+      } else if (game.in_check()) {
+        status += ' (Check)';
+        checkSound.triggerAttackRelease('C4', 0.5);
+      } else if (game.in_draw()) {
+        status = 'Draw!';
+        clearInterval(timerInterval);
+      } else if (game.in_stalemate()) {
+        status = 'Stalemate!';
+        clearInterval(timerInterval);
+      }
+      document.getElementById('status').textContent = status;
+      updateBoardHighlights();
+    }
+
+    function updateBoardHighlights() {
+      $('.square-55d63').removeClass('highlight-check highlight-checkmate');
+      if (game.in_checkmate()) {
+        const kingSquare = game.turn() === 'w' ? game.king_square('w') : game.king_square('b');
+        $(`#board .square-${kingSquare}`).addClass('highlight-checkmate');
+      } else if (game.in_check()) {
+        const kingSquare = game.turn() === 'w' ? game.king_square('w') : game.king_square('b');
+        $(`#board .square-${kingSquare}`).addClass('highlight-check');
+      }
+    }
+
+    function clearLegalHighlights() {
+      $('.square-55d63').removeClass('highlight-legal');
+      selectedSquare = null;
+    }
+
+    function highlightLegalMoves(square) {
+      clearLegalHighlights();
+      selectedSquare = square;
+      const moves = game.moves({ square: square, verbose: true });
+      moves.forEach(move => {
+        $(`#board .square-${move.to}`).addClass('highlight-legal');
+      });
+    }
+
+    function endGame(message) {
+      document.getElementById('status').textContent = message;
+      clearInterval(timerInterval);
+      board.position(game.fen());
+      updateBoardHighlights();
+      clearLegalHighlights();
+    }
+
+    function onDragStart(source, piece) {
+      if (game.game_over() || (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+      highlightLegalMoves(source);
+      return true;
+    }
+
+    function onDrop(source, target) {
+      clearLegalHighlights();
+      const move = game.move({ from: source, to: target, promotion: 'q' });
+      if (move === null) return 'snapback';
+      if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
+      else moveSound.triggerAttackRelease('C4', 0.1);
+      board.position(game.fen());
+      updateStatus();
+      return null;
+    }
+
+    function onSnapEnd() {
+      board.position(game.fen());
+    }
+
+    function onSquareClick(square) {
+      if (game.game_over()) return;
+
+      const piece = game.get(square);
+
+      if (piece && ((game.turn() === 'w' && piece.color === 'w') || (game.turn() === 'b' && piece.color === 'b'))) {
+        highlightLegalMoves(square);
+      } else if (selectedSquare) {
+        const moves = game.moves({ square: selectedSquare, verbose: true });
+        const isLegalMove = moves.some(move => move.to === square);
+        if (isLegalMove) {
+          const move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+          if (move !== null) {
+            if (move.captured) captureSound.triggerAttackRelease('E4', 0.2);
+            else moveSound.triggerAttackRelease('C4', 0.1);
+            board.position(game.fen());
+            clearLegalHighlights();
+            updateStatus();
+          }
+        } else {
+          if (!piece || (piece && ((game.turn() === 'w' && piece.color !== 'w') || (game.turn() === 'b' && piece.color !== 'b')))) {
+            clearLegalHighlights();
+          }
+        }
+      }
+    }
+
+    function parsePositionInput(input) {
+      const pieces = input.split(',').map(p => p.trim());
+      const pieceMap = { WK: 'K', WQ: 'Q', WR: 'R', WB: 'B', WN: 'N', WP: 'P', BK: 'k', BQ: 'q', BR: 'r', BB: 'b', BN: 'n', BP: 'p' };
+      let fenBoard = Array(64).fill('');
+      pieces.forEach(piece => {
+        const match = piece.match(/^(W|B)([KQRBNP])([a-h][1-8])$/);
+        if (match) {
+          const color = match[1], type = match[2], square = match[3];
+          const squareIndex = (8 - parseInt(square[1])) * 8 + (square.charCodeAt(0) - 'a'.charCodeAt(0));
+          fenBoard[squareIndex] = pieceMap[color + type];
+        }
+      });
+      const fenRows = [];
+      for (let i = 0; i < 64; i += 8) {
+        let row = fenBoard.slice(i, i + 8);
+        let fenRow = '';
+        let emptyCount = 0;
+        for (let square of row) {
+          if (square) {
+            if (emptyCount > 0) {
+              fenRow += emptyCount;
+              emptyCount = 0;
+            }
+            fenRow += square;
+          } else {
+            emptyCount++;
+          }
+        }
+        if (emptyCount > 0) fenRow += emptyCount;
+        fenRows.push(fenRow);
+      }
+      return fenRows.join('/') + ' w - - 0 1';
+    }
+
+    function startNewGame() {
+      game.reset();
+      board.position('start');
+      clearLegalHighlights();
+      updateStatus();
+      startTimer();
+      applyBlackPieceRotation();
+      showGame();
+    }
+
+    function showResumeInput() {
+      document.getElementById('resumeInput').style.display = 'block';
+    }
+
+    function resumeGame() {
+      const input = document.getElementById('positionInput').value;
+      try {
+        const fen = parsePositionInput(input);
+        if (game.load(fen)) {
+          board.position(game.fen());
+          clearLegalHighlights();
+          updateStatus();
+          startTimer();
+          applyBlackPieceRotation();
+          showGame();
+        } else {
+          alert('Invalid position. Please use format like: WKa2, BKb3');
+        }
+      } catch (e) {
+        alert('Invalid position format. Please use format like: WKa2, BKb3');
+      }
+    }
+
+    function showGame() {
+      document.getElementById('menuModal').style.display = 'none';
+      document.getElementById('board').style.display = 'block';
+      document.getElementById('timers').style.display = 'flex';
+      document.getElementById('status').style.display = 'block';
+      document.getElementById('controls').style.display = 'flex';
+    }
+
+    function startGame() {
+      startNewGame();
     }
 
     function resetGame() {
-      startGame();
+      document.getElementById('menuModal').style.display = 'flex';
+      document.getElementById('board').style.display = 'none';
+      document.getElementById('timers').style.display = 'none';
+      document.getElementById('status').style.display = 'none';
+      document.getElementById('controls').style.display = 'none';
+      document.getElementById('resumeInput').style.display = 'none';
+      document.getElementById('positionInput').value = '';
+      clearInterval(timerInterval);
     }
 
     function applyBlackPieceRotation() {
@@ -226,14 +506,6 @@
       pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
     };
     board = Chessboard('board', cfg);
-    startGame();
-
-    // Ensure black pieces are rotated after board updates
-    board.position('start', false);
-    applyBlackPieceRotation();
-    $(document).on('click', () => {
-      setTimeout(applyBlackPieceRotation, 0);
-    });
   </script>
 </body>
 </html>
